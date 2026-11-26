@@ -203,6 +203,225 @@ class CognitiveDerivationEnginePid5FacetTest {
         assertThat(withdrawn.connectiveBias()).isLessThan(engaged.connectiveBias());
     }
 
+    // --- Extended PID-5 facets (Tier 1) ---
+
+    @Test
+    void moodBaseline_anhedoniaReducesPleasure() {
+        var high = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.ANHEDONIA, 0.9));
+        var low = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.ANHEDONIA, 0.1));
+        assertThat(high.pleasure()).isLessThan(low.pleasure());
+    }
+
+    @Test
+    void moodBaseline_anhedoniaReducesArousal() {
+        var high = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.ANHEDONIA, 0.9));
+        var low = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.ANHEDONIA, 0.1));
+        assertThat(high.arousal()).isLessThan(low.arousal());
+    }
+
+    @Test
+    void moodBaseline_depressivityReducesPleasure() {
+        var high = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.DEPRESSIVITY, 0.9));
+        var low = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.DEPRESSIVITY, 0.1));
+        assertThat(high.pleasure()).isLessThan(low.pleasure());
+    }
+
+    @Test
+    void moodBaseline_depressivityReducesDominance() {
+        var high = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.DEPRESSIVITY, 0.9));
+        var low = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.DEPRESSIVITY, 0.1));
+        assertThat(high.dominance()).isLessThan(low.dominance());
+    }
+
+    @Test
+    void moodBaseline_separationInsecurityIncreasesArousal() {
+        var high = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.SEPARATION_INSECURITY, 0.9));
+        var low = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.SEPARATION_INSECURITY, 0.1));
+        assertThat(high.arousal()).isGreaterThan(low.arousal());
+    }
+
+    @Test
+    void moodBaseline_attentionSeekingIncreasesArousal() {
+        var high = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.ATTENTION_SEEKING, 0.9));
+        var low = CognitiveDerivationEngine.deriveMoodBaseline(DEFAULT_AXES, facetsOf(PersonalityFacet.ATTENTION_SEEKING, 0.1));
+        assertThat(high.arousal()).isGreaterThan(low.arousal());
+    }
+
+    @Test
+    void recurringThought_depressivityLowersRumination() {
+        var high = CognitiveDerivationEngine.deriveRecurringThoughtConfig(facetsOf(PersonalityFacet.DEPRESSIVITY, 0.9), DEFAULT_AXES);
+        var low = CognitiveDerivationEngine.deriveRecurringThoughtConfig(facetsOf(PersonalityFacet.DEPRESSIVITY, 0.1), DEFAULT_AXES);
+        assertThat(high.ruminationThreshold()).isLessThan(low.ruminationThreshold());
+    }
+
+    @Test
+    void recurringThought_perseverationLowersFixation() {
+        var high = CognitiveDerivationEngine.deriveRecurringThoughtConfig(facetsOf(PersonalityFacet.PERSEVERATION, 0.9), DEFAULT_AXES);
+        var low = CognitiveDerivationEngine.deriveRecurringThoughtConfig(facetsOf(PersonalityFacet.PERSEVERATION, 0.1), DEFAULT_AXES);
+        assertThat(high.fixationThreshold()).isLessThan(low.fixationThreshold());
+    }
+
+    @Test
+    void recurringThought_rigidPerfectionismLowersFixation() {
+        var high = CognitiveDerivationEngine.deriveRecurringThoughtConfig(facetsOf(PersonalityFacet.RIGID_PERFECTIONISM, 0.9), DEFAULT_AXES);
+        var low = CognitiveDerivationEngine.deriveRecurringThoughtConfig(facetsOf(PersonalityFacet.RIGID_PERFECTIONISM, 0.1), DEFAULT_AXES);
+        assertThat(high.fixationThreshold()).isLessThan(low.fixationThreshold());
+    }
+
+    @Test
+    void recurringThought_separationInsecurityLowersFixation() {
+        var high = CognitiveDerivationEngine.deriveRecurringThoughtConfig(facetsOf(PersonalityFacet.SEPARATION_INSECURITY, 0.9), DEFAULT_AXES);
+        var low = CognitiveDerivationEngine.deriveRecurringThoughtConfig(facetsOf(PersonalityFacet.SEPARATION_INSECURITY, 0.1), DEFAULT_AXES);
+        assertThat(high.fixationThreshold()).isLessThan(low.fixationThreshold());
+    }
+
+    @Test
+    void capacity_depressivityReducesWorkingMemory() {
+        var high = CognitiveDerivationEngine.deriveCapacity(BALANCED_PROFILE, facetsOf(PersonalityFacet.DEPRESSIVITY, 0.9));
+        var low = CognitiveDerivationEngine.deriveCapacity(BALANCED_PROFILE, facetsOf(PersonalityFacet.DEPRESSIVITY, 0.1));
+        assertThat(high.workingMemorySpan()).isLessThan(low.workingMemorySpan());
+    }
+
+    @Test
+    void capacity_distractibilityReducesWorkingMemory() {
+        var high = CognitiveDerivationEngine.deriveCapacity(BALANCED_PROFILE, facetsOf(PersonalityFacet.DISTRACTIBILITY, 0.9));
+        var low = CognitiveDerivationEngine.deriveCapacity(BALANCED_PROFILE, facetsOf(PersonalityFacet.DISTRACTIBILITY, 0.1));
+        assertThat(high.workingMemorySpan()).isLessThan(low.workingMemorySpan());
+    }
+
+    @Test
+    void capacity_perseverationReducesAssociativeReach() {
+        var high = CognitiveDerivationEngine.deriveCapacity(BALANCED_PROFILE, facetsOf(PersonalityFacet.PERSEVERATION, 0.9));
+        var low = CognitiveDerivationEngine.deriveCapacity(BALANCED_PROFILE, facetsOf(PersonalityFacet.PERSEVERATION, 0.1));
+        assertThat(high.associativeReach()).isLessThan(low.associativeReach());
+    }
+
+    @Test
+    void searchBudget_anhedoniaReducesDepth() {
+        var high = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.ANHEDONIA, 0.9), DEFAULT_AXES, 0.5);
+        var low = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.ANHEDONIA, 0.1), DEFAULT_AXES, 0.5);
+        assertThat(high.depthMidpoint()).isLessThan(low.depthMidpoint());
+    }
+
+    @Test
+    void searchBudget_perseverationReducesLaterality() {
+        var high = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.PERSEVERATION, 0.9), DEFAULT_AXES, 0.5);
+        var low = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.PERSEVERATION, 0.1), DEFAULT_AXES, 0.5);
+        assertThat(high.lateralityMidpoint()).isLessThan(low.lateralityMidpoint());
+    }
+
+    @Test
+    void searchBudget_perseverationIncreasesConvergence() {
+        var high = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.PERSEVERATION, 0.9), DEFAULT_AXES, 0.5);
+        var low = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.PERSEVERATION, 0.1), DEFAULT_AXES, 0.5);
+        assertThat(high.convergenceMidpoint()).isGreaterThan(low.convergenceMidpoint());
+    }
+
+    @Test
+    void searchBudget_distractibilityReducesDepth() {
+        var high = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.DISTRACTIBILITY, 0.9), DEFAULT_AXES, 0.5);
+        var low = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.DISTRACTIBILITY, 0.1), DEFAULT_AXES, 0.5);
+        assertThat(high.depthMidpoint()).isLessThan(low.depthMidpoint());
+    }
+
+    @Test
+    void searchBudget_distractibilityIncreasesBreadth() {
+        var high = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.DISTRACTIBILITY, 0.9), DEFAULT_AXES, 0.5);
+        var low = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.DISTRACTIBILITY, 0.1), DEFAULT_AXES, 0.5);
+        assertThat(high.breadthSteepness()).isGreaterThan(low.breadthSteepness());
+    }
+
+    @Test
+    void pool_rigidPerfectionismIncreasesMaxEffort() {
+        var high = CognitiveDerivationEngine.derivePoolConfig(facetsOf(PersonalityFacet.RIGID_PERFECTIONISM, 0.9), DEFAULT_AXES);
+        var low = CognitiveDerivationEngine.derivePoolConfig(facetsOf(PersonalityFacet.RIGID_PERFECTIONISM, 0.1), DEFAULT_AXES);
+        assertThat(high.maxEffort()).isGreaterThan(low.maxEffort());
+    }
+
+    @Test
+    void pool_anhedoniaReducesMaxEffort() {
+        var high = CognitiveDerivationEngine.derivePoolConfig(facetsOf(PersonalityFacet.ANHEDONIA, 0.9), DEFAULT_AXES);
+        var low = CognitiveDerivationEngine.derivePoolConfig(facetsOf(PersonalityFacet.ANHEDONIA, 0.1), DEFAULT_AXES);
+        assertThat(high.maxEffort()).isLessThan(low.maxEffort());
+    }
+
+    // --- Extended PID-5 facets (Tier 2) ---
+
+    @Test
+    void extractionBias_restrictedAffectivityReducesAffectSensitivity() {
+        var high = CognitiveDerivationEngine.deriveExtractionBias(BALANCED_PROFILE, facetsOf(PersonalityFacet.RESTRICTED_AFFECTIVITY, 0.9));
+        var low = CognitiveDerivationEngine.deriveExtractionBias(BALANCED_PROFILE, facetsOf(PersonalityFacet.RESTRICTED_AFFECTIVITY, 0.1));
+        assertThat(high.affectSensitivity()).isLessThan(low.affectSensitivity());
+    }
+
+    @Test
+    void extractionBias_separationInsecurityIncreasesRelationshipBias() {
+        var high = CognitiveDerivationEngine.deriveExtractionBias(BALANCED_PROFILE, facetsOf(PersonalityFacet.SEPARATION_INSECURITY, 0.9));
+        var low = CognitiveDerivationEngine.deriveExtractionBias(BALANCED_PROFILE, facetsOf(PersonalityFacet.SEPARATION_INSECURITY, 0.1));
+        assertThat(high.relationshipBias()).isGreaterThan(low.relationshipBias());
+    }
+
+    @Test
+    void pool_irresponsibilityReducesMaxEffort() {
+        var high = CognitiveDerivationEngine.derivePoolConfig(facetsOf(PersonalityFacet.IRRESPONSIBILITY, 0.9), DEFAULT_AXES);
+        var low = CognitiveDerivationEngine.derivePoolConfig(facetsOf(PersonalityFacet.IRRESPONSIBILITY, 0.1), DEFAULT_AXES);
+        assertThat(high.maxEffort()).isLessThan(low.maxEffort());
+    }
+
+    @Test
+    void searchBudget_eccentricityIncreasesLaterality() {
+        var high = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.ECCENTRICITY, 0.9), DEFAULT_AXES, 0.5);
+        var low = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.ECCENTRICITY, 0.1), DEFAULT_AXES, 0.5);
+        assertThat(high.lateralityMidpoint()).isGreaterThan(low.lateralityMidpoint());
+    }
+
+    @Test
+    void capacity_cogPerceptualDysregulationReducesWorkingMemory() {
+        var high = CognitiveDerivationEngine.deriveCapacity(BALANCED_PROFILE, facetsOf(PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, 0.9));
+        var low = CognitiveDerivationEngine.deriveCapacity(BALANCED_PROFILE, facetsOf(PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, 0.1));
+        assertThat(high.workingMemorySpan()).isLessThan(low.workingMemorySpan());
+    }
+
+    @Test
+    void regulation_depressivityReducesReappraisal() {
+        var axes = new DispositionAxes("independent", "flexible", "measured", "autonomous", "confronting");
+        var high = CognitiveDerivationEngine.deriveRegulationDefaults(axes, facetsOf(PersonalityFacet.DEPRESSIVITY, 0.9));
+        var low = CognitiveDerivationEngine.deriveRegulationDefaults(axes, facetsOf(PersonalityFacet.DEPRESSIVITY, 0.1));
+        assertThat(high.reappraisalCapacity()).isLessThan(low.reappraisalCapacity());
+    }
+
+    @Test
+    void regulation_restrictedAffectivityReducesReappraisal() {
+        var high = CognitiveDerivationEngine.deriveRegulationDefaults(DEFAULT_AXES, facetsOf(PersonalityFacet.RESTRICTED_AFFECTIVITY, 0.9));
+        var low = CognitiveDerivationEngine.deriveRegulationDefaults(DEFAULT_AXES, facetsOf(PersonalityFacet.RESTRICTED_AFFECTIVITY, 0.1));
+        assertThat(high.reappraisalCapacity()).isLessThan(low.reappraisalCapacity());
+    }
+
+    // --- Backfill: Deceitfulness, Attention Seeking ---
+
+    @Test
+    void searchBudget_deceitfulnessIncreasesLaterality() {
+        var high = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.DECEITFULNESS, 0.9), DEFAULT_AXES, 0.5);
+        var low = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.DECEITFULNESS, 0.1), DEFAULT_AXES, 0.5);
+        assertThat(high.lateralityMidpoint()).isGreaterThan(low.lateralityMidpoint());
+    }
+
+    // --- Multicollinearity guard ---
+
+    @Test
+    void multicollinearity_stackedNegativeAffectStaysBounded() {
+        var facets = List.of(
+                new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.9, "test"),
+                new PersonalityFacet(PersonalityFacet.DEPRESSIVITY, 0.9, "test"),
+                new PersonalityFacet(PersonalityFacet.PERSEVERATION, 0.9, "test"),
+                new PersonalityFacet(PersonalityFacet.SEPARATION_INSECURITY, 0.9, "test"));
+        var config = CognitiveDerivationEngine.deriveRecurringThoughtConfig(facets, DEFAULT_AXES);
+        assertThat(config.fixationThreshold()).as("stacked NA should not drive fixation below 0.1")
+                .isGreaterThanOrEqualTo(0.1);
+        assertThat(config.ruminationThreshold()).as("stacked NA should keep rumination positive")
+                .isGreaterThan(0.0);
+    }
+
     // --- Integration: full pipeline with facets ---
 
 

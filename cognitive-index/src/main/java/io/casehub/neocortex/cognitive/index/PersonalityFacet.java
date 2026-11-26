@@ -18,6 +18,18 @@ public record PersonalityFacet(
     public static final String RISK_TAKING = "Risk Taking";
     public static final String IMPULSIVITY = "Impulsivity";
     public static final String WITHDRAWAL = "Withdrawal";
+    public static final String ANHEDONIA = "Anhedonia";
+    public static final String DEPRESSIVITY = "Depressivity";
+    public static final String PERSEVERATION = "Perseveration";
+    public static final String RIGID_PERFECTIONISM = "Rigid Perfectionism";
+    public static final String DISTRACTIBILITY = "Distractibility";
+    public static final String SEPARATION_INSECURITY = "Separation Insecurity";
+    public static final String RESTRICTED_AFFECTIVITY = "Restricted Affectivity";
+    public static final String IRRESPONSIBILITY = "Irresponsibility";
+    public static final String COGNITIVE_PERCEPTUAL_DYSREGULATION = "Cognitive Perceptual Dysregulation";
+    public static final String ECCENTRICITY = "Eccentricity";
+    public static final String SUBMISSIVENESS = "Submissiveness";
+    public static final String UNUSUAL_BELIEFS = "Unusual Beliefs";
 
     public PersonalityFacet {
         if (score < 0.0 || score > 1.0)

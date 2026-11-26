@@ -329,6 +329,22 @@ public final class CognitiveDerivationEngine {
             associative -= (ax - 0.5) * 0.2;
             ctx.mod(PersonalityFacet.IMPULSIVITY, im, "workingMemorySpan", wm0, wmSpan);
             ctx.mod(PersonalityFacet.ANXIOUSNESS, ax, "associativeReach", ar0, associative);
+            // Depressivity — Nikolin 2021 meta (d=0.34-0.65)
+            double dp = facetScore(facets, PersonalityFacet.DEPRESSIVITY, 0.5);
+            wm0 = wmSpan; wmSpan -= (dp - 0.5) * 0.1;
+            ctx.mod(PersonalityFacet.DEPRESSIVITY, dp, "workingMemorySpan", wm0, wmSpan);
+            // Distractibility — Martinussen 2005 meta (d=0.85-1.06 spatial)
+            double dt = facetScore(facets, PersonalityFacet.DISTRACTIBILITY, 0.5);
+            wm0 = wmSpan; wmSpan -= (dt - 0.5) * 0.2;
+            ctx.mod(PersonalityFacet.DISTRACTIBILITY, dt, "workingMemorySpan", wm0, wmSpan);
+            // Cognitive Perceptual Dysregulation — Siddi 2017 meta (67 studies)
+            double cd = facetScore(facets, PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, 0.5);
+            wm0 = wmSpan; wmSpan -= (cd - 0.5) * 0.1;
+            ctx.mod(PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, cd, "workingMemorySpan", wm0, wmSpan);
+            // Perseveration — BMC Psychology 2026 (set-shifting -> divergent thinking)
+            double pv = facetScore(facets, PersonalityFacet.PERSEVERATION, 0.5);
+            ar0 = associative; associative -= (pv - 0.5) * 0.1;
+            ctx.mod(PersonalityFacet.PERSEVERATION, pv, "associativeReach", ar0, associative);
         }
         ctx.output("relationalComplexity", relational);
         ctx.output("associativeReach", associative);
@@ -405,6 +421,26 @@ public final class CognitiveDerivationEngine {
             ctx.mod(PersonalityFacet.RISK_TAKING, rt, "pleasure", p0, pleasure);
             ctx.mod(PersonalityFacet.EMOTIONAL_LABILITY, el, "arousal", a0, arousal);
             ctx.mod(PersonalityFacet.WITHDRAWAL, wd, "dominance", d0, dominance);
+            // Anhedonia — Meehl 1975; Germans & Kring 2000
+            double an = facetScore(facets, PersonalityFacet.ANHEDONIA, 0.5);
+            p0 = pleasure; pleasure -= (an - 0.5) * 0.4;
+            ctx.mod(PersonalityFacet.ANHEDONIA, an, "pleasure", p0, pleasure);
+            a0 = arousal; arousal -= (an - 0.5) * 0.3;
+            ctx.mod(PersonalityFacet.ANHEDONIA, an, "arousal", a0, arousal);
+            // Depressivity — Mehrabian 1996; Seligman 1975
+            double dp = facetScore(facets, PersonalityFacet.DEPRESSIVITY, 0.5);
+            p0 = pleasure; pleasure -= (dp - 0.5) * 0.4;
+            ctx.mod(PersonalityFacet.DEPRESSIVITY, dp, "pleasure", p0, pleasure);
+            d0 = dominance; dominance -= (dp - 0.5) * 0.4;
+            ctx.mod(PersonalityFacet.DEPRESSIVITY, dp, "dominance", d0, dominance);
+            // Separation Insecurity — Mikulincer & Shaver 2003
+            double si = facetScore(facets, PersonalityFacet.SEPARATION_INSECURITY, 0.5);
+            a0 = arousal; arousal += (si - 0.5) * 0.15;
+            ctx.mod(PersonalityFacet.SEPARATION_INSECURITY, si, "arousal", a0, arousal);
+            // Attention Seeking — HPD clinical literature
+            double as = facetScore(facets, PersonalityFacet.ATTENTION_SEEKING, 0.5);
+            a0 = arousal; arousal += (as - 0.5) * 0.1;
+            ctx.mod(PersonalityFacet.ATTENTION_SEEKING, as, "arousal", a0, arousal);
         }
         ctx.output("pleasure", pleasure);
         ctx.output("arousal", arousal);
@@ -448,6 +484,14 @@ public final class CognitiveDerivationEngine {
             ctx.mod(PersonalityFacet.WITHDRAWAL, wd, "STRUCTURAL", s0, weights.get("STRUCTURAL"));
             ctx.mod(PersonalityFacet.IMPULSIVITY, im, "QUALITY", q0, weights.get("QUALITY"));
             ctx.mod(PersonalityFacet.RISK_TAKING, rt, "CENTRALITY", c0, weights.get("CENTRALITY"));
+            // Anhedonia — Silvia 2006: reduced hedonic tone dampens curiosity uniformly
+            double an = facetScore(facets, PersonalityFacet.ANHEDONIA, 0.5);
+            double delta = -(an - 0.5) * 0.15;
+            for (String key : List.of("STRUCTURAL", "QUALITY", "CENTRALITY")) {
+                double before = weights.get(key);
+                weights.merge(key, delta, Double::sum);
+                ctx.mod(PersonalityFacet.ANHEDONIA, an, key, before, weights.get(key));
+            }
         }
         ctx.output("STRUCTURAL", weights.get("STRUCTURAL"));
         ctx.output("QUALITY", weights.get("QUALITY"));
@@ -500,6 +544,16 @@ public final class CognitiveDerivationEngine {
             decayDays     = Math.max(30, decayDays);
             ctx.mod(PersonalityFacet.IMPULSIVITY, im, "minSimilarity", ms0, minSimilarity);
             ctx.mod(PersonalityFacet.RISK_TAKING, rt, "decayDays", dd0, decayDays);
+            // Anhedonia — Neural delay discounting 2025
+            double an = facetScore(facets, PersonalityFacet.ANHEDONIA, 0.5);
+            dd0 = decayDays; decayDays += (int) ((an - 0.5) * 30);
+            decayDays = Math.max(30, decayDays);
+            ctx.mod(PersonalityFacet.ANHEDONIA, an, "decayDays", dd0, decayDays);
+            // Irresponsibility — Manning 2014 (C->patience r=.47)
+            double ir = facetScore(facets, PersonalityFacet.IRRESPONSIBILITY, 0.5);
+            dd0 = decayDays; decayDays += (int) ((ir - 0.5) * 20);
+            decayDays = Math.max(30, decayDays);
+            ctx.mod(PersonalityFacet.IRRESPONSIBILITY, ir, "decayDays", dd0, decayDays);
         }
         ctx.output("minSimilarity", minSimilarity);
         ctx.output("decayDays", decayDays);
@@ -599,6 +653,18 @@ public final class CognitiveDerivationEngine {
             affectSensitivity += (el - 0.5) * 0.2;
             ctx.mod(PersonalityFacet.CALLOUSNESS, ca, "relationshipBias", rb0, relationshipBias);
             ctx.mod(PersonalityFacet.EMOTIONAL_LABILITY, el, "affectSensitivity", as0, affectSensitivity);
+            // Separation Insecurity — Mikulincer & Shaver 2003
+            double si = facetScore(facets, PersonalityFacet.SEPARATION_INSECURITY, 0.5);
+            rb0 = relationshipBias; relationshipBias += (si - 0.5) * 0.15;
+            ctx.mod(PersonalityFacet.SEPARATION_INSECURITY, si, "relationshipBias", rb0, relationshipBias);
+            // Restricted Affectivity — Trevisan 2019 meta (66 samples, r=-.162)
+            double ra = facetScore(facets, PersonalityFacet.RESTRICTED_AFFECTIVITY, 0.5);
+            as0 = affectSensitivity; affectSensitivity -= (ra - 0.5) * 0.2;
+            ctx.mod(PersonalityFacet.RESTRICTED_AFFECTIVITY, ra, "affectSensitivity", as0, affectSensitivity);
+            // Cognitive Perceptual Dysregulation — Ozdemir 2025 meta
+            double cd = facetScore(facets, PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, 0.5);
+            as0 = affectSensitivity; affectSensitivity -= (cd - 0.5) * 0.1;
+            ctx.mod(PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, cd, "affectSensitivity", as0, affectSensitivity);
         }
         ctx.output("relationshipBias", relationshipBias);
         ctx.output("affectSensitivity", affectSensitivity);
@@ -687,6 +753,14 @@ public final class CognitiveDerivationEngine {
             ctx.mod(PersonalityFacet.ANXIOUSNESS, ax, "fearOnsetThreshold", 1.0 + f0 * SCALE_FACTOR, 1.0 + (f0 - (ax - 0.5) * 0.2) * SCALE_FACTOR);
             ctx.mod(PersonalityFacet.RISK_TAKING, rt, "fearOnsetThreshold", 1.0 + (f0 - (ax - 0.5) * 0.2) * SCALE_FACTOR, 1.0 + fearRaw * SCALE_FACTOR);
             ctx.mod(PersonalityFacet.IMPULSIVITY, im, "urgencyWeight", 1.0 + u0 * SCALE_FACTOR, 1.0 + urgencyRaw * SCALE_FACTOR);
+            // Depressivity — Scherer 2022 (N=4859): appraisal bias amplifies threat/loss sensitivity
+            double dp = facetScore(facets, PersonalityFacet.DEPRESSIVITY, 0.5);
+            double f1 = fearRaw; fearRaw -= (dp - 0.5) * 0.2;
+            ctx.mod(PersonalityFacet.DEPRESSIVITY, dp, "fearOnsetThreshold", 1.0 + f1 * SCALE_FACTOR, 1.0 + fearRaw * SCALE_FACTOR);
+            // Separation Insecurity — Downey & Feldman 1996: rejection sensitivity amplifies relevance
+            double si = facetScore(facets, PersonalityFacet.SEPARATION_INSECURITY, 0.5);
+            double r0 = relRaw; relRaw += (si - 0.5) * 0.15;
+            ctx.mod(PersonalityFacet.SEPARATION_INSECURITY, si, "relevanceWeight", 1.0 + r0 * SCALE_FACTOR, 1.0 + relRaw * SCALE_FACTOR);
         }
         ctx.output("urgencyWeight", Math.max(1.0 + urgencyRaw * SCALE_FACTOR, 0.1));
         ctx.output("fearOnsetThreshold", Math.max(1.0 + fearRaw * SCALE_FACTOR, 0.1));
@@ -719,6 +793,18 @@ public final class CognitiveDerivationEngine {
             ctx.mod(PersonalityFacet.IMPULSIVITY, im, "habituationRate", hr0, habRate);
             ctx.mod(PersonalityFacet.RISK_TAKING, rt, "noveltyThreshold", nt0, novelty);
             ctx.mod(PersonalityFacet.IMPULSIVITY, im, "repetitionTolerance", rt0, repTol);
+            // Perseveration — PERCS framework 2026
+            double pv = facetScore(facets, PersonalityFacet.PERSEVERATION, 0.5);
+            hr0 = habRate; habRate -= (pv - 0.5) * 0.1;
+            ctx.mod(PersonalityFacet.PERSEVERATION, pv, "habituationRate", hr0, habRate);
+            rt0 = repTol; repTol += (pv - 0.5) * 1.0;
+            ctx.mod(PersonalityFacet.PERSEVERATION, pv, "repetitionTolerance", rt0, repTol);
+            // Rigid Perfectionism — Stahl 2015 (ERP); Bouchard 2009 (NJR)
+            double rp = facetScore(facets, PersonalityFacet.RIGID_PERFECTIONISM, 0.5);
+            hr0 = habRate; habRate -= (rp - 0.5) * 0.1;
+            ctx.mod(PersonalityFacet.RIGID_PERFECTIONISM, rp, "habituationRate", hr0, habRate);
+            rt0 = repTol; repTol += (rp - 0.5) * 1.0;
+            ctx.mod(PersonalityFacet.RIGID_PERFECTIONISM, rp, "repetitionTolerance", rt0, repTol);
         }
         ctx.output("habituationRate", habRate);
         ctx.output("noveltyThreshold", novelty);
@@ -767,6 +853,22 @@ public final class CognitiveDerivationEngine {
             ctx.mod(PersonalityFacet.EMOTIONAL_LABILITY, el, "reappraisalCapacity", r0, reappraisal);
             ctx.mod(PersonalityFacet.CALLOUSNESS, ca, "socialRegulationTendency", s0, s1);
             ctx.mod(PersonalityFacet.WITHDRAWAL, wd, "socialRegulationTendency", s1, social);
+            // Depressivity — Joormann & Gotlib 2010: WM updating deficit impairs reappraisal
+            double dp = facetScore(facets, PersonalityFacet.DEPRESSIVITY, 0.5);
+            r0 = reappraisal; reappraisal -= (dp - 0.5) * 0.1;
+            ctx.mod(PersonalityFacet.DEPRESSIVITY, dp, "reappraisalCapacity", r0, reappraisal);
+            // Rigid Perfectionism — Vois 2026 (3-wave, N=454): ECP predicts suppression over reappraisal
+            double rp = facetScore(facets, PersonalityFacet.RIGID_PERFECTIONISM, 0.5);
+            r0 = reappraisal; reappraisal -= (rp - 0.5) * 0.1;
+            ctx.mod(PersonalityFacet.RIGID_PERFECTIONISM, rp, "reappraisalCapacity", r0, reappraisal);
+            // Separation Insecurity — PLOS ONE 2018: social anxiety mediation
+            double si = facetScore(facets, PersonalityFacet.SEPARATION_INSECURITY, 0.5);
+            r0 = reappraisal; reappraisal -= (si - 0.5) * 0.1;
+            ctx.mod(PersonalityFacet.SEPARATION_INSECURITY, si, "reappraisalCapacity", r0, reappraisal);
+            // Restricted Affectivity — Preece 2022 (N=501): alexithymia reduces adaptive regulation
+            double ra = facetScore(facets, PersonalityFacet.RESTRICTED_AFFECTIVITY, 0.5);
+            r0 = reappraisal; reappraisal -= (ra - 0.5) * 0.15;
+            ctx.mod(PersonalityFacet.RESTRICTED_AFFECTIVITY, ra, "reappraisalCapacity", r0, reappraisal);
         }
         ctx.output("reappraisalCapacity", Math.max(0.0, Math.min(1.0, reappraisal)));
         ctx.output("socialRegulationTendency", Math.max(0.0, Math.min(1.0, social)));
@@ -818,6 +920,11 @@ public final class CognitiveDerivationEngine {
         double confrontation    = (extraversion + conscientiousness) / 2.0;
         double disengagement    = (neuroticism + (1.0 - conscientiousness)) / 2.0;
         double suppression      = (neuroticism + ruleFollowingNumeric) / 2.0;
+        // Irresponsibility — Connor-Smith 2007 meta (N=33,094): low C -> disengagement coping
+        double irresponsibility = facetScore(facets, PersonalityFacet.IRRESPONSIBILITY, 0.5);
+        double dg0 = disengagement;
+        disengagement += (irresponsibility - 0.5) * 0.2;
+        ctx.mod(PersonalityFacet.IRRESPONSIBILITY, irresponsibility, "disengagementTendency", dg0, disengagement);
 
         planful          = clamp01(planful);
         reinterpretation = clamp01(reinterpretation);
@@ -884,6 +991,27 @@ public final class CognitiveDerivationEngine {
         ctx.base("ruminationThreshold", rumination0);
         double rumination = rumination0 - (isolation - 0.5) * 0.15;
         ctx.mod(PersonalityFacet.WITHDRAWAL, withdrawal, "ruminationThreshold", rumination0, rumination);
+
+        // Depressivity — Nolen-Hoeksema 1991: depressive rumination
+        double depressivity = facetScore(facets, PersonalityFacet.DEPRESSIVITY, 0.5);
+        double rum0 = rumination;
+        rumination -= (depressivity - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.DEPRESSIVITY, depressivity, "ruminationThreshold", rum0, rumination);
+        // Perseveration — Davis & Nolen-Hoeksema 2000 (WCST perseverative errors)
+        double perseveration = facetScore(facets, PersonalityFacet.PERSEVERATION, 0.5);
+        double fix1 = fixation;
+        fixation -= (perseveration - 0.5) * 0.15;
+        ctx.mod(PersonalityFacet.PERSEVERATION, perseveration, "fixationThreshold", fix1, fixation);
+        // Rigid Perfectionism — Xie 2019 meta (k=12, rumination)
+        double rigidPerf = facetScore(facets, PersonalityFacet.RIGID_PERFECTIONISM, 0.5);
+        fix1 = fixation;
+        fixation -= (rigidPerf - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.RIGID_PERFECTIONISM, rigidPerf, "fixationThreshold", fix1, fixation);
+        // Separation Insecurity — Stanton & Campbell 2015
+        double sepInsec = facetScore(facets, PersonalityFacet.SEPARATION_INSECURITY, 0.5);
+        fix1 = fixation;
+        fixation -= (sepInsec - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.SEPARATION_INSECURITY, sepInsec, "fixationThreshold", fix1, fixation);
 
         // DeYoung (2015): open individuals shift attention more fluidly
         double openness       = (1.0 - withdrawal + 1.0 - suspiciousness + riskTaking) / 3.0;
@@ -1094,6 +1222,41 @@ public final class CognitiveDerivationEngine {
         pathologicalThreshold = Math.max(0.5, pathologicalThreshold);
         ctx.mod(PersonalityFacet.ANXIOUSNESS, anxiousness, "pathologicalThreshold", pathologicalThreshold0, pathologicalThreshold);
 
+        // Anhedonia — Pillny 2026 meta (g=-0.28): reduced sustained engagement
+        double anhedonia = facetScore(facets, PersonalityFacet.ANHEDONIA, 0.5);
+        double dm0 = depthMidpoint; depthMidpoint -= (anhedonia - 0.5) * 0.15;
+        ctx.mod(PersonalityFacet.ANHEDONIA, anhedonia, "depthMidpoint", dm0, depthMidpoint);
+        // Perseveration — Chamberlain 2006: set-shifting failure
+        double perseveration = facetScore(facets, PersonalityFacet.PERSEVERATION, 0.5);
+        double lm0 = lateralityMidpoint; lateralityMidpoint -= (perseveration - 0.5) * 0.15;
+        ctx.mod(PersonalityFacet.PERSEVERATION, perseveration, "lateralityMidpoint", lm0, lateralityMidpoint);
+        double cm0 = convergenceMidpoint; convergenceMidpoint += (perseveration - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.PERSEVERATION, perseveration, "convergenceMidpoint", cm0, convergenceMidpoint);
+        // Rigid Perfectionism — Cognitive flexibility 2025 (r=-.48)
+        double rigidPerf = facetScore(facets, PersonalityFacet.RIGID_PERFECTIONISM, 0.5);
+        cm0 = convergenceMidpoint; convergenceMidpoint += (rigidPerf - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.RIGID_PERFECTIONISM, rigidPerf, "convergenceMidpoint", cm0, convergenceMidpoint);
+        lm0 = lateralityMidpoint; lateralityMidpoint -= (rigidPerf - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.RIGID_PERFECTIONISM, rigidPerf, "lateralityMidpoint", lm0, lateralityMidpoint);
+        // Distractibility — Esterman 2014: sustained attention fluctuations
+        double distractibility = facetScore(facets, PersonalityFacet.DISTRACTIBILITY, 0.5);
+        dm0 = depthMidpoint; depthMidpoint -= (distractibility - 0.5) * 0.15;
+        ctx.mod(PersonalityFacet.DISTRACTIBILITY, distractibility, "depthMidpoint", dm0, depthMidpoint);
+        double bs0 = breadthSteepness; breadthSteepness += (distractibility - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.DISTRACTIBILITY, distractibility, "breadthSteepness", bs0, breadthSteepness);
+        // Eccentricity — Carson 2003 (latent inhibition); Wang 2018 (overinclusion)
+        double eccentricity = facetScore(facets, PersonalityFacet.ECCENTRICITY, 0.5);
+        lm0 = lateralityMidpoint; lateralityMidpoint += (eccentricity - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.ECCENTRICITY, eccentricity, "lateralityMidpoint", lm0, lateralityMidpoint);
+        bs0 = breadthSteepness; breadthSteepness += (eccentricity - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.ECCENTRICITY, eccentricity, "breadthSteepness", bs0, breadthSteepness);
+        // Deceitfulness — Bereczkei 2014/2017 (Machiavellian cognitive flexibility)
+        double deceitfulness = facetScore(facets, PersonalityFacet.DECEITFULNESS, 0.5);
+        lm0 = lateralityMidpoint; lateralityMidpoint += (deceitfulness - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.DECEITFULNESS, deceitfulness, "lateralityMidpoint", lm0, lateralityMidpoint);
+        dm0 = depthMidpoint; depthMidpoint += (deceitfulness - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.DECEITFULNESS, deceitfulness, "depthMidpoint", dm0, depthMidpoint);
+
         var channelModulation = deriveChannelModulationDefaults(facets, axes);
 
         double extremePeak = 0.85 - (anxiousness - 0.5) * 0.3 - (emotionalLability - 0.5) * 0.2;
@@ -1167,6 +1330,27 @@ public final class CognitiveDerivationEngine {
         int    maxEffort    = (int) (6 + conscientiousness * 8);
         double recoveryRate = 0.3 + conscientiousness * 0.4;
         ctx.mod(PersonalityFacet.IMPULSIVITY, impulsivity, "maxEffort", 6.0, maxEffort);
+        // Anhedonia — Oxford/Cerebral Cortex 2024: aberrant effort-based reward dynamics
+        double an = facetScore(facets, PersonalityFacet.ANHEDONIA, 0.5);
+        double me0 = maxEffort; maxEffort -= (int) Math.round((an - 0.5) * 3.0);
+        ctx.mod(PersonalityFacet.ANHEDONIA, an, "maxEffort", me0, maxEffort);
+        // Depressivity — Pillny 2026 meta (g=-0.28)
+        double dp = facetScore(facets, PersonalityFacet.DEPRESSIVITY, 0.5);
+        me0 = maxEffort; maxEffort -= (int) Math.round((dp - 0.5) * 2.0);
+        ctx.mod(PersonalityFacet.DEPRESSIVITY, dp, "maxEffort", me0, maxEffort);
+        // Rigid Perfectionism — Philp 2012: overcommitment mediation
+        double rp = facetScore(facets, PersonalityFacet.RIGID_PERFECTIONISM, 0.5);
+        me0 = maxEffort; maxEffort += (int) Math.round((rp - 0.5) * 3.0);
+        ctx.mod(PersonalityFacet.RIGID_PERFECTIONISM, rp, "maxEffort", me0, maxEffort);
+        // Distractibility — Esterman & Rothlein 2019
+        double dt = facetScore(facets, PersonalityFacet.DISTRACTIBILITY, 0.5);
+        me0 = maxEffort; maxEffort -= (int) Math.round((dt - 0.5) * 2.0);
+        ctx.mod(PersonalityFacet.DISTRACTIBILITY, dt, "maxEffort", me0, maxEffort);
+        // Irresponsibility — Crede 2017 meta (N=66,807)
+        double ir = facetScore(facets, PersonalityFacet.IRRESPONSIBILITY, 0.5);
+        me0 = maxEffort; maxEffort -= (int) Math.round((ir - 0.5) * 3.0);
+        ctx.mod(PersonalityFacet.IRRESPONSIBILITY, ir, "maxEffort", me0, maxEffort);
+        maxEffort = Math.max(3, maxEffort);
         ctx.output("maxEffort", maxEffort);
         ctx.output("recoveryRate", recoveryRate);
         ctx.stageEnd();
