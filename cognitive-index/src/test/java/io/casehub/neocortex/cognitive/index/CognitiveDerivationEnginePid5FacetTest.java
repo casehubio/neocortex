@@ -376,6 +376,13 @@ class CognitiveDerivationEnginePid5FacetTest {
     }
 
     @Test
+    void searchBudget_cogPerceptualDysregulationReducesDepth() {
+        var high = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, 0.9), DEFAULT_AXES, 0.5);
+        var low = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facetsOf(PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, 0.1), DEFAULT_AXES, 0.5);
+        assertThat(high.depthMidpoint()).isLessThan(low.depthMidpoint());
+    }
+
+    @Test
     void capacity_cogPerceptualDysregulationReducesWorkingMemory() {
         var high = CognitiveDerivationEngine.deriveCapacity(BALANCED_PROFILE, facetsOf(PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, 0.9));
         var low = CognitiveDerivationEngine.deriveCapacity(BALANCED_PROFILE, facetsOf(PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, 0.1));

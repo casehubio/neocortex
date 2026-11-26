@@ -1256,6 +1256,10 @@ public final class CognitiveDerivationEngine {
         ctx.mod(PersonalityFacet.DECEITFULNESS, deceitfulness, "lateralityMidpoint", lm0, lateralityMidpoint);
         dm0 = depthMidpoint; depthMidpoint += (deceitfulness - 0.5) * 0.1;
         ctx.mod(PersonalityFacet.DECEITFULNESS, deceitfulness, "depthMidpoint", dm0, depthMidpoint);
+        // Cognitive Perceptual Dysregulation — Guralnik 2000 (DPD attention deficits)
+        double cogDys = facetScore(facets, PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, 0.5);
+        dm0 = depthMidpoint; depthMidpoint -= (cogDys - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.COGNITIVE_PERCEPTUAL_DYSREGULATION, cogDys, "depthMidpoint", dm0, depthMidpoint);
 
         var channelModulation = deriveChannelModulationDefaults(facets, axes);
 
