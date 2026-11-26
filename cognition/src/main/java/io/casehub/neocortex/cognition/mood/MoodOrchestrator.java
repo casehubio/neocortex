@@ -108,11 +108,12 @@ public class MoodOrchestrator {
             }
         }
 
-        // Then apply fresh signals to the already-decayed state
+        // Then apply fresh signals with direction-aware asymptotic dampening
+        var eb = effectiveBaseline(state);
         for (var signal : drained) {
-            p += signal.pleasureDelta();
-            a += signal.arousalDelta();
-            d += signal.dominanceDelta();
+            p = dampenedAdd(p, signal.pleasureDelta(), eb.pleasure(), config.maxDisplacement());
+            a = dampenedAdd(a, signal.arousalDelta(), eb.arousal(), config.maxDisplacement());
+            d = dampenedAdd(d, signal.dominanceDelta(), eb.dominance(), config.maxDisplacement());
             if (signal instanceof MoodSignal.DirectShift ds) {
                 cause = ds.cause();
             } else if (signal instanceof MoodSignal.InteractionAppraisal ia && ia.cause() != null) {
@@ -152,6 +153,16 @@ public class MoodOrchestrator {
         double upper = Math.min(1.0, baseline + maxDisplacement);
         return Math.max(lower, Math.min(upper, value));
     }
+
+    private static double dampenedAdd(double current, double delta,
+                                      double effectiveBaseline, double maxDisplacement) {
+        double  displacement = current - effectiveBaseline;
+        double  remaining    = maxDisplacement - Math.abs(displacement);
+        double  headroom     = Math.max(0.0, remaining / maxDisplacement);
+        boolean pushingAway  = (delta > 0 && displacement >= 0) || (delta < 0 && displacement <= 0);
+        return current + (pushingAway ? delta * headroom : delta);
+    }
+
 
     private io.casehub.neocortex.memory.mood.MoodBaseline effectiveBaseline(AgentMoodState state) {
         var bias = state.goalBias;

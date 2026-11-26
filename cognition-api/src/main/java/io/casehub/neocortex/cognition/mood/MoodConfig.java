@@ -29,7 +29,7 @@ public record MoodConfig(
     public static MoodConfig defaults() {
         return new MoodConfig(
                 new MoodBaseline(0.0, 0.0, 0.0),
-                Duration.ofHours(4),
+                Duration.ofMinutes(20),
                 1.0,
                 0.3,
                 Duration.ofHours(24));

@@ -54,7 +54,7 @@ class MoodOrchestratorTest {
         assertThat(result).isInstanceOf(MoodTick.Updated.class);
         var updated = (MoodTick.Updated) result;
         assertThat(updated.signalsApplied()).isEqualTo(2);
-        assertThat(updated.moodState().pleasure()).isCloseTo(0.5, within(0.01));
+        assertThat(updated.moodState().pleasure()).isCloseTo(0.44, within(0.01));
         assertThat(updated.moodState().arousal()).isCloseTo(0.0, within(0.01));
         assertThat(updated.moodState().dominance()).isCloseTo(0.1, within(0.01));
     }
@@ -186,7 +186,7 @@ class MoodOrchestratorTest {
     @Test void moodConfig_defaults_valid() {
         var config = MoodConfig.defaults();
         assertThat(config.baseline().pleasure()).isEqualTo(0.0);
-        assertThat(config.decayTimeConstant()).isEqualTo(Duration.ofHours(4));
+        assertThat(config.decayTimeConstant()).isEqualTo(Duration.ofMinutes(20));
         assertThat(config.maxDisplacement()).isEqualTo(1.0);
         assertThat(config.moodInfluence()).isEqualTo(0.3);
     }
@@ -296,6 +296,41 @@ class MoodOrchestratorTest {
         assertThat(mood.get().pleasure())
                 .as("mood should decay toward goal bias (0.3), not zero")
                 .isCloseTo(0.3, within(0.05));
+    }
+
+    @Test
+    void twoStrongSignalsDontPinMoodAtOne() {
+        orchestrator.record(new MoodSignal.DirectShift(0.8, 0.0, 0.0, "signal-1"), "agent-1", "tenant-1");
+        orchestrator.record(new MoodSignal.DirectShift(0.8, 0.0, 0.0, "signal-2"), "agent-1", "tenant-1");
+        orchestrator.tick("agent-1", "tenant-1");
+
+        var mood = orchestrator.currentMood("agent-1", "tenant-1");
+        assertThat(mood).isPresent();
+        assertThat(mood.get().pleasure())
+                .as("two +0.8 signals should not pin mood at 1.0")
+                .isLessThan(1.0)
+                .isGreaterThan(0.5);
+    }
+
+    @Test
+    void recoverySignalsAreUndampened() {
+        var mutableClock = new MutableClock(Instant.parse("2026-01-01T12:00:00Z"));
+        var orch         = new MoodOrchestrator(MoodConfig.defaults(), mutableClock);
+
+        // Push mood negative
+        orch.record(new MoodSignal.DirectShift(-0.8, 0.0, 0.0, "negative"), "agent-1", "tenant-1");
+        orch.tick("agent-1", "tenant-1");
+
+        // Apply positive recovery signal
+        mutableClock.advance(Duration.ofSeconds(1));
+        orch.record(new MoodSignal.DirectShift(0.5, 0.0, 0.0, "recovery"), "agent-1", "tenant-1");
+        orch.tick("agent-1", "tenant-1");
+
+        var mood = orch.currentMood("agent-1", "tenant-1");
+        assertThat(mood).isPresent();
+        assertThat(mood.get().pleasure())
+                .as("recovery signal toward baseline should apply at full strength")
+                .isGreaterThan(-0.35);
     }
 
 
