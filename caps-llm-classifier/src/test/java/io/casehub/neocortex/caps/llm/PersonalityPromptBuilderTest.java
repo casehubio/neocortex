@@ -122,4 +122,41 @@ class PersonalityPromptBuilderTest {
         assertThat(suffix).contains("cooperative");
         assertThat(suffix).contains("calculated");
     }
+
+    @Test
+    void pid5Suffix_includesNewFacets() {
+        var meta = Map.of(
+            "pid5.Anhedonia", "0.72",
+            "pid5.Depressivity", "0.35",
+            "pid5.Rigid Perfectionism", "0.80",
+            "pid5.Anxiousness", "0.55");
+
+        String suffix = PersonalityPromptBuilder.pid5Suffix(meta);
+
+        assertThat(suffix).contains("Anhedonia");
+        assertThat(suffix).contains("Depressivity");
+        assertThat(suffix).contains("Rigid Perfectionism");
+        assertThat(suffix).contains("Anxiousness");
+        assertThat(suffix).contains("high Anhedonia (0.72)");
+        assertThat(suffix).contains("moderate Depressivity (0.35)");
+        assertThat(suffix).contains("high Rigid Perfectionism (0.80)");
+    }
+
+    @Test
+    void pid5Suffix_sortsByFacetName() {
+        var meta = Map.of(
+            "pid5.Withdrawal", "0.60",
+            "pid5.Anhedonia", "0.40");
+
+        String suffix = PersonalityPromptBuilder.pid5Suffix(meta);
+
+        int anhedoniaIdx = suffix.indexOf("Anhedonia");
+        int withdrawalIdx = suffix.indexOf("Withdrawal");
+        assertThat(anhedoniaIdx).isLessThan(withdrawalIdx);
+    }
+
+    @Test
+    void pid5Suffix_emptyForNullMetadata() {
+        assertThat(PersonalityPromptBuilder.pid5Suffix(null)).isEmpty();
+    }
 }

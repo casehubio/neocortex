@@ -15,6 +15,6 @@ public interface ClassificationCbrConfig {
     @WithDefault("haiku-pid5")
     String modelVersion();
 
-    @WithDefault("Anxiousness,Emotional Lability,Withdrawal,Impulsivity,Risk Taking,Suspiciousness,Intimacy Avoidance,Callousness,Manipulativeness,Grandiosity,Deceitfulness,Attention Seeking,Hostility")
+    @WithDefault("Anxiousness,Emotional Lability,Withdrawal,Impulsivity,Risk Taking,Suspiciousness,Intimacy Avoidance,Callousness,Manipulativeness,Grandiosity,Deceitfulness,Attention Seeking,Hostility,Anhedonia,Depressivity,Perseveration,Rigid Perfectionism,Distractibility,Separation Insecurity,Restricted Affectivity,Irresponsibility,Cognitive Perceptual Dysregulation,Eccentricity,Submissiveness,Unusual Beliefs")
     String pid5Facets();
 }

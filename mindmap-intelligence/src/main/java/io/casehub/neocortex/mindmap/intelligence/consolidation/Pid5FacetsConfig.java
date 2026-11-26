@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 @ConfigMapping(prefix = "casehub.caps.classification.cbr")
 interface Pid5FacetsConfig {
 
-    @WithDefault("Anxiousness,Emotional Lability,Withdrawal,Impulsivity,Risk Taking,Suspiciousness,Intimacy Avoidance,Callousness,Manipulativeness,Grandiosity,Deceitfulness,Attention Seeking,Hostility")
+    @WithDefault("Anxiousness,Emotional Lability,Withdrawal,Impulsivity,Risk Taking,Suspiciousness,Intimacy Avoidance,Callousness,Manipulativeness,Grandiosity,Deceitfulness,Attention Seeking,Hostility,Anhedonia,Depressivity,Perseveration,Rigid Perfectionism,Distractibility,Separation Insecurity,Restricted Affectivity,Irresponsibility,Cognitive Perceptual Dysregulation,Eccentricity,Submissiveness,Unusual Beliefs")
     String pid5Facets();
 
     default Set<String> pid5FacetSet() {
