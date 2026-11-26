@@ -79,6 +79,36 @@ public final class EmotionMapper {
             emotions.add(emotion(EmotionType.REPROACH, intensity, subjectId, now, arousalBoost));
         }
 
+        if (internalStd > 0.6 && conduciveness > 0.6) {
+            double intensity = clampIntensity(relevance * internalStd * conduciveness);
+            emotions.add(emotion(EmotionType.PRIDE, intensity, subjectId, now, arousalBoost));
+        }
+
+        if (conduciveness > 0.6 && urgency > 0.3) {
+            double intensity = clampIntensity(relevance * conduciveness * urgency);
+            emotions.add(emotion(EmotionType.RELIEF, intensity, subjectId, now, arousalBoost));
+        }
+
+        if (conduciveness > 0.6 && controllability < 0.4) {
+            double intensity = clampIntensity(relevance * conduciveness);
+            emotions.add(emotion(EmotionType.GRATITUDE, intensity, subjectId, now, arousalBoost));
+        }
+
+        if (externalStd > 0.7 && relevance > 0.3) {
+            double intensity = clampIntensity(relevance * externalStd);
+            emotions.add(emotion(EmotionType.ADMIRATION, intensity, subjectId, now, arousalBoost));
+        }
+
+        if (conduciveness > 0.6 && novelty < 0.3) {
+            double intensity = clampIntensity(relevance * conduciveness);
+            emotions.add(emotion(EmotionType.SATISFACTION, intensity, subjectId, now, arousalBoost));
+        }
+
+        if (conduciveness < 0.3 && relevance > 0.5) {
+            double intensity = clampIntensity(relevance * Math.abs(conduciveness));
+            emotions.add(emotion(EmotionType.DISAPPOINTMENT, intensity, subjectId, now, arousalBoost));
+        }
+
         return emotions;
     }
 
@@ -120,7 +150,7 @@ public final class EmotionMapper {
         if (attendingIntensity > 0.0) {
             tendencies.add(new ActionTendency(ActionReadiness.ATTENDING, clampIntensity(attendingIntensity), ""));
         } else if (novelty < 0.2) {
-            tendencies.add(new ActionTendency(ActionReadiness.INTERRUPTION, clampIntensity(1.0 - novelty), ""));
+            tendencies.add(new ActionTendency(ActionReadiness.INTERRUPTION, clampIntensity((1.0 - novelty) * 0.3), ""));
         }
 
         return tendencies;

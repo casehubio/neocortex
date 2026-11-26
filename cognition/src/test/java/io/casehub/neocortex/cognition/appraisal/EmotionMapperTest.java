@@ -374,4 +374,69 @@ class EmotionMapperTest {
                 .isGreaterThan(0.15);
     }
 
+
+    @Test
+    void mapsGratitudeFromHighConducivenessLowControllability() {
+        var results = List.of(SecResult.of("r", SecDimensions.RELEVANCE, 0.8,
+                                           SecDimensions.CONDUCIVENESS, 0.8),
+                              SecResult.of("c", SecDimensions.CONTROLLABILITY, 0.2));
+        var emotions = EmotionMapper.mapEmotions(results, "helper");
+        assertThat(emotions).extracting("type").contains(EmotionType.GRATITUDE);
+    }
+
+    @Test
+    void mapsPrideFromHighInternalStandardsAndConduciveness() {
+        var results = List.of(SecResult.of("r", SecDimensions.RELEVANCE, 0.8,
+                                           SecDimensions.CONDUCIVENESS, 0.7),
+                              SecResult.of("s", SecDimensions.INTERNAL_STANDARDS, 0.8));
+        var emotions = EmotionMapper.mapEmotions(results, "achievement");
+        assertThat(emotions).extracting("type").contains(EmotionType.PRIDE);
+    }
+
+    @Test
+    void mapsReliefFromHighConducivenessAndUrgency() {
+        var results = List.of(SecResult.of("r", SecDimensions.RELEVANCE, 0.8,
+                                           SecDimensions.CONDUCIVENESS, 0.7),
+                              SecResult.of("u", SecDimensions.URGENCY, 0.5));
+        var emotions = EmotionMapper.mapEmotions(results, "rescue");
+        assertThat(emotions).extracting("type").contains(EmotionType.RELIEF);
+    }
+
+    @Test
+    void mapsAdmirationFromHighExternalStandards() {
+        var results = List.of(SecResult.of("r", SecDimensions.RELEVANCE, 0.8),
+                              SecResult.of("s", SecDimensions.EXTERNAL_STANDARDS, 0.8));
+        var emotions = EmotionMapper.mapEmotions(results, "mentor");
+        assertThat(emotions).extracting("type").contains(EmotionType.ADMIRATION);
+    }
+
+    @Test
+    void mapsSatisfactionFromHighConducivenessLowNovelty() {
+        var results = List.of(SecResult.of("r", SecDimensions.RELEVANCE, 0.8,
+                                           SecDimensions.CONDUCIVENESS, 0.7),
+                              SecResult.of("n", SecDimensions.NOVELTY, 0.1));
+        var emotions = EmotionMapper.mapEmotions(results, "completion");
+        assertThat(emotions).extracting("type").contains(EmotionType.SATISFACTION);
+    }
+
+    @Test
+    void mapsDisappointmentFromLowConducivenessHighRelevance() {
+        var results = List.of(SecResult.of("r", SecDimensions.RELEVANCE, 0.8,
+                                           SecDimensions.CONDUCIVENESS, -0.5),
+                              SecResult.of("c", SecDimensions.CONTROLLABILITY, 0.3));
+        var emotions = EmotionMapper.mapEmotions(results, "setback");
+        assertThat(emotions).extracting("type").contains(EmotionType.DISAPPOINTMENT);
+    }
+
+    @Test
+    void interruptionCappedAtZeroPointThree() {
+        var results = List.of(SecResult.of("r", SecDimensions.RELEVANCE, 0.5,
+                                           SecDimensions.NOVELTY, 0.1,
+                                           SecDimensions.CONDUCIVENESS, 0.0));
+        var tendencies = EmotionMapper.mapTendencies(results);
+        var interruption = tendencies.stream()
+                                     .filter(t -> t.readiness() == ActionReadiness.INTERRUPTION).findFirst();
+        assertThat(interruption).isPresent();
+        assertThat(interruption.get().intensity()).isLessThanOrEqualTo(0.3);
+    }
 }
