@@ -376,9 +376,10 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                 double outcomeIntensity   = Math.abs(result.peakOriginalIntensity() - result.regulatedIntensity());
                 double outcomeValence     = result.effectiveness() > 0.5 ? 1.0 : -1.0;
                 double salienceMultiplier = result.peakOriginalIntensity();
-                capsEngine.updateWeights(capsState, new io.casehub.neocortex.caps.WeightUpdateContext(
+                capsState = capsEngine.updateWeights(capsState, new io.casehub.neocortex.caps.WeightUpdateContext(
                                          capsInputActivations, outcomeIntensity, outcomeValence,
                                          salienceMultiplier, "variable_ratio"));
+                capsEngine.saveState(capsState);
             }
         } else {
             if (cognitiveResourcePool != null && effectiveDefaults != null) {
@@ -472,9 +473,10 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
             double outcomeIntensity   = Math.abs(result.peakOriginalIntensity() - result.regulatedIntensity());
             double outcomeValence     = result.effectiveness() > 0.5 ? 1.0 : -1.0;
             double salienceMultiplier = result.peakOriginalIntensity();
-            capsEngine.updateWeights(capsState, new io.casehub.neocortex.caps.WeightUpdateContext(
+            capsState = capsEngine.updateWeights(capsState, new io.casehub.neocortex.caps.WeightUpdateContext(
                     capsInputActivations, outcomeIntensity, outcomeValence,
                     salienceMultiplier, "variable_ratio"));
+            capsEngine.saveState(capsState);
         }
 
         // Dispatch accumulated effects from CopingState
