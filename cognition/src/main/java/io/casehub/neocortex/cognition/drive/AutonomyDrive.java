@@ -10,7 +10,7 @@ public class AutonomyDrive implements DriveSource {
 
     private final MentalModelOrchestrator mentalModelOrchestrator;
     private final double confidenceFloor;
-    private volatile @Nullable List<MentalModelSnapshot> lastSnapshots;
+    private final java.util.concurrent.ConcurrentHashMap<String, List<MentalModelSnapshot>> lastSnapshotsByAgent = new java.util.concurrent.ConcurrentHashMap<>();
 
 
     public AutonomyDrive(MentalModelOrchestrator mentalModelOrchestrator,
@@ -22,7 +22,7 @@ public class AutonomyDrive implements DriveSource {
     @Override
     public DriveIntensity evaluate(String agentId, String tenantId) {
         var snapshots = mentalModelOrchestrator.activeSnapshots(agentId, tenantId);
-        this.lastSnapshots = snapshots;
+        lastSnapshotsByAgent.put(agentId, snapshots);
 
         if (snapshots.isEmpty()) {
             return new DriveIntensity(DriveAxis.AUTONOMY, 0.0, "no mental models");
@@ -49,8 +49,13 @@ public class AutonomyDrive implements DriveSource {
         return new DriveIntensity(DriveAxis.AUTONOMY, intensity, trigger);
     }
 
+    public @Nullable List<MentalModelSnapshot> lastSnapshots(String agentId) {
+        return lastSnapshotsByAgent.get(agentId);
+    }
+
     public @Nullable List<MentalModelSnapshot> lastSnapshots() {
-        return lastSnapshots;
+        var values = lastSnapshotsByAgent.values();
+        return values.isEmpty() ? null : values.iterator().next();
     }
 
 }

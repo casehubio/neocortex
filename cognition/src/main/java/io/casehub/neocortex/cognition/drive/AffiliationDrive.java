@@ -13,7 +13,7 @@ public class AffiliationDrive implements DriveSource {
     private final UserModelOrchestrator userModelOrchestrator;
     private final double decayThreshold;
     private final Duration staleDuration;
-    private volatile @Nullable List<UserProfile> lastProfiles;
+    private final java.util.concurrent.ConcurrentHashMap<String, List<UserProfile>> lastProfilesByAgent = new java.util.concurrent.ConcurrentHashMap<>();
 
 
     public AffiliationDrive(UserModelOrchestrator userModelOrchestrator,
@@ -26,7 +26,7 @@ public class AffiliationDrive implements DriveSource {
     @Override
     public DriveIntensity evaluate(String agentId, String tenantId) {
         var profiles = userModelOrchestrator.activeProfiles(agentId, tenantId);
-        this.lastProfiles = profiles;
+        lastProfilesByAgent.put(agentId, profiles);
 
         if (profiles.isEmpty()) {
             return new DriveIntensity(DriveAxis.AFFILIATION, 0.0, "no tracked subjects");
@@ -44,8 +44,13 @@ public class AffiliationDrive implements DriveSource {
         String trigger   = neglected + " of " + profiles.size() + " relationships neglected";
         return new DriveIntensity(DriveAxis.AFFILIATION, intensity, trigger);}
 
+    public @Nullable List<UserProfile> lastProfiles(String agentId) {
+        return lastProfilesByAgent.get(agentId);
+    }
+
     public @Nullable List<UserProfile> lastProfiles() {
-        return lastProfiles;
+        var values = lastProfilesByAgent.values();
+        return values.isEmpty() ? null : values.iterator().next();
     }
 
 }

@@ -7,7 +7,7 @@ import org.jspecify.annotations.Nullable;
 public class CompetenceDrive implements DriveSource {
 
     private final StrategyLearningOrchestrator strategyOrchestrator;
-    private volatile @Nullable EngagementTrend lastTrend;
+    private final java.util.concurrent.ConcurrentHashMap<String, EngagementTrend> lastTrendByAgent = new java.util.concurrent.ConcurrentHashMap<>();
 
 
     public CompetenceDrive(StrategyLearningOrchestrator strategyOrchestrator) {
@@ -18,12 +18,12 @@ public class CompetenceDrive implements DriveSource {
     public DriveIntensity evaluate(String agentId, String tenantId) {
         var trendOpt = strategyOrchestrator.engagementTrend(agentId, tenantId);
         if (trendOpt.isEmpty()) {
-            this.lastTrend = null;
+            lastTrendByAgent.remove(agentId);
             return new DriveIntensity(DriveAxis.COMPETENCE, 0.0, "no engagement data");
         }
 
         var trend = trendOpt.get();
-        this.lastTrend = trend;
+        lastTrendByAgent.put(agentId, trend);
 
         if (trend.dimensionTrends().isEmpty()) {
             return new DriveIntensity(DriveAxis.COMPETENCE, 0.0, "no dimensions");
@@ -43,8 +43,13 @@ public class CompetenceDrive implements DriveSource {
         return new DriveIntensity(DriveAxis.COMPETENCE, intensity, trigger);
     }
 
+    public @Nullable EngagementTrend lastTrend(String agentId) {
+        return lastTrendByAgent.get(agentId);
+    }
+
     public @Nullable EngagementTrend lastTrend() {
-        return lastTrend;
+        var values = lastTrendByAgent.values();
+        return values.isEmpty() ? null : values.iterator().next();
     }
 
 }

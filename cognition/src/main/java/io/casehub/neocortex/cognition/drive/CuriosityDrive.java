@@ -16,8 +16,8 @@ public class CuriosityDrive implements DriveSource {
     private final        CuriosityChannelComputer  channelComputer;
     private final        ToDoubleFunction<String>  deprivationBiasFor;
     private final        Supplier<Set<String>>     activeGoalNodeIds;
-    private volatile     List<InformationGapScore> lastGaps = List.of();
-    private volatile     CuriosityChannel          lastChannel;
+    private final java.util.concurrent.ConcurrentHashMap<String, List<InformationGapScore>> lastGapsByAgent = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, CuriosityChannel> lastChannelByAgent = new java.util.concurrent.ConcurrentHashMap<>();
 
     public CuriosityDrive(InformationGapDetector gapDetector,
                           CuriosityChannelComputer channelComputer,
@@ -46,8 +46,13 @@ public class CuriosityDrive implements DriveSource {
     public DriveIntensity evaluate(String agentId, String tenantId) {
         var goals = activeGoalNodeIds.get();
         var gaps = gapDetector.detectGaps(tenantId, goals.isEmpty() ? null : goals);
-        this.lastGaps    = gaps;
-        this.lastChannel = channelComputer.compute(gaps, deprivationBiasFor.applyAsDouble(agentId));
+        lastGapsByAgent.put(agentId, gaps);
+        var channel = channelComputer.compute(gaps, deprivationBiasFor.applyAsDouble(agentId));
+        if (channel != null) {
+            lastChannelByAgent.put(agentId, channel);
+        } else {
+            lastChannelByAgent.remove(agentId);
+        }
 
         if (gaps.isEmpty()) {
             return new DriveIntensity(DriveAxis.CURIOSITY, 0.0, "no knowledge gaps");
@@ -73,11 +78,21 @@ public class CuriosityDrive implements DriveSource {
         return base;
     }
 
+    public List<InformationGapScore> lastGaps(String agentId) {
+        return lastGapsByAgent.getOrDefault(agentId, List.of());
+    }
+
     public List<InformationGapScore> lastGaps() {
-        return lastGaps;
+        var values = lastGapsByAgent.values();
+        return values.isEmpty() ? List.of() : values.iterator().next();
+    }
+
+    public CuriosityChannel lastChannel(String agentId) {
+        return lastChannelByAgent.get(agentId);
     }
 
     public CuriosityChannel lastChannel() {
-        return lastChannel;
+        var values = lastChannelByAgent.values();
+        return values.isEmpty() ? null : values.iterator().next();
     }
 }
