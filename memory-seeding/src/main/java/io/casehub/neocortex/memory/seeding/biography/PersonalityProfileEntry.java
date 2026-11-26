@@ -82,6 +82,15 @@ public record PersonalityProfileEntry(
         @JsonProperty("emotional-lability") Integer emotionalLability,
         Integer anxiousness, @JsonProperty("risk-taking") Integer riskTaking,
         Integer impulsivity, Integer withdrawal,
+        Integer anhedonia, Integer depressivity, Integer perseveration,
+        @JsonProperty("rigid-perfectionism") Integer rigidPerfectionism,
+        Integer distractibility,
+        @JsonProperty("separation-insecurity") Integer separationInsecurity,
+        @JsonProperty("restricted-affectivity") Integer restrictedAffectivity,
+        Integer irresponsibility,
+        @JsonProperty("cognitive-perceptual-dysregulation") Integer cognitivePerceptualDysregulation,
+        Integer eccentricity, Integer submissiveness,
+        @JsonProperty("unusual-beliefs") Integer unusualBeliefs,
         String evidence, Double confidence, String source
     ) {}
 

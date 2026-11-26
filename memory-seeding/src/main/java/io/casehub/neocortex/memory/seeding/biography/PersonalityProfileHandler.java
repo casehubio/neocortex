@@ -99,6 +99,18 @@ public class PersonalityProfileHandler implements BiographyHandler {
             putIfNonNull(props, "personality-ampd-risk-taking", fw.ampd().riskTaking());
             putIfNonNull(props, "personality-ampd-impulsivity", fw.ampd().impulsivity());
             putIfNonNull(props, "personality-ampd-withdrawal", fw.ampd().withdrawal());
+            putIfNonNull(props, "personality-ampd-anhedonia", fw.ampd().anhedonia());
+            putIfNonNull(props, "personality-ampd-depressivity", fw.ampd().depressivity());
+            putIfNonNull(props, "personality-ampd-perseveration", fw.ampd().perseveration());
+            putIfNonNull(props, "personality-ampd-rigid-perfectionism", fw.ampd().rigidPerfectionism());
+            putIfNonNull(props, "personality-ampd-distractibility", fw.ampd().distractibility());
+            putIfNonNull(props, "personality-ampd-separation-insecurity", fw.ampd().separationInsecurity());
+            putIfNonNull(props, "personality-ampd-restricted-affectivity", fw.ampd().restrictedAffectivity());
+            putIfNonNull(props, "personality-ampd-irresponsibility", fw.ampd().irresponsibility());
+            putIfNonNull(props, "personality-ampd-cognitive-perceptual-dysregulation", fw.ampd().cognitivePerceptualDysregulation());
+            putIfNonNull(props, "personality-ampd-eccentricity", fw.ampd().eccentricity());
+            putIfNonNull(props, "personality-ampd-submissiveness", fw.ampd().submissiveness());
+            putIfNonNull(props, "personality-ampd-unusual-beliefs", fw.ampd().unusualBeliefs());
         }
 
         if (fw.attachment() != null && fw.attachment().style() != null) {

@@ -173,6 +173,44 @@ class PersonalityProfileEntryTest {
     }
 
     @Test
+    void deserializesExtendedAmpdFacets() throws Exception {
+        String json = """
+            {
+                "id": "pp-ext",
+                "entity_ref": "Test Subject",
+                "frameworks": {
+                    "ampd": {
+                        "callousness": 30, "anxiousness": 70,
+                        "anhedonia": 45, "depressivity": 60,
+                        "perseveration": 55, "rigid-perfectionism": 70,
+                        "distractibility": 40, "separation-insecurity": 65,
+                        "restricted-affectivity": 35, "irresponsibility": 50,
+                        "cognitive-perceptual-dysregulation": 25,
+                        "eccentricity": 42, "submissiveness": 58,
+                        "unusual-beliefs": 30,
+                        "evidence": "extended facets", "confidence": 0.8, "source": "extracted"
+                    }
+                }
+            }
+            """;
+        var entry = MAPPER.readValue(json, PersonalityProfileEntry.class);
+        assertThat(entry.frameworks().ampd().callousness()).isEqualTo(30);
+        assertThat(entry.frameworks().ampd().anxiousness()).isEqualTo(70);
+        assertThat(entry.frameworks().ampd().anhedonia()).isEqualTo(45);
+        assertThat(entry.frameworks().ampd().depressivity()).isEqualTo(60);
+        assertThat(entry.frameworks().ampd().perseveration()).isEqualTo(55);
+        assertThat(entry.frameworks().ampd().rigidPerfectionism()).isEqualTo(70);
+        assertThat(entry.frameworks().ampd().distractibility()).isEqualTo(40);
+        assertThat(entry.frameworks().ampd().separationInsecurity()).isEqualTo(65);
+        assertThat(entry.frameworks().ampd().restrictedAffectivity()).isEqualTo(35);
+        assertThat(entry.frameworks().ampd().irresponsibility()).isEqualTo(50);
+        assertThat(entry.frameworks().ampd().cognitivePerceptualDysregulation()).isEqualTo(25);
+        assertThat(entry.frameworks().ampd().eccentricity()).isEqualTo(42);
+        assertThat(entry.frameworks().ampd().submissiveness()).isEqualTo(58);
+        assertThat(entry.frameworks().ampd().unusualBeliefs()).isEqualTo(30);
+    }
+
+    @Test
     void situationalProfilesDefaultsToEmptyList() throws Exception {
         String json = """
                       {

@@ -207,7 +207,7 @@ class PersonalityProfileHandlerTest {
         var belbin = new PersonalityProfileEntry.BelbinAssessment("plant", null, "creative", 0.65, "extracted");
         var tk = new PersonalityProfileEntry.ThomasKilmannAssessment("competing", "confrontational", 0.8, "extracted");
         var sdi = new PersonalityProfileEntry.SdiAssessment("red", "action-oriented", 0.7, "extracted");
-        var ampd = new PersonalityProfileEntry.AmpdAssessment(20, 15, 35, 10, 55, 40, 45, 30, 80, 70, 65, 55, 35, "volatile", 0.75, "extracted");
+        var ampd = new PersonalityProfileEntry.AmpdAssessment(20, 15, 35, 10, 55, 40, 45, 30, 80, 70, 65, 55, 35, null, null, null, null, null, null, null, null, null, null, null, null, "volatile", 0.75, "extracted");
         var attachment = new PersonalityProfileEntry.AttachmentAssessment("anxious-preoccupied", 0.75, 0.30, "validation", 0.75, "extracted");
         var locus = new PersonalityProfileEntry.LocusAssessment("internal", Map.of("art", "internal", "health", "external"), "agency", 0.7, "extracted");
 
