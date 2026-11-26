@@ -198,9 +198,14 @@ public class MentalModelOrchestrator {
         var previousSnapshot = state.currentSnapshot;
         boolean inferred = false;
 
-        if (shouldInfer(state)) {
-            String buffer = state.drainBuffer();
-            invokeLlmInference(state, buffer);
+        String inferBuffer = null;
+        synchronized (state) {
+            if (shouldInfer(state)) {
+                inferBuffer = state.drainBuffer();
+            }
+        }
+        if (inferBuffer != null) {
+            invokeLlmInference(state, inferBuffer);
             state.lastInferenceTimestamp = now;
             inferred = true;
         }

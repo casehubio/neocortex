@@ -34,7 +34,7 @@ class MemoryHygieneOrchestratorImplTest {
     private MemoryHygieneOrchestratorImpl orchestrator;
 
     private static final MemoryDomain DOMAIN = new MemoryDomain("agent");
-    private static final RetentionConfig RETENTION = new RetentionConfig(0.3, 1.0, 1.0);
+    private static final RetentionConfig RETENTION = new RetentionConfig(0.3, 1.0, 0.0);
 
     @BeforeEach
     void setUp() {
@@ -55,6 +55,14 @@ class MemoryHygieneOrchestratorImplTest {
         return new CbrMatch<>(cbrCase, caseId, "memory", 0.5, false,
                 Map.of(), storedAt, io.casehub.platform.api.path.Path.root(), null);
     }
+
+    private CbrMatch<CbrRecord> makeMemory(String caseId, String agentId, Instant storedAt, String problemText) {
+        var cbrCase = new CbrFeatureRecord(problemText, "solution text", null, null,
+                                           Map.of("k", FeatureValue.string("v")), null, agentId);
+        return new CbrMatch<>(cbrCase, caseId, "memory", 0.8, false,
+                              Map.of(), storedAt, io.casehub.platform.api.path.Path.root(), null);
+    }
+
 
     @Test
     void tickReturnsIdleWhenNoMemories() {
@@ -137,4 +145,24 @@ class MemoryHygieneOrchestratorImplTest {
         assertThat(orchestrator.tenantGapSummary("unknown").totalScored()).isEqualTo(0);
     }
 
+
+    @Test
+    void pairwiseSimilarityPreventsGroupingUnrelatedMemories() {
+        ConsolidationSummariser realSummariser = texts -> String.join("; ", texts);
+        var orch = new MemoryHygieneOrchestratorImpl(
+                store, scorer,
+                new TemporalDecay.HalfLife(Duration.ofDays(30)),
+                new ScopeDecay.Step(0.5),
+                realSummariser, DOMAIN, List.of("test-case"),
+                () -> RETENTION, 100, 0.7, eventSink);
+
+        var m1 = makeMemory("case-1", "agent-1", Instant.now(), "the weather forecast for tomorrow looks great");
+        var m2 = makeMemory("case-2", "agent-1", Instant.now(), "investment portfolio risk assessment completed");
+        when(store.retrieveSimilar(any(), any())).thenReturn(List.of(m1, m2));
+        when(scorer.score(any(), any())).thenReturn(0.9);
+        when(store.store(any(), any(), any(), any(), any(), any(), any())).thenReturn("merged-1");
+
+        orch.tick("agent-1", "tenant-1");
+        verify(store, never()).supersede(any(), any(), any(), any());
+    }
 }

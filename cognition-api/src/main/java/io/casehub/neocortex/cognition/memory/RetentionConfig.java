@@ -12,5 +12,5 @@ public record RetentionConfig(double retentionThreshold,
     }
 
     public static final RetentionConfig DEFAULT =
-            new RetentionConfig(0.1, 1.0, 1.0);
+            new RetentionConfig(0.1, 1.0, 0.0);
 }

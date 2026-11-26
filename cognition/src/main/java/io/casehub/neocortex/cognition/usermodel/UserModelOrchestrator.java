@@ -471,7 +471,7 @@ public class UserModelOrchestrator {
         int pendingNeutral;
         int pendingInteractions;
         final StringBuilder textBuffer = new StringBuilder();
-        int bufferedSignals;
+        volatile int bufferedSignals;
 
         int cumulativePositive;
         int cumulativeNegative;

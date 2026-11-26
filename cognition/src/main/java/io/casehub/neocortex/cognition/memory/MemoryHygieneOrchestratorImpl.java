@@ -236,9 +236,11 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
             var group = new ArrayList<CbrMatch<CbrRecord>>();
             group.add(memories.get(i));
             used[i] = true;
+            var textI = problemText(memories.get(i));
             for (int j = i + 1; j < memories.size(); j++) {
                 if (used[j]) continue;
-                if (memories.get(j).score() >= crossLinkSimilarityThreshold) {
+                var textJ = problemText(memories.get(j));
+                if (jaccardSimilarity(textI, textJ) >= crossLinkSimilarityThreshold) {
                     group.add(memories.get(j));
                     used[j] = true;
                 }
@@ -246,6 +248,24 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
             groups.add(group);
         }
         return groups;
+    }
+
+    private static String problemText(CbrMatch<CbrRecord> m) {
+        var p = m.cbrRecord().problem();
+        return p != null ? p : "";
+    }
+
+    static double jaccardSimilarity(String a, String b) {
+        var wordsA = new java.util.HashSet<>(java.util.Arrays.asList(a.toLowerCase().split("\\W+")));
+        var wordsB = new java.util.HashSet<>(java.util.Arrays.asList(b.toLowerCase().split("\\W+")));
+        wordsA.remove("");
+        wordsB.remove("");
+        if (wordsA.isEmpty() && wordsB.isEmpty()) return 0.0;
+        var intersection = new java.util.HashSet<>(wordsA);
+        intersection.retainAll(wordsB);
+        var union = new java.util.HashSet<>(wordsA);
+        union.addAll(wordsB);
+        return union.isEmpty() ? 0.0 : (double) intersection.size() / union.size();
     }
 
     private static String entityId(CbrMatch<CbrRecord> m) {
