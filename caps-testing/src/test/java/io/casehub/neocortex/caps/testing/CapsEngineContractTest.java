@@ -2,9 +2,11 @@ package io.casehub.neocortex.caps.testing;
 
 import io.casehub.neocortex.caps.AgentCapsState;
 import io.casehub.neocortex.caps.CapsEngine;
+import io.casehub.neocortex.caps.CapsNode;
 import io.casehub.neocortex.caps.ConnectionWeight;
 import io.casehub.neocortex.caps.ConvergenceType;
 import io.casehub.neocortex.caps.NodeState;
+import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.SettlingResult;
 import io.casehub.neocortex.caps.WeightProvenance;
 import io.casehub.neocortex.caps.WeightUpdateContext;
@@ -279,4 +281,54 @@ public abstract class CapsEngineContractTest {
         assertThat(result.activations().get("reward")).isCloseTo(0.8, within(0.001));
         assertThat(result.activations().get("punishment")).isCloseTo(0.3, within(0.001));
     }
+
+    @Test
+    void zeroInputProducesZeroOutputActivation() {
+        var state = engine.initializeAgent("t1", "zero-test",
+                                           new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "collaborative"));
+        var result = engine.settle(state, Map.of());
+        for (var entry : result.activations().entrySet()) {
+            CapsNode node = engine.topology().nodes().get(entry.getKey());
+            if (node != null && node.type() != NodeType.INPUT) {
+                assertThat(Math.abs(entry.getValue()))
+                        .as("non-input node %s should be near zero with no input", entry.getKey())
+                        .isLessThan(0.1);
+            }
+        }
+    }
+
+    @Test
+    void autonomyModifiersProduceWeightDifferences() {
+        var independent = engine.initializeAgent("t1", "ind",
+                                                 new DispositionAxes("cooperative", "moderate", "calculated", "independent", "collaborative"));
+        var dependent = engine.initializeAgent("t1", "dep",
+                                               new DispositionAxes("cooperative", "moderate", "calculated", "dependent", "collaborative"));
+        boolean anyDifference = false;
+        for (String connId : independent.weights().keySet()) {
+            double wInd = independent.weights().get(connId).excitatory();
+            double wDep = dependent.weights().getOrDefault(connId,
+                                                           new ConnectionWeight(0, 0, 1, 1)).excitatory();
+            if (Math.abs(wInd - wDep) > 0.001) {
+                anyDifference = true;
+                break;
+            }
+        }
+        assertThat(anyDifference)
+                .as("independent vs dependent agents must have different connection weights")
+                .isTrue();
+    }
+
+    @Test
+    void restingActivationsClampedWithinBounds() {
+        var state = engine.initializeAgent("t1", "extreme",
+                                           new DispositionAxes("competitive", "defiant", "bold", "independent", "confrontational"));
+        for (var entry : state.nodeStates().entrySet()) {
+            double resting = entry.getValue().restingActivation();
+            assertThat(resting)
+                    .as("resting activation for %s must be in [-0.5, 0.5]", entry.getKey())
+                    .isBetween(-0.5, 0.5);
+        }
+    }
+
+
 }

@@ -31,7 +31,7 @@ class RegulationTopologyTest {
             var node = topology.nodes().get(id);
             assertThat(node).as("Missing regulation output node: %s", id).isNotNull();
             assertThat(node.type()).isEqualTo(NodeType.OUTPUT);
-            assertThat(node.range()).isEqualTo(NodeRange.UNIPOLAR);
+            assertThat(node.range()).isEqualTo(NodeRange.BIPOLAR);
             assertThat(node.category()).isEqualTo("regulation");
         }
     }

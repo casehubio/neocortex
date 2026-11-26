@@ -86,17 +86,22 @@ public class CapsSettler {
                 NodeState ns = state.nodeStates()
                                     .getOrDefault(node.id(), NodeState.DEFAULT);
 
-                // Activation functions — Rumelhart, Hinton & Williams (1986) PDP; tanh=bipolar, logistic=unipolar
+                // Activation functions — Rumelhart, Hinton & Williams (1986) PDP; tanh=bipolar, rectified tanh=unipolar
                 double rawAct;
                 if (node.range() == NodeRange.BIPOLAR) {
                     rawAct = Math.tanh(netInput - ns.activationThreshold());
                 } else {
-                    rawAct = logistic(netInput - ns.activationThreshold());
+                    rawAct = Math.max(0.0, Math.tanh(netInput - ns.activationThreshold()));
                 }
+
+                double clampedAct = switch (node.range()) {
+                    case BIPOLAR -> Math.max(-1.0, Math.min(1.0, rawAct));
+                    case UNIPOLAR -> Math.max(0.0, Math.min(1.0, rawAct));
+                };
 
                 // Momentum damping — Hopfield (1984): blend with previous to suppress multi-cycle oscillation
                 double oldAct = activations.getOrDefault(node.id(), 0.0);
-                double newAct = config.dampingFactor() * oldAct + (1.0 - config.dampingFactor()) * rawAct;
+                double newAct = config.dampingFactor() * oldAct + (1.0 - config.dampingFactor()) * clampedAct;
 
                 newActivations.put(node.id(), newAct);
             }
@@ -147,7 +152,7 @@ public class CapsSettler {
             // Min 20 iterations: let damped signals propagate before declaring convergence
             if (iterations >= 20 && lastTen.size() >= 5) {
                 double windowMaxVar = windowMaxVariance(lastTen, topology);
-                if (windowMaxVar < params.epsilon() * 50.0) {
+                if (windowMaxVar < params.epsilon() * 10.0) {
                     Map<String, Double> averaged = averageStates(lastTen, topology);
                     return buildResult(averaged, null,
                                        iterations, ConvergenceType.CONVERGED, state);
@@ -158,7 +163,7 @@ public class CapsSettler {
         // MAX_ITERATIONS fallback — if window variance is still small, treat as converged
         if (lastTen.size() >= 5) {
             double finalVar = windowMaxVariance(lastTen, topology);
-            if (finalVar < params.epsilon() * 50.0) {
+            if (finalVar < params.epsilon() * 10.0) {
                 Map<String, Double> averaged = averageStates(lastTen, topology);
                 return buildResult(averaged, null,
                                    iterations, ConvergenceType.CONVERGED, state);
@@ -208,7 +213,7 @@ public class CapsSettler {
             if (dist.effect() == DistortionEffect.MULTIPLICATIVE) {
                 compoundMultiplier *= mult;
             } else {
-                additiveTotal += mult;
+                additiveTotal += mult * Math.signum(currentActivation);
             }
         }
 
@@ -218,10 +223,6 @@ public class CapsSettler {
         double result = netInput * compoundMultiplier + additiveTotal;
         var    wCap   = topology.weightUpdate().effectiveWeightCap();
         return Math.max(wCap[0], Math.min(wCap[1], result));
-    }
-
-    private double logistic(double x) {
-        return 1.0 / (1.0 + Math.exp(-x));
     }
 
     private SettlingResult buildResult(Map<String, Double> primaryState,

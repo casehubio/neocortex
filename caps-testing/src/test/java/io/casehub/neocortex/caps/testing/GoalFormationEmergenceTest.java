@@ -1,6 +1,5 @@
 package io.casehub.neocortex.caps.testing;
 
-import io.casehub.neocortex.caps.SettlingResult;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -195,15 +194,19 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
                     "cooperative", "moderate", "moderate", "moderate", "avoidant");
 
             var compResult = scenario("comp", competitive)
-                    .settle(Map.of("dominance", 0.7, "social_threat", 0.5));
+                                     .settle(Map.of("dominance", 0.7, "social_threat", 0.5));
             var avoidResult = scenario("avoid", avoidant)
-                    .settle(Map.of("dominance", 0.7, "social_threat", 0.5));
+                                      .settle(Map.of("dominance", 0.7, "social_threat", 0.5));
 
-            double compApproach = attractorStrength(compResult, "approach");
-            double avoidApproach = attractorStrength(avoidResult, "approach");
+            double compFight   = compResult.activations().getOrDefault("fight", 0.0);
+            double avoidFight  = avoidResult.activations().getOrDefault("fight", 0.0);
+            double compFlight  = compResult.activations().getOrDefault("flight", 0.0);
+            double avoidFlight = avoidResult.activations().getOrDefault("flight", 0.0);
 
-            assertThat(compApproach).as("Competitive agent approaches more than avoidant")
-                    .isGreaterThanOrEqualTo(avoidApproach);
+            assertThat(compFight).as("Competitive agent fights more than avoidant")
+                                 .isGreaterThan(avoidFight);
+            assertThat(avoidFlight).as("Avoidant agent flees more than competitive")
+                                   .isGreaterThanOrEqualTo(compFlight);
         }
     }
 

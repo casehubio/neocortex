@@ -314,11 +314,20 @@ public class DispositionWeightMapper {
     }
 
     private void addResting(Map<String, NodeState> nodeStates,
-                             String nodeId, double delta) {
-        NodeState current = nodeStates.getOrDefault(nodeId, NodeState.DEFAULT);
+                            String nodeId, double delta) {
+        NodeState current    = nodeStates.getOrDefault(nodeId, NodeState.DEFAULT);
+        double    newResting = current.restingActivation() + delta;
+        CapsNode  node       = topology.nodes().get(nodeId);
+        if (node != null) {
+            newResting = switch (node.range()) {
+                case BIPOLAR -> Math.max(-0.5, Math.min(0.5, newResting));
+                case UNIPOLAR -> Math.max(0.0, Math.min(0.5, newResting));
+            };
+        } else {
+            newResting = Math.max(-0.5, Math.min(0.5, newResting));
+        }
         nodeStates.put(nodeId, new NodeState(
-            current.activationThreshold(),
-            current.restingActivation() + delta));
+                current.activationThreshold(), newResting));
     }
 
     private static Map<String, Set<String>> buildTagIndex(CapsTopology topology) {

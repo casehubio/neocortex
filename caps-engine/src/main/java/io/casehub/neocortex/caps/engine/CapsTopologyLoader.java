@@ -121,9 +121,7 @@ public class CapsTopologyLoader {
         return defaultRange(type);
     }
 
-    private NodeRange defaultRange(NodeType type) {
-        return NodeRange.UNIPOLAR;
-    }
+    private NodeRange defaultRange(NodeType type) {return type == NodeType.OUTPUT ? NodeRange.BIPOLAR : NodeRange.UNIPOLAR;}
 
     private List<CapsConnection> parseConnections(JsonNode connectionsNode) {
         if (!connectionsNode.isArray()) return List.of();

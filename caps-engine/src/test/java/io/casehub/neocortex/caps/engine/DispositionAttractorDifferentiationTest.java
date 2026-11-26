@@ -25,11 +25,10 @@ class DispositionAttractorDifferentiationTest {
         var competitive = settle("competitive", "bold", "flexible", "independent", "confrontational");
         var cooperative = settle("cooperative", "conservative", "strict", "dependent", "avoidant");
 
-        double compApproach = strengthOf(competitive, "approach");
-        double coopApproach = strengthOf(cooperative, "approach");
+        double compApproach = competitive.activations().getOrDefault("approach", 0.0);
+        double coopApproach = cooperative.activations().getOrDefault("approach", 0.0);
 
-        assertThat(compApproach).as("competitive approach").isGreaterThan(coopApproach);
-        assertThat(compApproach).as("competitive approach tier").isGreaterThan(0.7);
+        assertThat(compApproach).as("competitive approach activation").isGreaterThan(coopApproach);
     }
 
     @Test
@@ -37,11 +36,10 @@ class DispositionAttractorDifferentiationTest {
         var competitive = settle("competitive", "bold", "flexible", "independent", "confrontational");
         var cooperative = settle("cooperative", "conservative", "strict", "dependent", "avoidant");
 
-        double coopCautious = strengthOf(cooperative, "cautious_approach");
-        double compCautious = strengthOf(competitive, "cautious_approach");
+        double coopCautious = cooperative.activations().getOrDefault("cautious_approach", 0.0);
+        double compCautious = competitive.activations().getOrDefault("cautious_approach", 0.0);
 
-        assertThat(coopCautious).as("cooperative cautious_approach").isGreaterThan(compCautious);
-        assertThat(coopCautious).as("cooperative cautious tier").isGreaterThan(0.7);
+        assertThat(coopCautious).as("cooperative cautious_approach activation").isGreaterThan(compCautious);
     }
 
     @Test

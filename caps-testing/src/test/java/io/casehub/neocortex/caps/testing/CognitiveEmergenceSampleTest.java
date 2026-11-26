@@ -27,38 +27,38 @@ class CognitiveEmergenceSampleTest extends CognitiveEmergenceTest {
     @Test
     void threatenedCautiousAgentWithdraws() {
         var scenario = scenario("agent2", new DispositionAxes(
-            "cooperative", "moderate", "conservative", "moderate", "avoidant"));
+                "cooperative", "moderate", "conservative", "moderate", "avoidant"));
 
         scenario.withExperience(
-            "Was attacked and hurt in a violent confrontation", 0.9, -0.8, 3);
+                "Was attacked and hurt in a violent confrontation", 0.9, -0.8, 3);
         scenario.applyExperiences();
 
         SettlingResult result = scenario.settle(
-            Map.of("physical_threat", 0.9));
+                Map.of("physical_threat", 0.9));
 
-        assertAttractorPresent(result, "cautious_approach");
+        assertAttractorPresent(result, "flight");
     }
 
     @Test
     void dispositionInfluencesBehavior() {
         var boldDisposition = new DispositionAxes(
-            "cooperative", "moderate", "bold", "moderate", "assertive");
+                "cooperative", "moderate", "bold", "moderate", "assertive");
         var cautiousDisposition = new DispositionAxes(
-            "cooperative", "moderate", "conservative", "moderate", "avoidant");
+                "cooperative", "moderate", "conservative", "moderate", "avoidant");
 
-        var boldScenario = scenario("bold-agent", boldDisposition);
+        var boldScenario     = scenario("bold-agent", boldDisposition);
         var cautiousScenario = scenario("cautious-agent", cautiousDisposition);
 
         SettlingResult boldResult = boldScenario.settle(
-            Map.of("social_threat", 0.6));
+                Map.of("social_threat", 0.6));
         SettlingResult cautiousResult = cautiousScenario.settle(
-            Map.of("social_threat", 0.6));
+                Map.of("social_threat", 0.6));
 
-        double boldApproach = attractorStrength(boldResult, "approach");
-        double cautiousApproach = attractorStrength(cautiousResult, "approach");
+        double boldApproach     = boldResult.activations().getOrDefault("approach", 0.0);
+        double cautiousApproach = cautiousResult.activations().getOrDefault("approach", 0.0);
 
         assertThat(boldApproach).as("Bold agent should approach more than cautious")
-            .isGreaterThan(cautiousApproach);
+                                .isGreaterThan(cautiousApproach);
     }
 
     @Test
