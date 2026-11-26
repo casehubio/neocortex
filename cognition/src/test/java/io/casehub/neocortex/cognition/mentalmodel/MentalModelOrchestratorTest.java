@@ -393,6 +393,31 @@ class MentalModelOrchestratorTest {
 
 
     @Test
+    void synthesisFiresAfterAccumulatingThreeSignals() {
+        var config = new MentalModelConfig(
+                Duration.ofDays(7), Duration.ofDays(1), Duration.ofHours(4),
+                0.1, 0.3, 3, Duration.ZERO, 20, 100,
+                Duration.ofHours(24), Duration.ofMinutes(1),
+                "mental-model", "mental-model");
+        var orch = new MentalModelOrchestrator(memory, config, fixedClock, null);
+
+        // Tick 1: 1 signal → no synthesis
+        orch.record(new MentalStateSignal.VerbalCue("I think A", CueType.BELIEF_STATEMENT), "a", "u", "t");
+        var tick1 = orch.tick("a", "u", "t");
+        assertThat(tick1).isNotInstanceOf(MentalModelTick.Inferred.class);
+
+        // Tick 2: 1 signal → still no synthesis (2 accumulated)
+        orch.record(new MentalStateSignal.VerbalCue("I think B", CueType.BELIEF_STATEMENT), "a", "u", "t");
+        var tick2 = orch.tick("a", "u", "t");
+        assertThat(tick2).isNotInstanceOf(MentalModelTick.Inferred.class);
+
+        // Tick 3: 1 signal → synthesis fires (3 >= threshold)
+        orch.record(new MentalStateSignal.VerbalCue("I think C", CueType.BELIEF_STATEMENT), "a", "u", "t");
+        var tick3 = orch.tick("a", "u", "t");
+        assertThat(tick3).isInstanceOf(MentalModelTick.Inferred.class);
+    }
+
+    @Test
     void decayIsIdempotentAcrossMultipleTicks() {
         var t0 = Instant.parse("2026-08-20T12:00:00Z");
         var oneHourHalfLife = new MentalModelConfig(

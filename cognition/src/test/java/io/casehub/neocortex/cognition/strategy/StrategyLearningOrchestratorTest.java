@@ -555,6 +555,7 @@ class StrategyLearningOrchestratorTest {
                 StrategyLearningConfig.defaults(), clock, pipeline);
     }
 
+
     @Test void evictIdleRemovesStaleEntries() {
         orchestrator.record(turnOutcome("case-1", true, 0.5, 100), "agent-1", "user-1", "tenant-1");
         var tick = orchestrator.tick("agent-1", "tenant-1");

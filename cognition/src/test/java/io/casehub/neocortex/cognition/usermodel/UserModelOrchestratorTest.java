@@ -204,4 +204,44 @@ class UserModelOrchestratorTest {
         assertThat(capturedPrompt.get()).doesNotContain(longText);
         assertThat(capturedPrompt.get()).contains("A".repeat(120));
     }
+
+    @Test
+    void synthesisFiresAfterAccumulatingSignalsAcrossTicks() {
+        var pipeline = io.casehub.neocortex.session.testing.StubPipelines.create(
+                init -> new io.casehub.platform.agent.AgentSession() {
+                    @Override
+                    public io.smallrye.mutiny.Multi<AgentEvent> query(String prompt) {
+                        return io.smallrye.mutiny.Multi.createFrom().item(new AgentEvent.TextDelta(
+                                "{\"communicationStyle\":\"friendly\",\"topicsOfInterest\":\"tech\"," +
+                                "\"preferences\":\"concise\",\"synthesisNotes\":\"engaged\"}"));
+                    }
+
+                    @Override
+                    public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+
+                    @Override
+                    public void close(java.time.Duration timeout)   {}
+                });
+        var config = new UserModelConfig(
+                3, Duration.ZERO, 0.01, 1.0, 0.5,
+                io.casehub.neocortex.cognition.relationship.RelationshipStageConfig.defaults(),
+                Duration.ofHours(1), Duration.ofDays(7),
+                "user-model", "user-profile", 50);
+        var orch = new UserModelOrchestrator(profileMemory, config, pipeline);
+
+        // Tick 1: 1 signal → no synthesis
+        orch.record(new InteractionSignal.CustomSignal("signal A", QualitySignal.POSITIVE), "a", "u", "t");
+        var tick1 = orch.tick("a", "u", "t");
+        assertThat(tick1).isNotInstanceOf(UserModelTick.Synthesised.class);
+
+        // Tick 2: 1 signal → no synthesis (2 accumulated)
+        orch.record(new InteractionSignal.CustomSignal("signal B", QualitySignal.POSITIVE), "a", "u", "t");
+        var tick2 = orch.tick("a", "u", "t");
+        assertThat(tick2).isNotInstanceOf(UserModelTick.Synthesised.class);
+
+        // Tick 3: 1 signal → synthesis fires (3 >= threshold)
+        orch.record(new InteractionSignal.CustomSignal("signal C", QualitySignal.POSITIVE), "a", "u", "t");
+        var tick3 = orch.tick("a", "u", "t");
+        assertThat(tick3).isInstanceOf(UserModelTick.Synthesised.class);
+    }
 }

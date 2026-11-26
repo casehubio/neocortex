@@ -23,6 +23,8 @@ public class MentalModelOrchestrator {
 
     private static final Logger LOG = Logger.getLogger(MentalModelOrchestrator.class.getName());
 
+    private static final int MAX_BUFFER_SIZE = 50;
+
     private static final String SYSTEM_PROMPT = """
                                                 You are analysing conversation signals to infer another person's mental state. \
                                                 Given the current attributed beliefs, desires, and intentions, plus recent signals, \
@@ -180,10 +182,8 @@ public class MentalModelOrchestrator {
 
     private MentalModelTick doTick(SubjectMentalState state) {
         int snapPending;
-        String snapBuffer;
         synchronized (state) {
             snapPending = state.pendingSignals;
-            snapBuffer = state.drainBuffer();
             state.pendingSignals = 0;
         }
 
@@ -198,8 +198,9 @@ public class MentalModelOrchestrator {
         var previousSnapshot = state.currentSnapshot;
         boolean inferred = false;
 
-        if (shouldInfer(state, snapBuffer)) {
-            invokeLlmInference(state, snapBuffer);
+        if (shouldInfer(state)) {
+            String buffer = state.drainBuffer();
+            invokeLlmInference(state, buffer);
             state.lastInferenceTimestamp = now;
             inferred = true;
         }
@@ -309,10 +310,11 @@ public class MentalModelOrchestrator {
         return evicted;
     }
 
-    private boolean shouldInfer(SubjectMentalState state, String buffer) {
-        if (buffer.isEmpty()) return false;
-        long lines = buffer.chars().filter(c -> c == '\n').count();
-        if (lines < config.minSignalsForInference()) return false;
+    private boolean shouldInfer(SubjectMentalState state) {
+        int accumulated = state.bufferedSignalCount();
+        if (accumulated == 0) return false;
+        if (accumulated >= MAX_BUFFER_SIZE) return true;
+        if (accumulated < config.minSignalsForInference()) return false;
         if (state.lastInferenceTimestamp != null) {
             var elapsed = Duration.between(state.lastInferenceTimestamp, clock.instant());
             if (elapsed.compareTo(config.inferenceCooldown()) < 0) return false;
@@ -615,6 +617,11 @@ public class MentalModelOrchestrator {
             signalBuffer.clear();
             return sb.toString();
         }
+
+        int bufferedSignalCount() {
+            return signalBuffer.size();
+        }
+
 
         static SubjectMentalState fromSnapshot(MentalModelSnapshot snapshot,
                                                int maxBufferSize, Clock clock) {

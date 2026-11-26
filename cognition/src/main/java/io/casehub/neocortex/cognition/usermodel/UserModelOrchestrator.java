@@ -70,6 +70,7 @@ public class UserModelOrchestrator {
             }
             state.textBuffer.append("[").append(signal.quality().name())
                     .append("] ").append(signal.description()).append("\n");
+            state.bufferedSignals++;
             state.pendingInteractions++;
             state.lastInteractionTimestamp = Instant.now();
             state.lastActivityTimestamp = Instant.now();
@@ -179,20 +180,17 @@ public class UserModelOrchestrator {
 
     private UserModelTick doTick(SubjectState state) {
         int snapPositive, snapNegative, snapNeutral, snapInteractions;
-        String snapText;
 
         synchronized (state) {
             snapPositive = state.pendingPositive;
             snapNegative = state.pendingNegative;
             snapNeutral = state.pendingNeutral;
             snapInteractions = state.pendingInteractions;
-            snapText = state.textBuffer.toString();
 
             state.pendingPositive = 0;
             state.pendingNegative = 0;
             state.pendingNeutral = 0;
             state.pendingInteractions = 0;
-            state.textBuffer.setLength(0);
         }
 
         if (snapInteractions == 0 && state.currentProfile == null) {
@@ -236,8 +234,14 @@ public class UserModelOrchestrator {
         Instant profileCreated = previousProfile != null ? previousProfile.profileCreated() : now;
         boolean synthesised = false;
 
-        if (shouldSynthesise(state, snapText)) {
-            var result = invokeLlmSynthesis(state, snapText, stage, familiarity);
+        if (shouldSynthesise(state)) {
+            String synthText;
+            synchronized (state) {
+                synthText = state.textBuffer.toString();
+                state.textBuffer.setLength(0);
+                state.bufferedSignals = 0;
+            }
+            var result = invokeLlmSynthesis(state, synthText, stage, familiarity);
             if (result != null) {
                 commStyle = result.communicationStyle();
                 topics = result.topicsOfInterest();
@@ -274,10 +278,13 @@ public class UserModelOrchestrator {
         return new UserModelTick.Updated(profile);
     }
 
-    private boolean shouldSynthesise(SubjectState state, String text) {
-        if (text.isEmpty()) return false;
-        long lines = text.chars().filter(c -> c == '\n').count();
-        if (lines < config.minSignalsForSynthesis()) return false;
+    private static final int MAX_BUFFER_SIZE = 50;
+
+    private boolean shouldSynthesise(SubjectState state) {
+        int accumulated = state.bufferedSignals;
+        if (accumulated == 0) return false;
+        if (accumulated >= MAX_BUFFER_SIZE) return true;
+        if (accumulated < config.minSignalsForSynthesis()) return false;
         if (state.lastSynthesisTimestamp != null) {
             var elapsed = Duration.between(state.lastSynthesisTimestamp, Instant.now());
             if (elapsed.compareTo(config.synthesisCooldown()) < 0) return false;
@@ -464,6 +471,7 @@ public class UserModelOrchestrator {
         int pendingNeutral;
         int pendingInteractions;
         final StringBuilder textBuffer = new StringBuilder();
+        int bufferedSignals;
 
         int cumulativePositive;
         int cumulativeNegative;
