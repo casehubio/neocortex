@@ -63,6 +63,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     private final @Nullable GoalProposalOrchestrator goalOrchestrator;
     private final @Nullable DriveOrchestrator driveOrchestrator;
     private final @Nullable CognitiveAttentionMediator attentionMediator;
+    private final io.casehub.neocortex.cognition.mood.@Nullable MoodOrchestrator moodOrchestrator;
 
 
     private final ConcurrentHashMap<String, StrategyFailureSignal> failureSignals = new ConcurrentHashMap<>();
@@ -171,7 +172,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable GoalProposalOrchestrator goalOrchestrator) {
         this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
              effectiveDefaults, loadEstimator, capsEngine, cascadeConfig, regulationTracker,
-             copingMicroLoop, goalOrchestrator, null, null, null);
+             copingMicroLoop, goalOrchestrator, null, null, null, null);
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
@@ -188,7 +189,8 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable GoalProposalOrchestrator goalOrchestrator,
                                             @Nullable DriveOrchestrator driveOrchestrator,
                                             @Nullable CognitiveAttentionMediator attentionMediator,
-                                            @Nullable CognitiveResourcePool cognitiveResourcePool) {
+                                            @Nullable CognitiveResourcePool cognitiveResourcePool,
+                                            io.casehub.neocortex.cognition.mood.@Nullable MoodOrchestrator moodOrchestrator) {
         this.appraisalParticipant  = appraisalParticipant;
         this.config                = config;
         this.generationPhase       = generationPhase;
@@ -207,6 +209,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         this.goalOrchestrator      = goalOrchestrator;
         this.driveOrchestrator     = driveOrchestrator;
         this.attentionMediator     = attentionMediator;
+        this.moodOrchestrator      = moodOrchestrator;
     }
 
 
@@ -527,6 +530,13 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                         cognitiveSubgraphId, result,
                         dominantType != null ? dominantType.name() : null,
                         context.regulationContext(), strategySource);
+            }
+            if (moodOrchestrator != null && dominantType != null) {
+                double intensityDelta = result.regulatedIntensity() - result.peakOriginalIntensity();
+                var pad = io.casehub.neocortex.cognitive.AlmaPadTable.project(dominantType, intensityDelta);
+                moodOrchestrator.record(new io.casehub.neocortex.cognition.mood.MoodSignal.RegulatedShift(
+                        pad.pleasure(), pad.arousal(), pad.dominance(),
+                        result.strategy().name(), dominantType), context.agentId(), context.tenantId());
             }
         } else {
             if (cognitiveResourcePool != null && effectiveDefaults != null) {

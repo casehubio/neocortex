@@ -38,6 +38,22 @@ public sealed interface MoodSignal {
         }
     }
 
+    record RegulatedShift(
+            double pleasureDelta,
+            double arousalDelta,
+            double dominanceDelta,
+            String regulationStrategy,
+            io.casehub.neocortex.cognitive.EmotionType targetEmotion
+    ) implements MoodSignal {
+        public RegulatedShift {
+            Objects.requireNonNull(regulationStrategy, "regulationStrategy required");
+            validateDelta("pleasureDelta", pleasureDelta);
+            validateDelta("arousalDelta", arousalDelta);
+            validateDelta("dominanceDelta", dominanceDelta);
+        }
+    }
+
+
     private static void validateDelta(String name, double value) {
         if (value < -2.0 || value > 2.0)
             throw new IllegalArgumentException(name + " must be in [-2, 2], got " + value);
