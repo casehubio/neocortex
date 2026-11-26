@@ -624,7 +624,7 @@ class BehavioralSynthesisPhaseTest {
                                                DispositionAxes disposition) {
             Map<String, ConnectionWeight> weights = new HashMap<>();
             weights.put("reward__BAS_activation",
-                new ConnectionWeight(0.5, 0.0, 1.0, 1.0));
+                new ConnectionWeight(0.5, 1.0));
             AgentCapsState state = new AgentCapsState(agentId, tenantId, 0,
                 weights, Map.of());
             saveState(state);

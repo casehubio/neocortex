@@ -45,7 +45,7 @@ public class DispositionWeightMapper {
 
         for (CapsConnection conn : topology.connections()) {
             weights.put(conn.id(), new ConnectionWeight(
-                    conn.defaultWeight(), 0.0, 1.0,
+                    conn.defaultWeight(),
                     CapsWeightUpdateConfig.defaults().provenancePrecision(conn.provenance())));
         }
 
@@ -146,8 +146,7 @@ public class DispositionWeightMapper {
         ConnectionWeight cw = weights.get(connId);
         if (cw == null) return;
         weights.put(connId, new ConnectionWeight(
-            cw.excitatory() * multiplier, cw.inhibitory(),
-            cw.decayResistance(), cw.precision()));
+            cw.excitatory() * multiplier, cw.precision()));
     }
 
 

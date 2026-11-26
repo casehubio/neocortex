@@ -29,7 +29,7 @@ class CapsWeightUpdaterCapacityTest {
             .loadFromClasspath("caps-topology.yaml");
         updater = new CapsWeightUpdater(topology);
         baseState = new AgentCapsState("agent1", "t1", 0,
-            Map.of(CONNECTION_KEY, new ConnectionWeight(0.5, 0.0, 1.0, 1.0)),
+            Map.of(CONNECTION_KEY, new ConnectionWeight(0.5, 1.0)),
             Map.of());
     }
 

@@ -228,7 +228,7 @@ public abstract class CapsEngineContractTest {
 
         var inputs = Map.of("reward", 0.8);
         double originalWeight = state.weights()
-            .getOrDefault("reward__BAS_activation", new ConnectionWeight(0.5, 0.0, 1.0, 1.0))
+            .getOrDefault("reward__BAS_activation", new ConnectionWeight(0.5, 1.0))
             .excitatory();
 
         AgentCapsState updated = engine.updateWeights(
@@ -260,10 +260,10 @@ public abstract class CapsEngineContractTest {
 
         if (estimatedConn.isPresent()) {
             double empiricalPrecision = updated.weights()
-                .getOrDefault(empiricalConn.id(), new ConnectionWeight(0, 0, 1, 10))
+                .getOrDefault(empiricalConn.id(), new ConnectionWeight(0, 10))
                 .precision();
             double estimatedPrecision = updated.weights()
-                .getOrDefault(estimatedConn.get().id(), new ConnectionWeight(0, 0, 1, 1))
+                .getOrDefault(estimatedConn.get().id(), new ConnectionWeight(0, 1))
                 .precision();
             assertThat(empiricalPrecision).isGreaterThan(estimatedPrecision);
         }
@@ -307,7 +307,7 @@ public abstract class CapsEngineContractTest {
         for (String connId : independent.weights().keySet()) {
             double wInd = independent.weights().get(connId).excitatory();
             double wDep = dependent.weights().getOrDefault(connId,
-                                                           new ConnectionWeight(0, 0, 1, 1)).excitatory();
+                                                           new ConnectionWeight(0, 1)).excitatory();
             if (Math.abs(wInd - wDep) > 0.001) {
                 anyDifference = true;
                 break;

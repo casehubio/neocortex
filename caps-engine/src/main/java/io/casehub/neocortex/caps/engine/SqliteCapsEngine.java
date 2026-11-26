@@ -118,15 +118,13 @@ public class SqliteCapsEngine implements CapsEngine, AutoCloseable {
     private Map<String, ConnectionWeight> loadWeights(Connection conn, String tenantId, String agentId) throws SQLException {
         Map<String, ConnectionWeight> weights = new HashMap<>();
         try (PreparedStatement ps = conn.prepareStatement(
-            "SELECT connection_id, excitatory, inhibitory, decay_resistance, precision_val FROM caps_connection_weights WHERE tenant_id = ? AND agent_id = ?")) {
+            "SELECT connection_id, excitatory, precision_val FROM caps_connection_weights WHERE tenant_id = ? AND agent_id = ?")) {
             ps.setString(1, tenantId);
             ps.setString(2, agentId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 weights.put(rs.getString("connection_id"), new ConnectionWeight(
                     rs.getDouble("excitatory"),
-                    rs.getDouble("inhibitory"),
-                    rs.getDouble("decay_resistance"),
                     rs.getDouble("precision_val")));
             }
         }
@@ -169,15 +167,13 @@ public class SqliteCapsEngine implements CapsEngine, AutoCloseable {
             del.executeUpdate();
         }
         try (PreparedStatement ps = conn.prepareStatement(
-            "INSERT INTO caps_connection_weights (tenant_id, agent_id, connection_id, excitatory, inhibitory, decay_resistance, precision_val) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+            "INSERT INTO caps_connection_weights (tenant_id, agent_id, connection_id, excitatory, precision_val) VALUES (?, ?, ?, ?, ?)")) {
             for (var entry : weights.entrySet()) {
                 ps.setString(1, tenantId);
                 ps.setString(2, agentId);
                 ps.setString(3, entry.getKey());
                 ps.setDouble(4, entry.getValue().excitatory());
-                ps.setDouble(5, entry.getValue().inhibitory());
-                ps.setDouble(6, entry.getValue().decayResistance());
-                ps.setDouble(7, entry.getValue().precision());
+                ps.setDouble(5, entry.getValue().precision());
                 ps.addBatch();
             }
             ps.executeBatch();

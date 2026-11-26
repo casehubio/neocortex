@@ -8,6 +8,7 @@ import io.casehub.neocortex.caps.WeightProvenance;
 import io.casehub.neocortex.caps.WeightUpdateContext;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CapsWeightUpdater {
@@ -40,46 +41,59 @@ public class CapsWeightUpdater {
 
         Map<String, ConnectionWeight> newWeights = new HashMap<>(state.weights());
 
-        for (CapsConnection conn : topology.connections()) {
-            double sourceActivation = context.inputActivations()
-                                              .getOrDefault(conn.from(), 0.0);
-            if (Math.abs(sourceActivation) < 0.01) {continue;}
+        Map<String, List<CapsConnection>> byTarget = topology.connections().stream()
+                                                             .collect(java.util.stream.Collectors.groupingBy(CapsConnection::to));
 
-            ConnectionWeight cw = state.weights()
-                                       .getOrDefault(conn.id(),
-                                                     new ConnectionWeight(conn.defaultWeight(), 0.0, 1.0,
-                                                                          provenancePrecision(conn.provenance())));
+        for (var entry : byTarget.entrySet()) {
+            List<CapsConnection> incoming = entry.getValue();
 
-            double predicted       = cw.effectiveWeight() * sourceActivation;
-            double predictionError = context.outcomeValence() - predicted;
-
-            double baseAlpha = Math.max(params.alphaMin(),
-                                        Math.min(params.alphaMax(),
-                                                 context.salienceMultiplier() * config.salienceAlphaScaling()));
-            // Cattell (1971): associativeReach modulates associative learning rate
-            baseAlpha *= context.capacityMultiplier();
-            double effectiveAlpha = baseAlpha / cw.precision();
-            double beta = Math.max(params.betaMin(),
-                                   Math.min(params.betaMax(), context.outcomeIntensity()));
-
-            double deltaW        = effectiveAlpha * beta * predictionError * scheduleMod;
-            double newExcitatory = cw.excitatory() + deltaW;
-
-            double newPrecision;
-            if (Math.abs(predictionError) < config.confirmEpsilon()) {
-                newPrecision = cw.precision() + config.precisionGrowthRate();
-            } else {
-                newPrecision = Math.max(config.minPrecision(),
-                                        cw.precision() * config.precisionDecayFactor());
+            double vPredicted = 0.0;
+            for (CapsConnection conn : incoming) {
+                double sourceAct = context.inputActivations()
+                                          .getOrDefault(conn.from(), 0.0);
+                if (Math.abs(sourceAct) < 0.01) {continue;}
+                ConnectionWeight cw = state.weights()
+                                           .getOrDefault(conn.id(),
+                                                         new ConnectionWeight(conn.defaultWeight(),
+                                                                              provenancePrecision(conn.provenance())));
+                vPredicted += cw.effectiveWeight() * sourceAct;
             }
 
-            double effectiveResistance = 1.0 + (cw.decayResistance() - 1.0) * config.resistanceDampening();
-            double newInhibitory = cw.inhibitory() *
-                                   (1.0 - config.baseDecayRate() / effectiveResistance);
+            double delta = context.outcomeValence() - vPredicted;
 
-            newWeights.put(conn.id(),
-                           new ConnectionWeight(newExcitatory, newInhibitory,
-                                                cw.decayResistance(), newPrecision));
+            for (CapsConnection conn : incoming) {
+                double sourceAct = context.inputActivations()
+                                          .getOrDefault(conn.from(), 0.0);
+                if (Math.abs(sourceAct) < 0.01) {continue;}
+
+                ConnectionWeight cw = state.weights()
+                                           .getOrDefault(conn.id(),
+                                                         new ConnectionWeight(conn.defaultWeight(),
+                                                                              provenancePrecision(conn.provenance())));
+
+                double baseAlpha = Math.max(params.alphaMin(),
+                                            Math.min(params.alphaMax(),
+                                                     context.salienceMultiplier() * config.salienceAlphaScaling()));
+                baseAlpha *= context.capacityMultiplier();
+                double effectiveAlpha = baseAlpha / cw.precision();
+                double beta = Math.max(params.betaMin(),
+                                       Math.min(params.betaMax(), context.outcomeIntensity()));
+
+                double deltaW = effectiveAlpha * beta * delta * scheduleMod;
+                double newExcitatory = Math.max(-2.0, Math.min(2.0,
+                                                               cw.excitatory() + deltaW));
+
+                double newPrecision;
+                if (Math.abs(delta) < config.confirmEpsilon()) {
+                    newPrecision = cw.precision() + config.precisionGrowthRate();
+                } else {
+                    newPrecision = Math.max(config.minPrecision(),
+                                            cw.precision() * config.precisionDecayFactor());
+                }
+
+                newWeights.put(conn.id(),
+                               new ConnectionWeight(newExcitatory, newPrecision));
+            }
         }
 
         return new AgentCapsState(state.agentId(), state.tenantId(),

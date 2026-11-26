@@ -74,7 +74,7 @@ public class CapsSettler {
                 for (CapsConnection conn : incoming) {
                     ConnectionWeight cw = state.weights()
                                                .getOrDefault(conn.id(),
-                                                             new ConnectionWeight(conn.defaultWeight(), 0.0, 1.0, 1.0));
+                                                             new ConnectionWeight(conn.defaultWeight(), 1.0));
                     double sourceActivation = activations
                                                       .getOrDefault(conn.from(), 0.0);
                     netInput += sourceActivation * cw.effectiveWeight();
