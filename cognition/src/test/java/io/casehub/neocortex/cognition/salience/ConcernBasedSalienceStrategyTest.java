@@ -1,7 +1,5 @@
 package io.casehub.neocortex.cognition.salience;
 
-import io.casehub.neocortex.cognition.appraisal.Drive;
-import io.casehub.neocortex.cognition.appraisal.DriveCategory;
 import io.casehub.neocortex.cognition.appraisal.SalienceContext;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
@@ -74,6 +72,20 @@ class ConcernBasedSalienceStrategyTest {
 
         assertThat(result.narrative()).isEqualTo("Original observation text");
     }
+
+    @Test
+    void shortConcernFullyMatchingLongObservationScoresOne() {
+        var concern = java.util.Set.of("improve", "user", "retention");
+        var observation = java.util.Set.of("need", "improve", "user", "retention",
+                                           "analyzing", "behavioral", "patterns", "across", "different",
+                                           "cohorts", "product", "analytics", "dashboard",
+                                           "find", "actionable", "insights", "growth",
+                                           "marketing", "team", "efforts", "next", "quarter", "planning");
+
+        double score = ConcernBasedSalienceStrategy.keywordOverlap(concern, observation);
+        assertThat(score).as("all concern words matching should score 1.0").isEqualTo(1.0);
+    }
+
 
     private static Memory makeConcern(String id, String text) {
         return new Memory(id, Subject.of("concern", id), CONCERN_DOMAIN,
