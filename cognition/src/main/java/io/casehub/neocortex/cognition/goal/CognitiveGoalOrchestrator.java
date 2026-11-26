@@ -2,12 +2,8 @@ package io.casehub.neocortex.cognition.goal;
 
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
-import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.memory.CaseMemoryStore;
-import io.casehub.neocortex.memory.MemoryInput;
-import io.casehub.neocortex.memory.Subject;
-import io.casehub.neocortex.memory.experience.ExperienceEvents;
 import io.casehub.neocortex.mindmap.AppraisalContext;
 import io.casehub.neocortex.mindmap.GoalAppraisal;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -26,7 +22,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 public class CognitiveGoalOrchestrator implements CognitionTickParticipant {
 
@@ -78,7 +73,7 @@ public class CognitiveGoalOrchestrator implements CognitionTickParticipant {
     }
 
     private void doTick(String agentId, String tenantId, String key) {
-        List<MindMapNode> goals = queryGoals(tenantId);
+        List<MindMapNode> goals = queryGoals(tenantId, agentId);
         if (goals.isEmpty()) {
             states.put(key, new CognitiveGoalState(List.of(), List.of()));
             return;
@@ -105,8 +100,7 @@ public class CognitiveGoalOrchestrator implements CognitionTickParticipant {
             var goalEmotions = appraisal.appraise(goal, ctx);
             emotions.add(new CognitiveGoalState.GoalEmotion(goal, goalEmotions));
 
-            recordSurfacing(agentId, tenantId, goal, now);
-            recordEmotions(agentId, tenantId, goal, goalEmotions);
+            lastSurfacedTimestamps.put(agentId + "|" + goal.id(), now);
         }
 
         for (var goal : goals) {
@@ -116,10 +110,15 @@ public class CognitiveGoalOrchestrator implements CognitionTickParticipant {
         states.put(key, new CognitiveGoalState(List.copyOf(emotions), List.copyOf(revisions)));
     }
 
-    private List<MindMapNode> queryGoals(String tenantId) {
+    private List<MindMapNode> queryGoals(String tenantId, String agentId) {
         for (MindMapSubgraph sg : mindMapStore.listSubgraphs(tenantId)) {
             if (SubgraphTypes.GOAL.equals(sg.type())) {
-                return List.copyOf(mindMapStore.nodesIn(sg.id(), tenantId));
+                return mindMapStore.nodesIn(sg.id(), tenantId).stream()
+                                   .filter(node -> {
+                                       var nodeAgentId = node.property("agent-id").orElse(null);
+                                       return nodeAgentId == null || agentId.equals(nodeAgentId);
+                                   })
+                                   .toList();
             }
         }
         return List.of();
@@ -146,44 +145,6 @@ public class CognitiveGoalOrchestrator implements CognitionTickParticipant {
             selected.add(goal);
         }
         return selected;
-    }
-
-    private void recordSurfacing(String agentId, String tenantId, MindMapNode goal, Instant now) {
-        if (memoryStore == null) return;
-        try {
-            memoryStore.store(MemoryInput.of(
-                    Subject.of("agent", agentId), ExperienceEvents.DOMAIN, tenantId,
-                    "Goal surfaced: " + goal.name())
-                    .withAttributes(Map.of(
-                            "cognitive-event", "goal-surfaced",
-                            "goal-node-id", goal.id())));
-            lastSurfacedTimestamps.put(agentId + "|" + goal.id(), now);
-        } catch (Exception e) {
-            LOG.log(System.Logger.Level.WARNING, "Failed to record surfacing", e);
-        }
-    }
-
-    private void recordEmotions(String agentId, String tenantId, MindMapNode goal,
-                                 List<CognitiveEmotion> emotions) {
-        if (memoryStore == null || emotions.isEmpty()) return;
-        try {
-            var dominant = emotions.stream()
-                    .max(java.util.Comparator.comparingDouble(CognitiveEmotion::intensity))
-                    .orElse(null);
-            if (dominant == null) return;
-
-            memoryStore.store(MemoryInput.of(
-                    Subject.of("agent", agentId), ExperienceEvents.DOMAIN, tenantId,
-                    "Felt " + dominant.type().name() + " about " + goal.name()
-                            + " (intensity " + String.format("%.2f", dominant.intensity()) + ")")
-                    .withAttributes(Map.of(
-                            "emotion-type", dominant.type().name(),
-                            "emotion-intensity", String.format("%.2f", dominant.intensity()),
-                            "emotion-source", dominant.source().name(),
-                            "goal-node-id", goal.id())));
-        } catch (Exception e) {
-            LOG.log(System.Logger.Level.WARNING, "Failed to record emotion", e);
-        }
     }
 
     private void checkDecaySignal(MindMapNode goal, List<GoalRevision> revisions) {

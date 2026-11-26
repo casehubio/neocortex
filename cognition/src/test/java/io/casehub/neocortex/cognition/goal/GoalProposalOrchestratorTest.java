@@ -601,6 +601,32 @@ class GoalProposalOrchestratorTest {
         assertThat(changes.priorityAdjustments().get(0).reason()).contains("procrastination");
     }
 
+
+    @Test
+    void noChange_clearsCachedProposals() {
+        var config = new GoalProposalConfig(0.4, 0.2, 3, Duration.ZERO,
+                                            Duration.ofMinutes(60), 5);
+        var orch = new GoalProposalOrchestrator(
+                driveOrchestrator, List.of(curiosityMapper), Optional.empty(), config, clock);
+
+        setupDrives("a1", "t1", DriveAxis.CURIOSITY, 0.7);
+        when(curiosityMapper.evaluate("a1", "t1", driveIntensity(DriveAxis.CURIOSITY, 0.7)))
+                .thenReturn(new DriveGoalProposal(
+                        DriveAxis.CURIOSITY, "explore", "d", "r", 0.7));
+
+        var tick1 = orch.tick("a1", "t1", descriptorWithGoals());
+        assertThat(tick1).isInstanceOf(GoalProposalTick.Changes.class);
+        assertThat(orch.currentProposals("a1", "t1")).isPresent();
+
+        // Drive drops below threshold → NoChange
+        setupDrives("a1", "t1", DriveAxis.CURIOSITY, 0.1);
+        var tick2 = orch.tick("a1", "t1", descriptorWithGoals());
+        assertThat(tick2).isInstanceOf(GoalProposalTick.NoChange.class);
+
+        // Stale proposals must be cleared on any NoChange path
+        assertThat(orch.currentProposals("a1", "t1")).isEmpty();
+    }
+
     @Test
     void evictIdleRemovesStaleEntries() {
         var goal = new DriveGoalProposal(DriveAxis.CURIOSITY, "test-goal", "desc", "reason", 0.5);

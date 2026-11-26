@@ -69,32 +69,6 @@ class CognitiveGoalOrchestratorTest {
     }
 
     @Test
-    void tick_recordsSurfacingEvent() {
-        createGoal("active", 0.7, 0.3, 0.8);
-
-        orchestrator.tick(tickContext());
-
-        var memories = memoryStore.query(MemoryQuery.forSubject(
-                Subject.of("agent", AGENT), new MemoryDomain("experience"), TENANT)
-                .withLimit(10));
-        assertThat(memories).anyMatch(m ->
-                "goal-surfaced".equals(m.attributes().get("cognitive-event")));
-    }
-
-    @Test
-    void tick_recordsAgentExperience() {
-        createGoal("active", 0.7, 0.5, 0.5);
-
-        orchestrator.tick(tickContext());
-
-        var memories = memoryStore.query(MemoryQuery.forSubject(
-                Subject.of("agent", AGENT), new MemoryDomain("experience"), TENANT)
-                .withLimit(10));
-        assertThat(memories).isNotEmpty();
-        assertThat(memories.get(0).attributes()).containsKey("emotion-type");
-    }
-
-    @Test
     void tick_detectsDecaySignal() {
         String goalId = createGoal("active", 0.7, 0.3, 0.8);
         mindMapStore.updateNode(goalId,
@@ -116,12 +90,14 @@ class CognitiveGoalOrchestratorTest {
         createGoal("active", 0.7, 0.3, 0.8);
 
         orchestrator.tick(tickContext());
-        int firstSurfacingCount = countSurfacingEvents();
+        var firstState = orchestrator.currentState(AGENT, TENANT);
+        assertThat(firstState).isPresent();
+        assertThat(firstState.get().goals()).hasSize(1);
 
         orchestrator.tick(tickContext());
-        int secondSurfacingCount = countSurfacingEvents();
-
-        assertThat(secondSurfacingCount).isEqualTo(firstSurfacingCount);
+        var secondState = orchestrator.currentState(AGENT, TENANT);
+        assertThat(secondState).isPresent();
+        assertThat(secondState.get().goals()).isEmpty();
     }
 
     @Test
@@ -150,9 +126,67 @@ class CognitiveGoalOrchestratorTest {
 
         orchestrator.tick(tickContext());
 
-        int surfacingCount = countSurfacingEvents();
-        assertThat(surfacingCount).isEqualTo(0);
+        var state = orchestrator.currentState(AGENT, TENANT);
+        assertThat(state).isPresent();
+        assertThat(state.get().goals()).isEmpty();
     }
+
+    @Test
+    void queryGoals_filtersToCurrentAgent() {
+        // Goal for agent-1 (matches)
+        mindMapStore.addNode(
+                NodeInput.of("Agent1 goal", goalSubgraphId)
+                         .withProperties(Map.of("status", "active", "priority", "0.8",
+                                                "agent-id", AGENT)),
+                TENANT);
+        // Goal for agent-2 (should be excluded)
+        mindMapStore.addNode(
+                NodeInput.of("Agent2 goal", goalSubgraphId)
+                         .withProperties(Map.of("status", "active", "priority", "0.8",
+                                                "agent-id", "agent-2")),
+                TENANT);
+
+        orchestrator.tick(tickContext());
+
+        var state = orchestrator.currentState(AGENT, TENANT);
+        assertThat(state).isPresent();
+        assertThat(state.get().goals()).hasSize(1);
+        assertThat(state.get().goals().get(0).goal().name()).isEqualTo("Agent1 goal");
+    }
+
+    @Test
+    void queryGoals_includesSharedGoalsWithoutAgentId() {
+        // Shared goal (no agent-id)
+        mindMapStore.addNode(
+                NodeInput.of("Shared goal", goalSubgraphId)
+                         .withProperties(Map.of("status", "active", "priority", "0.7")),
+                TENANT);
+        // Agent-specific goal
+        mindMapStore.addNode(
+                NodeInput.of("My goal", goalSubgraphId)
+                         .withProperties(Map.of("status", "active", "priority", "0.8",
+                                                "agent-id", AGENT)),
+                TENANT);
+
+        orchestrator.tick(tickContext());
+
+        var state = orchestrator.currentState(AGENT, TENANT);
+        assertThat(state).isPresent();
+        assertThat(state.get().goals()).hasSize(2);
+    }
+
+    @Test
+    void tick_doesNotWriteExperienceMemories() {
+        createGoal("active", 0.7, 0.3, 0.8);
+
+        orchestrator.tick(tickContext());
+
+        var memories = memoryStore.query(MemoryQuery.forSubject(
+                                                            Subject.of("agent", AGENT), new MemoryDomain("experience"), TENANT)
+                                                    .withLimit(100));
+        assertThat(memories).isEmpty();
+    }
+
 
     private String createGoal(String status, double priority, double urgency, double feasibility) {
         return mindMapStore.addNode(
@@ -171,12 +205,4 @@ class CognitiveGoalOrchestratorTest {
         return new CognitionTickContext(AGENT, TENANT, null, (a, t) -> Set.of());
     }
 
-    private int countSurfacingEvents() {
-        var memories = memoryStore.query(MemoryQuery.forSubject(
-                Subject.of("agent", AGENT), new MemoryDomain("experience"), TENANT)
-                .withLimit(100));
-        return (int) memories.stream()
-                .filter(m -> "goal-surfaced".equals(m.attributes().get("cognitive-event")))
-                .count();
-    }
 }

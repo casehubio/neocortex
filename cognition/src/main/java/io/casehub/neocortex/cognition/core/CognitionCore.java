@@ -7,6 +7,7 @@ import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.NeedTierMappingProvider;
 import io.casehub.neocortex.cognition.goal.DriveGoalBridgeParticipant;
 import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
+import io.casehub.neocortex.cognition.goal.GoalProposalTick;
 import io.casehub.neocortex.cognition.gut.GutFeelingParticipant;
 import io.casehub.neocortex.cognition.innerlife.InnerLifeOrchestrator;
 import io.casehub.neocortex.cognition.memory.MemoryHygieneOrchestrator;
@@ -442,7 +443,12 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
         }
 
         if (config.goalsEnabled() && goals != null && descriptor != null) {
-            safeRun(() -> goals.tick(agentId, tenantId, descriptor));
+            var goalResult = safeCall(() -> goals.tick(agentId, tenantId, descriptor));
+            if (goalResult instanceof GoalProposalTick.Changes changes) {
+                LOG.log(System.Logger.Level.DEBUG,
+                        "Goal tick: {0} proposals, {1} abandonments",
+                        changes.newProposals().size(), changes.abandonedGoalNames().size());
+            }
         }
         runCustomParticipants(CognitionPhase.TERMINAL, context);
 
@@ -1541,4 +1547,14 @@ public @Nullable String lastTargetAgentId() {
             LOG.log(System.Logger.Level.WARNING, "Orchestrator operation failed", e);
         }
     }
+
+    private <T> T safeCall(java.util.function.Supplier<T> action) {
+        try {
+            return action.get();
+        } catch (Exception e) {
+            LOG.log(System.Logger.Level.WARNING, "Orchestrator operation failed", e);
+            return null;
+        }
+    }
+
 }

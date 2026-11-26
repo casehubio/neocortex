@@ -172,15 +172,22 @@ public class GoalProposalOrchestrator {
     }
 
     private GoalProposalTick doTick(String agentId, String tenantId,
-                                     AgentDescriptor descriptor, String key) {
+                                    AgentDescriptor descriptor, String key) {
         Optional<DriveProfile> profileOpt = driveOrchestrator.currentDrives(agentId, tenantId);
         if (profileOpt.isEmpty()) {
+            GoalProposalState existing = states.get(key);
+            if (existing != null) {
+                existing.cachedProposals    = List.of();
+                existing.cachedAbandonments = List.of();
+            }
             return new GoalProposalTick.NoChange("no drive profile");
         }
 
         GoalProposalState state = states.computeIfAbsent(key, k -> new GoalProposalState());
 
         if (isCooldownActive(state)) {
+            state.cachedProposals = List.of();
+            state.cachedAbandonments = List.of();
             return new GoalProposalTick.NoChange("cooldown active");
         }
 
@@ -199,20 +206,20 @@ public class GoalProposalOrchestrator {
         }
 
         int existingDriveGoals = countDriveGoals(descriptor);
-        int remainingCapacity = config.maxDriveGoals() - existingDriveGoals + abandonments.size();
+        int remainingCapacity  = config.maxDriveGoals() - existingDriveGoals + abandonments.size();
 
         NarrativeState narrative = narrativeOrchestrator != null
-                ? narrativeOrchestrator.currentNarrative(agentId, tenantId).orElse(null)
-                : null;
+                                   ? narrativeOrchestrator.currentNarrative(agentId, tenantId).orElse(null)
+                                   : null;
         boolean newSynthesis = false;
         if (narrative != null) {
-            newSynthesis = state.lastSeenSynthesisAt == null
-                    || !narrative.synthesisedAt().equals(state.lastSeenSynthesisAt);
+            newSynthesis              = state.lastSeenSynthesisAt == null
+                                        || !narrative.synthesisedAt().equals(state.lastSeenSynthesisAt);
             state.lastSeenSynthesisAt = narrative.synthesisedAt();
         }
 
-        List<DriveGoalProposal> proposals = new ArrayList<>();
-        int totalCapacity = remainingCapacity;
+        List<DriveGoalProposal> proposals     = new ArrayList<>();
+        int                     totalCapacity = remainingCapacity;
         if (remainingCapacity > 0) {
             var deductiveProposals = evaluateDeductive(agentId, tenantId, profile, descriptor, remainingCapacity);
             proposals.addAll(deductiveProposals);
@@ -220,29 +227,29 @@ public class GoalProposalOrchestrator {
         }
         if (remainingCapacity > 0) {
             proposals.addAll(evaluateMappers(agentId, tenantId, profile, state,
-                    descriptor, remainingCapacity));
+                                             descriptor, remainingCapacity));
 
             if (narrative != null) {
                 proposals.addAll(evaluateCrossAxis(agentId, tenantId, profile, narrative));
                 proposals = evaluateEscalation(proposals, narrative, profile,
-                        descriptor, state, newSynthesis);
+                                               descriptor, state, newSynthesis);
             }
         }
         if (!proposals.isEmpty()) {
             proposals.sort(Comparator.comparingDouble(DriveGoalProposal::driveIntensity).reversed()
-                    .thenComparing(p -> p.axis().ordinal()));
+                                     .thenComparing(p -> p.axis().ordinal()));
             if (proposals.size() > totalCapacity) {
                 proposals = new ArrayList<>(proposals.subList(0, totalCapacity));
             }
         }
 
-        List<PriorityAdjustment> adjustments = List.of();
-        List<GovernanceAttributeUpdate> govUpdates = List.of();
+        List<PriorityAdjustment>        adjustments = List.of();
+        List<GovernanceAttributeUpdate> govUpdates  = List.of();
         if (narrative != null) {
             var demotionSignals = evaluateDemotions(descriptor, narrative,
-                    state, newSynthesis);
+                                                    state, newSynthesis);
             adjustments = demotionSignals.adjustments();
-            govUpdates = demotionSignals.updates();
+            govUpdates  = demotionSignals.updates();
         }
 
         if (!state.requestedDemotions.isEmpty()) {
@@ -253,13 +260,15 @@ public class GoalProposalOrchestrator {
         }
 
         if (proposals.isEmpty() && abandonments.isEmpty()
-                && adjustments.isEmpty() && govUpdates.isEmpty()) {
+            && adjustments.isEmpty() && govUpdates.isEmpty()) {
+            state.cachedProposals    = List.of();
+            state.cachedAbandonments = List.of();
             return new GoalProposalTick.NoChange("no proposals, abandonments, or adjustments");
         }
 
         state.lastProposalTimestamp = Instant.now(clock);
-        state.cachedProposals = List.copyOf(proposals);
-        state.cachedAbandonments = List.copyOf(abandonments);
+        state.cachedProposals       = List.copyOf(proposals);
+        state.cachedAbandonments    = List.copyOf(abandonments);
 
         return new GoalProposalTick.Changes(proposals, abandonments, adjustments, govUpdates);
     }
