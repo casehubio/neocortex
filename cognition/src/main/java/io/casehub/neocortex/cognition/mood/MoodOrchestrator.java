@@ -9,11 +9,11 @@ import jakarta.inject.Inject;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
@@ -62,8 +62,8 @@ public class MoodOrchestrator {
     }
 
     private MoodTick doTick(AgentMoodState state) {
-        var now = clock.instant();
-        var drained = new java.util.ArrayList<MoodSignal>();
+        var        now     = clock.instant();
+        var        drained = new java.util.ArrayList<MoodSignal>();
         MoodSignal polled;
         while ((polled = state.pendingSignals.pollFirst()) != null) {
             drained.add(polled);
@@ -76,11 +76,31 @@ public class MoodOrchestrator {
             }
         }
 
-        double p = state.currentMood.pleasure();
-        double a = state.currentMood.arousal();
-        double d = state.currentMood.dominance();
+        double p     = state.currentMood.pleasure();
+        double a     = state.currentMood.arousal();
+        double d     = state.currentMood.dominance();
         String cause = state.currentMood.cause();
 
+        // Decay first: bring stale mood toward baseline before applying fresh signals
+        boolean decayed = false;
+        if (state.lastTickTimestamp != null) {
+            Duration elapsed = Duration.between(state.lastTickTimestamp, now);
+            var preMood = new MoodState(state.agentId, state.tenantId,
+                                        null, p, a, d, cause != null ? cause : "tick",
+                                        null, Set.of(), Map.of());
+            var decayedMood = MoodDecay.decay(preMood, config.baseline(),
+                                              elapsed, config.decayTimeConstant());
+            if (decayedMood.pleasure() != p
+                || decayedMood.arousal() != a
+                || decayedMood.dominance() != d) {
+                p       = decayedMood.pleasure();
+                a       = decayedMood.arousal();
+                d       = decayedMood.dominance();
+                decayed = true;
+            }
+        }
+
+        // Then apply fresh signals to the already-decayed state
         for (var signal : drained) {
             p += signal.pleasureDelta();
             a += signal.arousalDelta();
@@ -100,20 +120,7 @@ public class MoodOrchestrator {
                                     null, p, a, d, cause != null ? cause : "tick",
                                     null, Set.of(), Map.of());
 
-        boolean decayed = false;
-        if (state.lastTickTimestamp != null) {
-            Duration elapsed = Duration.between(state.lastTickTimestamp, now);
-            var decayedMood = MoodDecay.decay(shifted, config.baseline(),
-                    elapsed, config.decayTimeConstant());
-            if (decayedMood.pleasure() != shifted.pleasure()
-                    || decayedMood.arousal() != shifted.arousal()
-                    || decayedMood.dominance() != shifted.dominance()) {
-                shifted = decayedMood;
-                decayed = true;
-            }
-        }
-
-        state.currentMood = shifted;
+        state.currentMood       = shifted;
         state.lastTickTimestamp = now;
 
         if (drained.isEmpty() && !decayed) {

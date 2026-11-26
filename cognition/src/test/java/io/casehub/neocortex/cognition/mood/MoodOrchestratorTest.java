@@ -252,4 +252,48 @@ class MoodOrchestratorTest {
         assertThat(errors.get()).as("no exceptions from concurrent access").isZero();
     }
 
+    @Test
+    void freshSignalAfterIdleGapRetainsFullStrength() {
+        var mutableClock = new MutableClock(Instant.parse("2026-01-01T12:00:00Z"));
+        var orch         = new MoodOrchestrator(MoodConfig.defaults(), mutableClock);
+
+        // First tick to establish state
+        orch.record(new MoodSignal.DirectShift(0.01, 0.0, 0.0, "init"), "agent-1", "tenant-1");
+        orch.tick("agent-1", "tenant-1");
+
+        // Advance 2 hours, record a signal, then tick
+        mutableClock.advance(Duration.ofHours(2));
+        orch.record(new MoodSignal.DirectShift(0.5, 0.0, 0.0, "test"), "agent-1", "tenant-1");
+        orch.tick("agent-1", "tenant-1");
+
+        var mood = orch.currentMood("agent-1", "tenant-1");
+        assertThat(mood).isPresent();
+        assertThat(mood.get().pleasure())
+                .as("signal after idle gap should retain most of its strength")
+                .isGreaterThan(0.4);
+    }
+
+
+    private static class MutableClock extends Clock {
+        private volatile Instant now;
+        private final    ZoneId  zone;
+
+        MutableClock(Instant initial) {
+            this.now  = initial;
+            this.zone = ZoneId.of("UTC");
+        }
+
+        void advance(Duration duration) {
+            now = now.plus(duration);
+        }
+
+        @Override
+        public ZoneId getZone()            {return zone;}
+
+        @Override
+        public Clock withZone(ZoneId zone) {return this;}
+
+        @Override
+        public Instant instant()           {return now;}
+    }
 }
