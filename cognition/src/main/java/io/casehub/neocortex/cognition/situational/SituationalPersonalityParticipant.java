@@ -97,7 +97,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
                     .mapToDouble(Double::doubleValue).max().orElse(0);
             boolean evidenceSustained = hasWinner && maxIntensity > config.dynamics().epsilonPublish();
             if (!compositeDelta.isEmpty() && hasWinner) {
-                return integrator.pull(withDetection, compositeDelta, maxIntensity, evidenceSustained, now);
+                return integrator.pull(withDetection, compositeDelta, maxIntensity, evidenceSustained, now, dtSeconds);
             }
             return withDetection;
         });

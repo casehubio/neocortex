@@ -87,9 +87,9 @@ class TierFilterCustomizerTest {
     }
 
     @Test
-    void unknownSectionDefaultsToCore() {
+    void unknownSectionDefaultsToContextual() {
         CognitionPromptRenderer unknown = ctx -> "test";
-        assertThat(TierFilterCustomizer.tierOf(unknown)).isEqualTo(SectionTier.CORE);
+        assertThat(TierFilterCustomizer.tierOf(unknown)).isEqualTo(SectionTier.CONTEXTUAL);
     }
 
     @Test

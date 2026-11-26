@@ -1,5 +1,8 @@
 package io.casehub.neocortex.cognition.situational;
 
+import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import org.jspecify.annotations.Nullable;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -8,10 +11,20 @@ import java.util.Map;
 public class PersonalityStateIntegrator {
 
     private final DynamicsConfig config;
+    private final @Nullable CognitiveDefaultsRegistry cognitiveDefaultsRegistry;
+
 
     public PersonalityStateIntegrator(DynamicsConfig config) {
-        this.config = config;
+        this.config                    = config;
+        this.cognitiveDefaultsRegistry = null;
     }
+
+    public PersonalityStateIntegrator(DynamicsConfig config,
+                                      CognitiveDefaultsRegistry cognitiveDefaultsRegistry) {
+        this.config                    = config;
+        this.cognitiveDefaultsRegistry = cognitiveDefaultsRegistry;
+    }
+
 
     public PersonalityState advance(PersonalityState state, Instant to) {
         var facets = new LinkedHashMap<>(state.facets());
@@ -75,15 +88,23 @@ public class PersonalityStateIntegrator {
         return state.withFacets(facets).withCursorTime(cursor).withHourCursor(hourCursor).withExposedUntil(exposedUntil);
     }
 
+
     public PersonalityState pull(PersonalityState state, Map<String, Double> compositeDeltas,
                                  double maxIntensity, boolean evidenceSustained, Instant now) {
-        var facets = new LinkedHashMap<>(state.facets());
+        return pull(state, compositeDeltas, maxIntensity, evidenceSustained, now, 1.0);
+    }
+
+    public PersonalityState pull(PersonalityState state, Map<String, Double> compositeDeltas,
+                                 double maxIntensity, boolean evidenceSustained, Instant now,
+                                 double dt) {
+        double effectiveAlpha = dt > 0 ? 1.0 - Math.pow(1.0 - config.alphaPull(), dt) : config.alphaPull();
+        var    facets         = new LinkedHashMap<>(state.facets());
         for (var entry : facets.entrySet()) {
-            String facetName = entry.getKey();
-            FacetState fs = entry.getValue();
-            double delta = compositeDeltas.getOrDefault(facetName, 0.0);
-            double d = fs.displacement();
-            double newD = d + config.alphaPull() * (delta - d);
+            String     facetName = entry.getKey();
+            FacetState fs        = entry.getValue();
+            double     delta     = compositeDeltas.getOrDefault(facetName, 0.0);
+            double     d         = fs.displacement();
+            double     newD      = d + effectiveAlpha * (delta - d);
             newD = clampDisplacement(newD, fs.homeOffset(), baselineFor(facetName));
             entry.setValue(fs.withDisplacement(newD));
         }

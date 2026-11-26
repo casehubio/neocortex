@@ -38,7 +38,7 @@ public class TierFilterCustomizer implements UnaryOperator<List<CognitionPromptR
             Map.entry(EmergentGoalPromptSection.class, SectionTier.SUPPLEMENTARY),
             Map.entry(ReflectionPromptSection.class, SectionTier.SUPPLEMENTARY),
             Map.entry(ConsolidationPromptSection.class, SectionTier.SUPPLEMENTARY),
-            Map.entry(ConstraintPromptSection.class, SectionTier.SUPPLEMENTARY)
+            Map.entry(ConstraintPromptSection.class, SectionTier.CONTEXTUAL)
     );
 
     private final DoubleSupplier arousalSupplier;
@@ -84,6 +84,6 @@ public class TierFilterCustomizer implements UnaryOperator<List<CognitionPromptR
         var clazz = section instanceof DirectiveSection ds
                 ? ds.delegate().getClass()
                 : section.getClass();
-        return TIER_MAP.getOrDefault(clazz, SectionTier.CORE);
+        return TIER_MAP.getOrDefault(clazz, SectionTier.CONTEXTUAL);
     }
 }
