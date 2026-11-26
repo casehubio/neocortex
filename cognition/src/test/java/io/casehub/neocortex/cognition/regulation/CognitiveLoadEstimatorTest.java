@@ -11,7 +11,6 @@ import io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,13 +41,30 @@ class CognitiveLoadEstimatorTest {
     }
 
     @Test
+    void lowLoadReachableWithFourLowIntensityDrives() {
+        var drives = mock(DriveOrchestrator.class);
+        when(drives.currentDrives(AGENT, TENANT)).thenReturn(Optional.of(
+                driveProfile(Map.of(
+                        DriveAxis.CURIOSITY, intensity(DriveAxis.CURIOSITY, 0.1),
+                        DriveAxis.COMPETENCE, intensity(DriveAxis.COMPETENCE, 0.1),
+                        DriveAxis.AFFILIATION, intensity(DriveAxis.AFFILIATION, 0.2),
+                        DriveAxis.AUTONOMY, intensity(DriveAxis.AUTONOMY, 0.1)))));
+
+        var estimator = new CognitiveLoadEstimator(drives, null, null);
+        var estimate  = estimator.estimate(AGENT, TENANT);
+
+        assertThat(estimate.level()).isEqualTo(CognitiveLoadLevel.LOW);
+    }
+
+
+    @Test
     void moderateLoadWithMultipleSources() {
         var drives = mock(DriveOrchestrator.class);
         var goals = mock(GoalProposalOrchestrator.class);
         when(drives.currentDrives(AGENT, TENANT)).thenReturn(Optional.of(
                 driveProfile(Map.of(
                         DriveAxis.CURIOSITY, intensity(DriveAxis.CURIOSITY, 0.5),
-                        DriveAxis.COMPETENCE, intensity(DriveAxis.COMPETENCE, 0.3)))));
+                        DriveAxis.COMPETENCE, intensity(DriveAxis.COMPETENCE, 0.5)))));
         when(goals.currentProposals(AGENT, TENANT)).thenReturn(Optional.of(
                 List.of(mock(DriveGoalProposal.class), mock(DriveGoalProposal.class))));
 
@@ -67,8 +83,8 @@ class CognitiveLoadEstimatorTest {
         when(drives.currentDrives(AGENT, TENANT)).thenReturn(Optional.of(
                 driveProfile(Map.of(
                         DriveAxis.CURIOSITY, intensity(DriveAxis.CURIOSITY, 0.5),
-                        DriveAxis.COMPETENCE, intensity(DriveAxis.COMPETENCE, 0.3),
-                        DriveAxis.AFFILIATION, intensity(DriveAxis.AFFILIATION, 0.4)))));
+                        DriveAxis.COMPETENCE, intensity(DriveAxis.COMPETENCE, 0.5),
+                        DriveAxis.AFFILIATION, intensity(DriveAxis.AFFILIATION, 0.5)))));
         when(goals.currentProposals(AGENT, TENANT)).thenReturn(Optional.of(
                 List.of(mock(DriveGoalProposal.class), mock(DriveGoalProposal.class),
                         mock(DriveGoalProposal.class))));

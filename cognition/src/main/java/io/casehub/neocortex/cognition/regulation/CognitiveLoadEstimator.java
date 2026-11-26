@@ -24,7 +24,7 @@ public class CognitiveLoadEstimator {
 
     public CognitiveLoadEstimate estimate(String agentId, String tenantId) {
         int driveCount = drives.currentDrives(agentId, tenantId)
-                .map(p -> p.drives().size())
+                .map(p -> (int) p.drives().values().stream().filter(d -> d.intensity() > 0.3).count())
                 .orElse(0);
 
         int goalCount = (goals != null)
