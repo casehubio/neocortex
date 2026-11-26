@@ -104,7 +104,8 @@ public class GutFeelingParticipant implements CognitionTickParticipant {
         var mood = moodOpt.get();
 
         var affectMemories = memoryStore.scan(
-            new MemoryScanRequest(tenantId, "affect", null, null, 50, null));
+            new MemoryScanRequest(tenantId, "affect", null, null, 50, null,
+                io.casehub.platform.api.identity.PrincipalId.agent(agentId)));
         var affectWithPad = affectMemories.stream()
             .filter(m -> m.pleasure() != null && m.arousal() != null && m.dominance() != null)
             .toList();

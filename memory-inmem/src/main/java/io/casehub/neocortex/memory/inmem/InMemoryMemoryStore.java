@@ -213,6 +213,8 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             for (Memory m : entry.getValue()) {
                 if (request.attributeKey() != null
                     && !request.attributeValue().equals(m.attributes().get(request.attributeKey()))) {continue;}
+                if (request.callerPrincipalId() != null
+                    && (m.principalId() == null || !m.principalId().equals(request.callerPrincipalId()))) {continue;}
                 all.add(m);
             }
         }

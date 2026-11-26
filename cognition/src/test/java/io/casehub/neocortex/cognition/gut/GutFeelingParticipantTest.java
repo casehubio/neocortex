@@ -14,11 +14,11 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class GutFeelingParticipantTest {
 
@@ -161,10 +161,11 @@ class GutFeelingParticipantTest {
     @Test
     void moodDistanceFallbackWhenNoExperienceMatch() {
         var store = createStore();
+        var pid = io.casehub.platform.api.identity.PrincipalId.agent("a1");
         store.store(MemoryInput.of(Subject.of("node", "n1"), new MemoryDomain("affect"), "t1",
-                                   "PAD update").withPad(-0.6, 0.7, -0.3));
+                                   "PAD update").withPad(-0.6, 0.7, -0.3).withPrincipalId(pid));
         store.store(MemoryInput.of(Subject.of("node", "n2"), new MemoryDomain("affect"), "t1",
-                                   "PAD update").withPad(-0.5, 0.6, -0.4));
+                                   "PAD update").withPad(-0.5, 0.6, -0.4).withPrincipalId(pid));
 
         var moodOrchestrator = stubMoodReturning("a1", "t1", 0.8, 0.1, 0.5);
         var participant      = new GutFeelingParticipant(store, moodOrchestrator);
@@ -180,7 +181,8 @@ class GutFeelingParticipantTest {
     void noResonanceWhenMoodNearCentroid() {
         var store = createStore();
         store.store(MemoryInput.of(Subject.of("node", "n1"), new MemoryDomain("affect"), "t1",
-                                   "PAD update").withPad(0.3, 0.2, 0.1));
+                                   "PAD update").withPad(0.3, 0.2, 0.1)
+                .withPrincipalId(io.casehub.platform.api.identity.PrincipalId.agent("a1")));
 
         var moodOrchestrator = stubMoodReturning("a1", "t1", 0.3, 0.2, 0.1);
         var participant      = new GutFeelingParticipant(store, moodOrchestrator);
@@ -194,7 +196,8 @@ class GutFeelingParticipantTest {
     void fallbackReturnsEmptyWhenNoMood() {
         var store = createStore();
         store.store(MemoryInput.of(Subject.of("node", "n1"), new MemoryDomain("affect"), "t1",
-                                   "PAD update").withPad(-0.5, 0.5, -0.3));
+                                   "PAD update").withPad(-0.5, 0.5, -0.3)
+                .withPrincipalId(io.casehub.platform.api.identity.PrincipalId.agent("a1")));
 
         var participant = new GutFeelingParticipant(store, null);
         var ctx         = new CognitionTickContext("a1", "t1", null, (a, t) -> Set.of());
@@ -253,4 +256,30 @@ class GutFeelingParticipantTest {
 
         assertThat(participant.currentResult("a1", "t1")).isEmpty();
     }
+
+    @Test
+    void layer2OnlyReturnsAgentScopedAffectMemories() {
+        var store = createStore();
+        // Agent-1 affect: strongly negative
+        store.store(MemoryInput.of(Subject.of("node", "n1"), new MemoryDomain("affect"), "t1",
+                                   "PAD update").withPad(-0.8, 0.7, -0.5)
+                               .withPrincipalId(io.casehub.platform.api.identity.PrincipalId.agent("a1")));
+        // Agent-2 affect: strongly positive (should be excluded from agent-1's scan)
+        store.store(MemoryInput.of(Subject.of("node", "n2"), new MemoryDomain("affect"), "t1",
+                                   "PAD update").withPad(0.8, 0.1, 0.5)
+                               .withPrincipalId(io.casehub.platform.api.identity.PrincipalId.agent("a2")));
+
+        // Mood positive — distant from agent-1's negative affect centroid
+        var moodOrchestrator = stubMoodReturning("a1", "t1", 0.5, 0.0, 0.3);
+        var participant      = new GutFeelingParticipant(store, moodOrchestrator);
+        var ctx              = new CognitionTickContext("a1", "t1", null, (a, t) -> Set.of());
+        participant.tick(ctx);
+
+        var result = participant.currentResult("a1", "t1");
+        assertThat(result).as("should produce gut feeling from agent-1 affect only").isPresent();
+        assertThat(result.get().valence())
+                .as("positive mood diverging from agent-1's negative affect should produce APPROACH")
+                .isEqualTo(GutValence.APPROACH);
+    }
+
 }
