@@ -69,17 +69,20 @@ public class SubThoughtTickParticipant implements CognitionTickParticipant {
     }
 
     private void pushToMentalModel(List<SubThought> subThoughts, String agentId,
-                                    String tenantId, SubjectResolver contextResolver) {
-        if (mentalModel == null) return;
+                                   String tenantId, SubjectResolver contextResolver) {
+        if (mentalModel == null) {return;}
         var resolverToUse = contextResolver != null ? contextResolver : this.resolver;
-        if (resolverToUse == null) return;
+        if (resolverToUse == null) {return;}
         Set<String> subjects = resolverToUse.relevantSubjects(agentId, tenantId);
         for (var st : subThoughts) {
+            if (!io.casehub.neocortex.memory.experience.SubThoughtTypes.INTENTION.equals(st.type())) {
+                continue;
+            }
             if (st.entity() != null && subjects.contains(st.entity())) {
                 mentalModel.record(
-                    new MentalStateSignal.SubThoughtCue(st.type(), st.text(), st.entity(), st.confidence()),
-                    agentId, st.entity(), tenantId
-                );
+                        new MentalStateSignal.SubThoughtCue(st.type(), st.text(), st.entity(), st.confidence()),
+                        agentId, st.entity(), tenantId
+                                  );
             }
         }
     }

@@ -256,42 +256,63 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
     }
 
     private ReflectionEvent parseHeuristic(JsonNode node, String agentId, String tenantId,
-                                            int targetLevel, Map<String, Set<String>> turnIndex,
-                                            Map<String, TrajectoryOutcome> trajectoryOutcomeIndex) {
+                                           int targetLevel, Map<String, Set<String>> turnIndex,
+                                           Map<String, TrajectoryOutcome> trajectoryOutcomeIndex) {
         JsonNode conditionNode = node.get("condition");
-        JsonNode actionNode = node.get("action");
-        if (conditionNode == null || actionNode == null) return null;
+        JsonNode actionNode    = node.get("action");
+        if (conditionNode == null || actionNode == null) {return null;}
 
         String condition = conditionNode.asText();
-        String action = actionNode.asText();
-        if (condition.isBlank() || action.isBlank()) return null;
+        String action    = actionNode.asText();
+        if (condition.isBlank() || action.isBlank()) {return null;}
 
         Set<String> sourceMemoryIds = new HashSet<>();
-        JsonNode sourceTurns = node.get("source_turns");
+        JsonNode    sourceTurns     = node.get("source_turns");
         if (sourceTurns != null && sourceTurns.isArray()) {
             for (var turnNode : sourceTurns) {
-                String turnId = turnNode.asText();
+                String      turnId = turnNode.asText();
                 Set<String> memIds = turnIndex.get(turnId);
-                if (memIds != null) sourceMemoryIds.addAll(memIds);
+                if (memIds != null) {sourceMemoryIds.addAll(memIds);}
             }
         }
 
-        if (sourceMemoryIds.isEmpty()) return null;
+        if (sourceMemoryIds.isEmpty()) {
+            JsonNode sourceCasesForRetry = node.get("source_cases");
+            if (sourceCasesForRetry != null && sourceCasesForRetry.isArray()) {
+                for (var caseNode : sourceCasesForRetry) {
+                    Set<String> memIds = turnIndex.get(caseNode.asText());
+                    if (memIds != null) {sourceMemoryIds.addAll(memIds);}
+                }
+            }
+        }
 
-        String derivation = "neutral";
+        boolean unlinked = sourceMemoryIds.isEmpty();
+        if (unlinked) {
+            LOG.log(Level.WARNING, "Heuristic accepted without source linkage: When {0}, {1}",
+                    new Object[]{condition, action});
+            sourceMemoryIds.add("unlinked:heuristic");
+        }
+
+        String   derivation  = "neutral";
         JsonNode sourceCases = node.get("source_cases");
         if (sourceCases != null && sourceCases.isArray()) {
             for (var caseNode : sourceCases) {
                 TrajectoryOutcome outcome = trajectoryOutcomeIndex.get(caseNode.asText());
-                if (outcome == TrajectoryOutcome.FAILURE) { derivation = "failure"; break; }
-                if (outcome == TrajectoryOutcome.SUCCESS) derivation = "success";
+                if (outcome == TrajectoryOutcome.FAILURE) {
+                    derivation = "failure";
+                    break;
+                }
+                if (outcome == TrajectoryOutcome.SUCCESS) {derivation = "success";}
             }
         }
 
         String insight = "When " + condition + ", " + action;
+        var    attrs   = new HashMap<>(Map.of("derivation", derivation));
+        if (unlinked) {attrs.put("unlinked", "true");}
 
         return new ReflectionEvent(agentId, tenantId, null, Instant.now(), insight,
-            targetLevel, List.copyOf(sourceMemoryIds), null,
-            Map.of("derivation", derivation));
+                                   targetLevel, List.copyOf(sourceMemoryIds),
+                                   unlinked ? 0.3 : null,
+                                   Map.copyOf(attrs));
     }
 }

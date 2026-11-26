@@ -9,7 +9,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -46,18 +50,33 @@ class SubThoughtTickParticipantTest {
     }
 
 
-
     @Test
-    void tickPushesSubThoughtCueToMentalModel() {
-        var context = new CognitionTickContext("agent1", "t1", null, resolver, "Sarah seemed upset.");
+    void tickPushesIntentionSubThoughtToMentalModel() {
+        var context = new CognitionTickContext("agent1", "t1", null, resolver,
+                                               "Sarah should finish the project.");
         participant.tick(context);
 
         verify(mentalModel).record(
-            argThat(signal -> signal instanceof MentalStateSignal.SubThoughtCue stc
-                    && "Sarah".equals(stc.entity())),
-            eq("agent1"), eq("Sarah"), eq("t1")
-        );
+                argThat(signal -> signal instanceof MentalStateSignal.SubThoughtCue stc
+                                  && "Sarah".equals(stc.entity())
+                                  && "intention".equals(stc.subThoughtType())),
+                eq("agent1"), eq("Sarah"), eq("t1")
+                                  );
     }
+
+    @Test
+    void nonIntentionSubThoughtsNotPushedToMentalModel() {
+        var context = new CognitionTickContext("agent1", "t1", null, resolver,
+                                               "Sarah seemed upset.");
+        participant.tick(context);
+
+        var result = participant.currentSubThoughts("agent1", "t1");
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+
+        verifyNoInteractions(mentalModel);
+    }
+
 
     @Test
     void tickSkipsNullObservation() {
