@@ -171,7 +171,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable GoalProposalOrchestrator goalOrchestrator) {
         this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
              effectiveDefaults, loadEstimator, capsEngine, cascadeConfig, regulationTracker,
-             copingMicroLoop, goalOrchestrator, null, null);
+             copingMicroLoop, goalOrchestrator, null, null, null);
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
@@ -187,13 +187,14 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable CopingMicroLoop copingMicroLoop,
                                             @Nullable GoalProposalOrchestrator goalOrchestrator,
                                             @Nullable DriveOrchestrator driveOrchestrator,
-                                            @Nullable CognitiveAttentionMediator attentionMediator) {
+                                            @Nullable CognitiveAttentionMediator attentionMediator,
+                                            @Nullable CognitiveResourcePool cognitiveResourcePool) {
         this.appraisalParticipant  = appraisalParticipant;
         this.config                = config;
         this.generationPhase       = generationPhase;
         this.mindMapStore          = mindMapStore;
         this.cognitiveSubgraphId   = cognitiveSubgraphId;
-        this.cognitiveResourcePool = null;
+        this.cognitiveResourcePool = cognitiveResourcePool;
         this.regulationMonitor     = new RegulationMonitor();
         this.effectiveDefaults      = effectiveDefaults;
         this.loadEstimator         = loadEstimator;

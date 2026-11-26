@@ -328,7 +328,7 @@ class EmotionRegulationTickParticipantTest {
         var participant = new EmotionRegulationTickParticipant(
                 appraisalParticipant, config, mock(EmotionRegulationGenerationPhase.class), null, null,
                 null, null, null, null, null, copingMicroLoop, null,
-                driveOrchestrator, null);
+                driveOrchestrator, null, null);
         participant.tick(context);
 
         verify(driveOrchestrator).recordAppraisalModulation(
@@ -367,7 +367,7 @@ class EmotionRegulationTickParticipantTest {
         var participant = new EmotionRegulationTickParticipant(
                 appraisalParticipant, config, mock(EmotionRegulationGenerationPhase.class), null, null,
                 null, null, null, null, null, copingMicroLoop, null,
-                driveOrchestrator, null);
+                driveOrchestrator, null, null);
         participant.tick(context);
 
         verify(driveOrchestrator).recordAppraisalModulation(
@@ -407,7 +407,7 @@ class EmotionRegulationTickParticipantTest {
         var participant = new EmotionRegulationTickParticipant(
                 appraisalParticipant, config, mock(EmotionRegulationGenerationPhase.class), null, null,
                 null, null, null, null, null, copingMicroLoop, null,
-                null, attentionMediator);
+                null, attentionMediator, null);
         participant.tick(context);
 
         var briefingCaptor = org.mockito.ArgumentCaptor.forClass(io.casehub.neocortex.mindmap.AttentionBriefing.class);
