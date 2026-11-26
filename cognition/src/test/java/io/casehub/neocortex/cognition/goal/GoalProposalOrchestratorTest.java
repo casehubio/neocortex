@@ -490,6 +490,34 @@ class GoalProposalOrchestratorTest {
     }
 
     @Test
+    void deductiveStrategyReceivesPopulatedContext() {
+        org.mockito.ArgumentCaptor<DeductiveFormationContext> captor =
+                org.mockito.ArgumentCaptor.forClass(DeductiveFormationContext.class);
+        DeductiveGoalFormationStrategy deductive = mock(DeductiveGoalFormationStrategy.class);
+        when(deductive.propose(captor.capture())).thenReturn(List.of());
+
+        var moodOrch = mock(io.casehub.neocortex.cognition.mood.MoodOrchestrator.class);
+        when(moodOrch.currentMood("a1", "t1")).thenReturn(Optional.of(
+                new io.casehub.neocortex.memory.mood.MoodState(
+                        "a1", "t1", Instant.now(clock), 0.5, 0.3, 0.2,
+                        "test", null, java.util.Set.of(), java.util.Map.of())));
+
+        var orch = new GoalProposalOrchestrator(
+                driveOrchestrator, List.of(), null, deductive,
+                Optional.empty(), null, null, null,
+                GoalProposalConfig.defaults(), GoalEscalationConfig.defaults(), clock,
+                null, moodOrch, null);
+
+        setupDrives("a1", "t1", DriveAxis.CURIOSITY, 0.7);
+        orch.tick("a1", "t1", descriptorWithGoals());
+
+        var ctx = captor.getValue();
+        assertThat(ctx.currentMood()).isNotNull();
+        assertThat(ctx.currentMood().pleasure()).isEqualTo(0.5);
+    }
+
+
+    @Test
     void appendGoalsAddsToExistingRegisteredGoals() {
         var goal1 = new DriveGoalProposal(DriveAxis.AUTONOMY, "goal-1", "desc1", "reason1", 0.5);
         var goal2 = new DriveGoalProposal(DriveAxis.AUTONOMY, "goal-2", "desc2", "reason2", 0.6);

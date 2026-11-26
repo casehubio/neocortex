@@ -9,8 +9,17 @@ import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.cognition.drive.DriveIntensity;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.DriveProfile;
+import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
 import io.casehub.neocortex.cognition.narrative.NarrativeState;
+import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.Subject;
+import io.casehub.neocortex.memory.mood.MoodState;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Clock;
@@ -42,6 +51,10 @@ public class GoalProposalOrchestrator {
     private final @Nullable GoalEscalationPolicy escalationPolicy;
     private final @Nullable CrossAxisGoalEnricher crossAxisEnricher;
     private final GoalEscalationConfig escalationConfig;
+    private final @Nullable CognitiveDefaultsRegistry cognitiveDefaultsRegistry;
+    private final @Nullable MoodOrchestrator moodOrchestratorRef;
+    private final @Nullable CaseMemoryStore memoryStoreRef;
+
 
     private final ConcurrentHashMap<String, GoalProposalState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
@@ -58,19 +71,44 @@ public class GoalProposalOrchestrator {
             @Nullable CrossAxisGoalEnricher crossAxisEnricher,
             GoalProposalConfig config,
             GoalEscalationConfig escalationConfig,
-            Clock clock) {
-        this.driveOrchestrator      = driveOrchestrator;
-        this.mappers                = List.copyOf(mappers);
-        this.formationStrategy      = formationStrategy;
-        this.deductiveStrategy      = deductiveStrategy;
-        this.goalSignalStore        = goalSignalStore;
-        this.narrativeOrchestrator  = narrativeOrchestrator;
-        this.escalationPolicy       = escalationPolicy;
-        this.crossAxisEnricher      = crossAxisEnricher;
-        this.config                 = config;
-        this.escalationConfig       = escalationConfig;
-        this.clock                  = clock;
+            Clock clock,
+            @Nullable CognitiveDefaultsRegistry cognitiveDefaultsRegistry,
+            @Nullable MoodOrchestrator moodOrchestrator,
+            @Nullable CaseMemoryStore memoryStore) {
+        this.driveOrchestrator         = driveOrchestrator;
+        this.mappers                   = List.copyOf(mappers);
+        this.formationStrategy         = formationStrategy;
+        this.deductiveStrategy         = deductiveStrategy;
+        this.goalSignalStore           = goalSignalStore;
+        this.narrativeOrchestrator     = narrativeOrchestrator;
+        this.escalationPolicy          = escalationPolicy;
+        this.crossAxisEnricher         = crossAxisEnricher;
+        this.config                    = config;
+        this.escalationConfig          = escalationConfig;
+        this.clock                     = clock;
+        this.cognitiveDefaultsRegistry = cognitiveDefaultsRegistry;
+        this.moodOrchestratorRef       = moodOrchestrator;
+        this.memoryStoreRef            = memoryStore;
     }
+
+    public GoalProposalOrchestrator(
+            DriveOrchestrator driveOrchestrator,
+            List<DriveGoalMapper> mappers,
+            @Nullable DriveGoalFormationStrategy formationStrategy,
+            @Nullable DeductiveGoalFormationStrategy deductiveStrategy,
+            Optional<GoalSignalStore> goalSignalStore,
+            @Nullable NarrativeOrchestrator narrativeOrchestrator,
+            @Nullable GoalEscalationPolicy escalationPolicy,
+            @Nullable CrossAxisGoalEnricher crossAxisEnricher,
+            GoalProposalConfig config,
+            GoalEscalationConfig escalationConfig,
+            Clock clock) {
+        this(driveOrchestrator, mappers, formationStrategy, deductiveStrategy,
+             goalSignalStore, narrativeOrchestrator, escalationPolicy,
+             crossAxisEnricher, config, escalationConfig, clock,
+             null, null, null);
+    }
+
 
     public GoalProposalOrchestrator(
             DriveOrchestrator driveOrchestrator,
@@ -85,7 +123,7 @@ public class GoalProposalOrchestrator {
             Clock clock) {
         this(driveOrchestrator, mappers, formationStrategy, null, goalSignalStore,
              narrativeOrchestrator, escalationPolicy, crossAxisEnricher,
-             config, escalationConfig, clock);
+             config, escalationConfig, clock, null, null, null);
     }
 
     GoalProposalOrchestrator(
@@ -95,7 +133,8 @@ public class GoalProposalOrchestrator {
             GoalProposalConfig config,
             Clock clock) {
         this(driveOrchestrator, mappers, null, null, goalSignalStore,
-             null, null, null, config, GoalEscalationConfig.defaults(), clock);
+             null, null, null, config, GoalEscalationConfig.defaults(), clock,
+             null, null, null);
     }
 
     GoalProposalOrchestrator(
@@ -106,7 +145,8 @@ public class GoalProposalOrchestrator {
             GoalProposalConfig config,
             Clock clock) {
         this(driveOrchestrator, mappers, formationStrategy, null, goalSignalStore,
-             null, null, null, config, GoalEscalationConfig.defaults(), clock);
+             null, null, null, config, GoalEscalationConfig.defaults(), clock,
+             null, null, null);
     }
 
     public GoalProposalTick tick(String agentId, String tenantId, AgentDescriptor descriptor) {
@@ -297,9 +337,42 @@ public class GoalProposalOrchestrator {
                                                       int remainingCapacity) {
         if (deductiveStrategy == null) {return List.of();}
 
+        DispositionAxes disposition = null;
+        if (cognitiveDefaultsRegistry != null) {
+            var defaults = cognitiveDefaultsRegistry.forAgentOrDefaults(agentId);
+            disposition = defaults.descriptor().disposition();
+        }
+
+        MoodState mood = null;
+        if (moodOrchestratorRef != null) {
+            mood = moodOrchestratorRef.currentMood(agentId, tenantId).orElse(null);
+        }
+
+        List<String> beliefs        = List.of();
+        List<String> recentMemories = List.of();
+        if (memoryStoreRef != null) {
+            try {
+                var beliefQuery = MemoryQuery.forSubject(
+                                                     Subject.of("agent", agentId),
+                                                     new MemoryDomain("belief"), tenantId)
+                                             .withLimit(10);
+                beliefs = memoryStoreRef.query(beliefQuery).stream()
+                                        .map(Memory::text).toList();
+
+                var experienceQuery = MemoryQuery.forSubject(
+                                                         Subject.of("agent", agentId),
+                                                         new MemoryDomain("experience"), tenantId)
+                                                 .withLimit(10);
+                recentMemories = memoryStoreRef.query(experienceQuery).stream()
+                                               .map(Memory::text).toList();
+            } catch (Exception e) {
+                // graceful degradation
+            }
+        }
+
         var context = new DeductiveFormationContext(
-                agentId, tenantId, profile, null,
-                List.of(), List.of(), null,
+                agentId, tenantId, profile, disposition,
+                beliefs, recentMemories, mood,
                 descriptor.goals(), remainingCapacity);
 
         try {
