@@ -273,6 +273,31 @@ class MoodOrchestratorTest {
                 .isGreaterThan(0.4);
     }
 
+    @Test
+    void moodDecaysTowardGoalBiasNotZero() {
+        var mutableClock = new MutableClock(Instant.parse("2026-01-01T12:00:00Z"));
+        var orch         = new MoodOrchestrator(MoodConfig.defaults(), mutableClock);
+
+        // Set a positive goal bias
+        orch.setGoalBias("agent-1", "tenant-1",
+                         new io.casehub.neocortex.memory.mood.MoodState("agent-1", "tenant-1",
+                                                                        null, 0.3, 0.0, 0.0, "goal-bias", null, java.util.Set.of(), java.util.Map.of()));
+
+        // Push mood positive
+        orch.record(new MoodSignal.DirectShift(0.8, 0.0, 0.0, "test"), "agent-1", "tenant-1");
+        orch.tick("agent-1", "tenant-1");
+
+        // Let it decay for a long time (24h >> 4h time constant)
+        mutableClock.advance(Duration.ofHours(24));
+        orch.tick("agent-1", "tenant-1");
+
+        var mood = orch.currentMood("agent-1", "tenant-1");
+        assertThat(mood).isPresent();
+        assertThat(mood.get().pleasure())
+                .as("mood should decay toward goal bias (0.3), not zero")
+                .isCloseTo(0.3, within(0.05));
+    }
+
 
     private static class MutableClock extends Clock {
         private volatile Instant now;

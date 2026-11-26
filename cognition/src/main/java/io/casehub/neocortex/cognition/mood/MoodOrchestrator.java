@@ -61,6 +61,13 @@ public class MoodOrchestrator {
         return Optional.of(state.currentMood);
     }
 
+    public void setGoalBias(String agentId, String tenantId, MoodState bias) {
+        var state = states.computeIfAbsent(stateKey(agentId, tenantId),
+                                           k -> new AgentMoodState(agentId, tenantId, config.baseline()));
+        state.goalBias = bias;
+    }
+
+
     private MoodTick doTick(AgentMoodState state) {
         var        now     = clock.instant();
         var        drained = new java.util.ArrayList<MoodSignal>();
@@ -81,15 +88,16 @@ public class MoodOrchestrator {
         double d     = state.currentMood.dominance();
         String cause = state.currentMood.cause();
 
-        // Decay first: bring stale mood toward baseline before applying fresh signals
+        // Decay first: bring stale mood toward effective baseline before applying fresh signals
         boolean decayed = false;
         if (state.lastTickTimestamp != null) {
             Duration elapsed = Duration.between(state.lastTickTimestamp, now);
             var preMood = new MoodState(state.agentId, state.tenantId,
                                         null, p, a, d, cause != null ? cause : "tick",
                                         null, Set.of(), Map.of());
+            var effectiveBaseline = effectiveBaseline(state);
             var decayedMood = MoodDecay.decay(preMood, config.baseline(),
-                                              elapsed, config.decayTimeConstant());
+                                              effectiveBaseline, elapsed, config.decayTimeConstant());
             if (decayedMood.pleasure() != p
                 || decayedMood.arousal() != a
                 || decayedMood.dominance() != d) {
@@ -145,6 +153,16 @@ public class MoodOrchestrator {
         return Math.max(lower, Math.min(upper, value));
     }
 
+    private io.casehub.neocortex.memory.mood.MoodBaseline effectiveBaseline(AgentMoodState state) {
+        var bias = state.goalBias;
+        if (bias == null) {return config.baseline();}
+        return new io.casehub.neocortex.memory.mood.MoodBaseline(
+                config.baseline().pleasure() + bias.pleasure(),
+                config.baseline().arousal() + bias.arousal(),
+                config.baseline().dominance() + bias.dominance());
+    }
+
+
     public void evictIdle(Duration maxIdle) {
         var cutoff = Instant.now().minus(maxIdle);
         lastTickTimes.entrySet().removeIf(e -> {
@@ -169,6 +187,8 @@ public class MoodOrchestrator {
         MoodState currentMood;
         Instant lastTickTimestamp;
         Instant lastActivityTimestamp;
+        volatile MoodState goalBias;
+
 
         AgentMoodState(String agentId, String tenantId, MoodBaseline baseline) {
             this.agentId = agentId;

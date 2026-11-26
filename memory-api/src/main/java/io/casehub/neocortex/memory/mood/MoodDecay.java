@@ -34,6 +34,35 @@ public final class MoodDecay {
         );
     }
 
+    public static MoodState decay(MoodState current, MoodBaseline baseline,
+                                  MoodBaseline effectiveBaseline,
+                                  Duration elapsed, Duration timeConstant) {
+        Objects.requireNonNull(current, "current required");
+        Objects.requireNonNull(baseline, "baseline required");
+        Objects.requireNonNull(effectiveBaseline, "effectiveBaseline required");
+        Objects.requireNonNull(elapsed, "elapsed required");
+        Objects.requireNonNull(timeConstant, "timeConstant required");
+
+        double elapsedMs = Math.max(0, elapsed.toMillis());
+        double tauMs     = timeConstant.toMillis();
+        if (elapsedMs == 0 || tauMs == 0) {return current;}
+
+        double factor = 1.0 - Math.exp(-elapsedMs / tauMs);
+
+        return new MoodState(
+                current.agentId(),
+                current.tenantId(),
+                null, decayAxis(current.pleasure(), effectiveBaseline.pleasure(), factor),
+                decayAxis(current.arousal(), effectiveBaseline.arousal(), factor),
+                decayAxis(current.dominance(), effectiveBaseline.dominance(), factor),
+                "decay",
+                null,
+                current.activeContextIds(),
+                Map.of()
+        );
+    }
+
+
     private static double decayAxis(double current, double baseline, double factor) {
         return current + (baseline - current) * factor;
     }

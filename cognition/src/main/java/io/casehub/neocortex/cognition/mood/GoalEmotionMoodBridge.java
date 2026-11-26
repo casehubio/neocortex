@@ -18,38 +18,39 @@ public class GoalEmotionMoodBridge implements CognitionTickParticipant {
 
     @Override
     public void tick(CognitionTickContext context) {
-        var agentId = context.agentId();
+        var agentId  = context.agentId();
         var tenantId = context.tenantId();
 
         var stateOpt = goalOrchestrator.currentState(agentId, tenantId);
-        if (stateOpt.isEmpty()) return;
+        if (stateOpt.isEmpty()) {return;}
 
         var emotions = stateOpt.get().goals().stream()
-                .flatMap(ge -> ge.emotions().stream())
-                .toList();
+                               .flatMap(ge -> ge.emotions().stream())
+                               .toList();
 
-        if (emotions.isEmpty()) return;
+        if (emotions.isEmpty()) {return;}
 
         double totalIntensity = emotions.stream()
-                .mapToDouble(CognitiveEmotion::intensity)
-                .sum();
+                                        .mapToDouble(CognitiveEmotion::intensity)
+                                        .sum();
 
-        if (totalIntensity <= 0) return;
+        if (totalIntensity <= 0) {return;}
 
         double weightedPleasure = emotions.stream()
-                .mapToDouble(e -> e.intensity() * e.pad().pleasure())
-                .sum() / totalIntensity;
+                                          .mapToDouble(e -> e.intensity() * e.pad().pleasure())
+                                          .sum() / totalIntensity;
         double weightedArousal = emotions.stream()
-                .mapToDouble(e -> e.intensity() * e.pad().arousal())
-                .sum() / totalIntensity;
+                                         .mapToDouble(e -> e.intensity() * e.pad().arousal())
+                                         .sum() / totalIntensity;
         double weightedDominance = emotions.stream()
-                .mapToDouble(e -> e.intensity() * e.pad().dominance())
-                .sum() / totalIntensity;
+                                           .mapToDouble(e -> e.intensity() * e.pad().dominance())
+                                           .sum() / totalIntensity;
 
-        var signal = new MoodSignal.DirectShift(
-                clamp(weightedPleasure), clamp(weightedArousal),
-                clamp(weightedDominance), "goal-emotions");
-        moodOrchestrator.record(signal, agentId, tenantId);
+        var bias = new io.casehub.neocortex.memory.mood.MoodState(
+                agentId, tenantId, null,
+                clamp(weightedPleasure), clamp(weightedArousal), clamp(weightedDominance),
+                "goal-emotions", null, java.util.Set.of(), java.util.Map.of());
+        moodOrchestrator.setGoalBias(agentId, tenantId, bias);
     }
 
     private static double clamp(double value) {
