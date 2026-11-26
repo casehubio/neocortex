@@ -72,7 +72,8 @@ final class MentalModelSchema {
               .append(",\"lastReinforced\":\"").append(s.lastReinforced())
               .append("\",\"dimension\":\"").append(s.dimension().name())
               .append("\",\"valence\":\"").append(s.valence().name())
-              .append("\"}");
+              .append("\",\"originalConfidence\":").append(s.originalConfidence())
+              .append("}");
         }
         sb.append("]");
         return sb.toString();
@@ -116,6 +117,7 @@ final class MentalModelSchema {
             var lastReinforcedStr = extractField(obj, "lastReinforced");
             var dimensionStr      = extractField(obj, "dimension");
             var valenceStr        = extractField(obj, "valence");
+            var origConfStr       = extractField(obj, "originalConfidence");
 
             if (key == null || description == null || confidenceStr == null
                 || entrenchmentStr == null || lastReinforcedStr == null || dimensionStr == null) {
@@ -125,12 +127,15 @@ final class MentalModelSchema {
             if (valenceStr != null) {
                 try {valence = IntentValence.valueOf(valenceStr);} catch (IllegalArgumentException ignored) {}
             }
+            double confidence = Double.parseDouble(confidenceStr);
+            double originalConfidence = origConfStr != null ? Double.parseDouble(origConfStr) : confidence;
             return new AttributedState(key, description,
-                                       Double.parseDouble(confidenceStr),
+                                       confidence,
                                        Integer.parseInt(entrenchmentStr),
                                        Instant.parse(lastReinforcedStr),
                                        BdiDimension.valueOf(dimensionStr),
-                                       valence);
+                                       valence,
+                                       originalConfidence);
         } catch (Exception e) {
             return null;
         }

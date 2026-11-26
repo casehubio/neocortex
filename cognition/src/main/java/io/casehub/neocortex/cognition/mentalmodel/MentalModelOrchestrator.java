@@ -287,10 +287,11 @@ public class MentalModelOrchestrator {
             long   elapsedMs  = Duration.between(s.lastReinforced(), now).toMillis();
             double halfLifeMs = halfLife.toMillis();
             if (halfLifeMs > 0 && elapsedMs > 0) {
-                double decayed = s.confidence() * Math.pow(0.5, elapsedMs / halfLifeMs);
+                double decayed = s.originalConfidence() * Math.pow(0.5, elapsedMs / halfLifeMs);
                 if (Math.abs(decayed - s.confidence()) > 0.001) {
                     entry.setValue(new AttributedState(s.key(), s.description(), decayed,
-                                                       s.entrenchment(), s.lastReinforced(), s.dimension(), s.valence()));
+                                                       s.entrenchment(), s.lastReinforced(), s.dimension(), s.valence(),
+                                                       s.originalConfidence()));
                     changed = true;
                 }
             }

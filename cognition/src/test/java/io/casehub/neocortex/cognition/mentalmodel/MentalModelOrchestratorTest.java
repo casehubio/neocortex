@@ -391,6 +391,49 @@ class MentalModelOrchestratorTest {
         assertThat(deserialized.get(2).valence()).isEqualTo(IntentValence.NEUTRAL);
     }
 
+
+    @Test
+    void decayIsIdempotentAcrossMultipleTicks() {
+        var t0 = Instant.parse("2026-08-20T12:00:00Z");
+        var oneHourHalfLife = new MentalModelConfig(
+                Duration.ofHours(1), Duration.ofHours(1), Duration.ofHours(1),
+                0.01, 0.3, 3, Duration.ofMinutes(5), 20, 100,
+                Duration.ofHours(24), Duration.ofMinutes(1),
+                "mental-model", "mental-model");
+
+        var initialBelief = new AttributedState("b", "belief", 0.8, 1, t0, BdiDimension.BELIEF);
+        var snapshot = new MentalModelSnapshot("a", "u", "t",
+                                               List.of(initialBelief), List.of(), List.of(), t0, null, t0);
+
+        // Single tick at +2h — the reference answer
+        var clock2h    = Clock.fixed(t0.plus(Duration.ofHours(2)), ZoneOffset.UTC);
+        var orchDirect = new MentalModelOrchestrator(memory, oneHourHalfLife, clock2h, null);
+        when(memory.lookup("a", "u", "t")).thenReturn(Optional.of(snapshot));
+        var directTick = orchDirect.tick("a", "u", "t");
+        double directConfidence = ((MentalModelTick.Updated) directTick).snapshot()
+                                                                        .beliefs().getFirst().confidence();
+
+        // Two ticks: +1h then +2h — should give same result
+        var clock1h = Clock.fixed(t0.plus(Duration.ofHours(1)), ZoneOffset.UTC);
+        var orch1   = new MentalModelOrchestrator(memory, oneHourHalfLife, clock1h, null);
+        when(memory.lookup("a", "u", "t")).thenReturn(Optional.of(snapshot));
+        var tick1    = orch1.tick("a", "u", "t");
+        var beliefs1 = ((MentalModelTick.Updated) tick1).snapshot().beliefs();
+
+        var clock2hB = Clock.fixed(t0.plus(Duration.ofHours(2)), ZoneOffset.UTC);
+        var orch2    = new MentalModelOrchestrator(memory, oneHourHalfLife, clock2hB, null);
+        var snapshot2 = new MentalModelSnapshot("a", "u", "t",
+                                                beliefs1, List.of(), List.of(), t0, null, t0);
+        when(memory.lookup("a", "u", "t")).thenReturn(Optional.of(snapshot2));
+        var tick2 = orch2.tick("a", "u", "t");
+        double twoStepConfidence = ((MentalModelTick.Updated) tick2).snapshot()
+                                                                    .beliefs().getFirst().confidence();
+
+        // Both represent decay over 2h from original 0.8 — must be equal
+        assertThat(twoStepConfidence).isCloseTo(directConfidence,
+                                                org.assertj.core.data.Offset.offset(0.001));
+    }
+
     @Test
     void oldSerializedDataWithoutValenceDeserializesToNeutral() {
         var json = "[{\"key\":\"old-key\",\"description\":\"old desc\",\"confidence\":0.8," +
