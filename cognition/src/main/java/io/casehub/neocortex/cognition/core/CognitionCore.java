@@ -474,7 +474,9 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
                                   @Nullable CognitiveImpact impact) {
         if (config.moodEnabled()) {
             if (impact != null && impact.moodSignal() != null) {
-                mood.record(impact.moodSignal(), agentId, tenantId);
+                var sig = impact.moodSignal();
+                lastMoodDelta.put(agentId, new double[]{sig.pleasureDelta(), sig.arousalDelta(), sig.dominanceDelta()});
+                mood.record(sig, agentId, tenantId);
             } else {
                 safeRun(() -> appraiseMood(agentId, tenantId, userMessage, response));
             }
@@ -631,17 +633,16 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
         moodFallback.incrementAndGet();
     }
 
-    private InteractionSignal deriveQualitySignal(String agentId, String tenantId,
-                                                  String userMessage) {
+    InteractionSignal deriveQualitySignal(String agentId, String tenantId,
+                                          String userMessage) {
         QualitySignal quality = QualitySignal.NEUTRAL;
-        var currentMood = mood.currentMood(agentId, tenantId);
-        if (currentMood.isPresent()) {
-            var m = currentMood.get();
-            double pleasure = m.pleasure();
-            double arousal = m.arousal();
-            if (arousal > 0.3 && pleasure > 0.1) {
+        var           delta   = lastMoodDelta.get(agentId);
+        if (delta != null) {
+            double pleasure = delta[0];
+            double arousal  = delta[1];
+            if (arousal > 0.05 && pleasure > 0.05) {
                 quality = QualitySignal.POSITIVE;
-            } else if (arousal < -0.1 && pleasure < -0.1) {
+            } else if (arousal < -0.05 && pleasure < -0.05) {
                 quality = QualitySignal.NEGATIVE;
             }
         }
