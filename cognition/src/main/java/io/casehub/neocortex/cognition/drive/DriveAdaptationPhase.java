@@ -9,6 +9,7 @@ import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.ConsolidationPhase;
 import jakarta.annotation.Priority;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,9 +84,9 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
         var    driveNodes            = new HashMap<String, MindMapNode>();
         var    experienceNodes       = new ArrayList<MindMapNode>();
         var    needSatisfactionNodes = new HashMap<NeedTier, MindMapNode>();
-        String cursorNodeId          = null;
-        String lastProcessedId       = null;
-        String agentId               = null;
+        String  cursorNodeId         = null;
+        Instant lastProcessedTime   = null;
+        String  agentId             = null;
 
         for (var node : nodes) {
             var kind = node.properties().get("cognitiveKind");
@@ -97,8 +98,11 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
                 experienceNodes.add(node);
             }
             if (CURSOR_NODE_NAME.equals(node.name())) {
-                cursorNodeId    = node.id();
-                lastProcessedId = node.properties().get("last-processed-node-id");
+                cursorNodeId = node.id();
+                var ts = node.properties().get("last-processed-timestamp");
+                if (ts != null) {
+                    lastProcessedTime = Instant.parse(ts);
+                }
             }
         }
 
@@ -138,7 +142,7 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
             return;
         }
 
-        var newExperiences = filterNewExperiences(experienceNodes, lastProcessedId);
+        var newExperiences = filterNewExperiences(experienceNodes, lastProcessedTime);
         if (newExperiences.isEmpty()) {
             applyDecayAndSave(needSatisfactionNodes, needConfig, tenantId);
             return;
@@ -152,8 +156,9 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
         applyDecay(currentSatisfaction, needConfig);
         saveSatisfaction(needSatisfactionNodes, currentSatisfaction, tenantId);
 
-        var lastId = newExperiences.get(newExperiences.size() - 1).id();
-        saveCursor(subgraph.id(), cursorNodeId, lastId, tenantId);
+        var lastNode = newExperiences.get(newExperiences.size() - 1);
+        var lastTimestamp = lastNode.validFrom() != null ? lastNode.validFrom() : Instant.now();
+        saveCursor(subgraph.id(), cursorNodeId, lastTimestamp, tenantId);
     }
 
     private void applyDecayAndSave(Map<NeedTier, MindMapNode> needSatisfactionNodes,
@@ -165,10 +170,10 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
     }
 
     private List<MindMapNode> filterNewExperiences(
-            List<MindMapNode> experienceNodes, String lastProcessedId) {
-        if (lastProcessedId == null) return experienceNodes;
+            List<MindMapNode> experienceNodes, Instant lastProcessedTime) {
+        if (lastProcessedTime == null) return experienceNodes;
         return experienceNodes.stream()
-            .filter(n -> n.id().compareTo(lastProcessedId) > 0)
+            .filter(n -> n.validFrom() != null && n.validFrom().isAfter(lastProcessedTime))
             .toList();
     }
 
@@ -253,7 +258,7 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
             effectiveLR *= capacityFactor;
 
             double delta = entry.getValue().effectiveReward() * effectiveLR;
-            double newIntensity = currentIntensity * (1 + delta);
+            double newIntensity = currentIntensity + delta;
             newIntensity = Math.clamp(newIntensity, config.minIntensity(), config.maxIntensity());
 
             mindMapStore.updateNode(driveNode.id(),
@@ -344,11 +349,12 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
     }
 
     private void saveCursor(String subgraphId, String cursorNodeId,
-                            String lastId, String tenantId) {
+                            Instant lastTimestamp, String tenantId) {
+        var ts = lastTimestamp.toString();
         if (cursorNodeId != null) {
             mindMapStore.updateNode(cursorNodeId,
                 NodeUpdate.empty().withPropertiesToSet(
-                    Map.of("last-processed-node-id", lastId)),
+                    Map.of("last-processed-timestamp", ts)),
                 tenantId);
         } else {
             mindMapStore.addNode(
@@ -356,7 +362,7 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
                     .withProvenance("drive-adaptation")
                     .withProperties(Map.of(
                         "cognitiveKind", "cursor",
-                        "last-processed-node-id", lastId)),
+                        "last-processed-timestamp", ts)),
                 tenantId);
         }
     }

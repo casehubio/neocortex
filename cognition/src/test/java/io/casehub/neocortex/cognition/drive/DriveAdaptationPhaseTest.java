@@ -11,7 +11,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DriveAdaptationPhaseTest {
 
@@ -213,5 +214,37 @@ class DriveAdaptationPhaseTest {
             .findFirst().orElseThrow();
 
         assertEquals("0.9", driveNode.properties().get("intensity"));
+    }
+
+    @Test
+    void intensityRecoversFromMinimum() {
+        // Set initial intensity to zero — multiplicative update can't recover from 0.0
+        var store2 = new InMemoryMindMapStore();
+        var reinforcement = Map.of(AGENT, Map.of(
+                "conflict_resolution", List.of(new DriveReinforcementEntry("scheming", null, null))));
+        var config = new TestConfig(0.1, 0.3, 0.0, 1.0, 20);
+        var phase2 = new DriveAdaptationPhase(store2, reinforcement, config);
+
+        var sgId = store2.createSubgraph(new SubgraphInput("beliefs-" + AGENT, "cognitive", null), TENANT);
+        store2.addNode(NodeInput.of("scheming", sgId)
+                                .withConfidence(Confidence.stated(0.8, Instant.now()))
+                                .withProvenance("drive-adaptation")
+                                .withProperties(Map.of("cognitiveKind", "drive-intensity", "agent-id", AGENT,
+                                                       "drive-type", "scheming", "intensity", "0.0")), TENANT);
+
+        store2.addNode(NodeInput.of("strong positive event", sgId)
+                                .withProvenance("experience-consolidation")
+                                .withProperties(Map.of("cognitiveKind", "experience", "agent-id", AGENT,
+                                                       "event-type", "conflict_resolution"))
+                                .withPleasure(0.9).withArousal(0.8), TENANT);
+
+        phase2.run(TENANT, List.of());
+
+        var driveNode = store2.nodesIn(sgId, TENANT).stream()
+                              .filter(n -> "scheming".equals(n.properties().get("drive-type")))
+                              .findFirst().orElseThrow();
+        double updatedIntensity = Double.parseDouble(driveNode.properties().get("intensity"));
+
+        assertTrue(updatedIntensity > 0.0, "intensity at zero should recover with positive reinforcement, got " + updatedIntensity);
     }
 }
