@@ -364,6 +364,57 @@ class LlmAppraisalStrategyTest {
         assertThat(capturedMessage[0]).contains("0.72");
     }
 
+    @Test
+    void appraisalWeightsAppearInPrompt() {
+        var capturedMessage = new String[1];
+        var strategy = new LlmAppraisalStrategy(StubPipelines.create(init -> new AgentSession() {
+            @Override
+            public Multi<AgentEvent> query(String prompt) {
+                capturedMessage[0] = prompt;
+                var json = """
+                           {"narrative": "Alert.", "dimensions": {"relevance": 0.5}}""";
+                return Multi.createFrom().item(new AgentEvent.TextDelta(json));
+            }
+
+            @Override
+            public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+
+            @Override
+            public void close(java.time.Duration timeout)   {}
+        }));
+        var weights = new io.casehub.neocortex.mindmap.AppraisalWeights(1.5, 1.0, 1.0, 1.0, 1.0);
+        var ctx = new AppraisalContext("test-agent",
+                                       PerceivedSituation.passThrough("a tense moment"),
+                                       List.of(new Drive("curiosity", DriveCategory.BASELINE, 0.5, "")),
+                                       weights, HabituationConfig.defaults(), HabituationState.empty(), null);
+
+        strategy.appraise(ctx);
+
+        assertThat(capturedMessage[0]).contains("urgency");
+        assertThat(capturedMessage[0]).doesNotContain("relationship");
+    }
+
+    @Test
+    void minorRephrasingTriggersHabituation() {
+        var json = """
+                   {"narrative": "Alert.", "dimensions": {"relevance": 0.5, "novelty": 0.7}}""";
+        var strategy = stubStrategy(json);
+
+        var ctx1 = context("The dog barked loudly",
+                           List.of(new Drive("curiosity", DriveCategory.BASELINE, 0.5, "")));
+        var result1 = strategy.appraise(ctx1);
+
+        var ctx2 = new AppraisalContext("test-agent",
+                                        PerceivedSituation.passThrough("loudly barked the Dog"),
+                                        List.of(new Drive("curiosity", DriveCategory.BASELINE, 0.5, "")),
+                                        null, HabituationConfig.defaults(), result1.updatedHabituation(), null);
+        var result2 = strategy.appraise(ctx2);
+
+        var     counts     = result2.updatedHabituation().observationCounts();
+        boolean sameBucket = counts.values().stream().anyMatch(c -> c > 1);
+        assertThat(sameBucket).as("rephrased observation should map to same habituation bucket").isTrue();
+    }
+
 
     private static AppraisalContext context(String observation, List<Drive> drives) {
         return new AppraisalContext("test-agent", 

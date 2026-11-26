@@ -2,8 +2,6 @@ package io.casehub.neocortex.cognition.appraisal;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.casehub.neocortex.cognitive.index.PersonalityFacet;
-import io.casehub.neocortex.cognitive.index.RelationalSchema;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.ClearingPolicy;
@@ -143,11 +141,31 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
     }
 
     private static HabituationState updateHabituation(AppraisalContext context, double novelty) {
-        var hash = Integer.toHexString(context.situation().narrative().hashCode());
+        var hash = normalizedHash(context.situation().narrative());
         return context.habituation() != null
-                ? context.habituation().withObservation(hash, novelty)
-                : HabituationState.empty().withObservation(hash, novelty);
+               ? context.habituation().withObservation(hash, novelty)
+               : HabituationState.empty().withObservation(hash, novelty);
     }
+
+    private static final java.util.Set<String> STOP_WORDS = java.util.Set.of(
+            "a", "an", "the", "is", "was", "were", "be", "been", "being",
+            "to", "of", "in", "for", "on", "at", "by", "with", "from");
+
+    static String normalizedHash(String text) {
+        var tokens = text.toLowerCase().split("\\W+");
+        var sorted = java.util.Arrays.stream(tokens)
+                                     .filter(t -> !t.isEmpty() && !STOP_WORDS.contains(t))
+                                     .sorted()
+                                     .collect(java.util.stream.Collectors.joining(" "));
+        try {
+            var digest = java.security.MessageDigest.getInstance("SHA-256");
+            var hash   = digest.digest(sorted.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return java.util.HexFormat.of().formatHex(hash).substring(0, 16);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            return Integer.toHexString(sorted.hashCode());
+        }
+    }
+
 
     private static Map<String, Double> parseDimensions(JsonNode dimsNode) {
         var dims = new HashMap<String, Double>();
@@ -262,7 +280,36 @@ private static List<ActionTendency> applyTargets(List<ActionTendency> tendencies
             }
         }
 
+        appendWeightBiases(sb, context.weights());
+
         return sb.toString();
+    }
+
+
+    private static void appendWeightBiases(StringBuilder sb, io.casehub.neocortex.mindmap.AppraisalWeights weights) {
+        if (weights == null) {return;}
+        var biases = new java.util.ArrayList<String>();
+        if (Math.abs(weights.urgencyWeight() - 1.0) > 0.15) {
+            biases.add(weights.urgencyWeight() > 1.0 ? "Weight urgency more heavily" : "Dampen urgency sensitivity");
+        }
+        if (Math.abs(weights.relationshipWeight() - 1.0) > 0.15) {
+            biases.add(weights.relationshipWeight() > 1.0 ? "Amplify relationship-driven relevance" : "Dampen relationship-driven relevance");
+        }
+        if (Math.abs(weights.fearOnsetThreshold() - 1.0) > 0.15) {
+            biases.add(weights.fearOnsetThreshold() > 1.0 ? "Raise the threshold for fear onset" : "Lower the threshold for fear onset");
+        }
+        if (Math.abs(weights.selfStandardsStrictness() - 1.0) > 0.15) {
+            biases.add(weights.selfStandardsStrictness() > 1.0 ? "Apply stricter internal-standards evaluation" : "Apply lenient internal-standards evaluation");
+        }
+        if (Math.abs(weights.otherStandardsStrictness() - 1.0) > 0.15) {
+            biases.add(weights.otherStandardsStrictness() > 1.0 ? "Apply stricter external-standards evaluation" : "Apply lenient external-standards evaluation");
+        }
+        if (!biases.isEmpty()) {
+            sb.append("\n\nAppraisal biases:");
+            for (var bias : biases) {
+                sb.append("\n- ").append(bias);
+            }
+        }
     }
 
     private static double clamp(double v) {
