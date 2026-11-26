@@ -7,6 +7,7 @@ import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.mindmap.ContinuumPosition;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer;
 import io.casehub.neocortex.mindmap.intelligence.InformationGapScore;
@@ -18,7 +19,6 @@ import java.util.Map;
 
 public class CuriosityPromptSection implements CognitionPromptRenderer {
 
-    static final String GENERATED_TRAIT = "CuriosityDescriptionGenerated";
 
     private final           CuriosityDrive           curiosityDrive;
     private final           CuriosityChannelComputer channelComputer;
@@ -91,7 +91,7 @@ public class CuriosityPromptSection implements CognitionPromptRenderer {
         return mindMapStore.search(MindMapQuery.of(tenantId, 10)
                                                .withType(SubgraphTypes.COGNITIVE))
                            .stream()
-                           .filter(n -> n.traits().contains(GENERATED_TRAIT))
+                           .filter(n -> n.traits().contains(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED))
                            .filter(n -> agentId.equals(n.property("agent-id").orElse(null)))
                            .findFirst()
                            .flatMap(n -> n.property("description"))

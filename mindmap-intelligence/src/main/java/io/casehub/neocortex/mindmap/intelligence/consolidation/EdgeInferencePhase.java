@@ -9,6 +9,7 @@ import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.intelligence.ParsedRelationship;
 import io.casehub.platform.agent.AgentEvent;
@@ -159,7 +160,7 @@ public class EdgeInferencePhase implements ConsolidationPhase {
         List<MindMapNode> result = new ArrayList<>();
         for (MindMapSubgraph sg : mindMapStore.listSubgraphs(tenantId)) {
             for (MindMapNode node : mindMapStore.nodesIn(sg.id(), tenantId)) {
-                if (node.traits().contains("Summary") || node.traits().contains("CapsGenerated")) continue;
+                if (node.traits().contains(ConsolidationTraits.SUMMARY) || node.traits().contains("CapsGenerated")) continue;
                 int degree = mindMapStore.neighbors(node.id(), tenantId).size();
                 if (degree <= degreeThreshold) {
                     result.add(node);

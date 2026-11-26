@@ -5,6 +5,7 @@ import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer;
@@ -162,7 +163,7 @@ class CuriosityPromptSectionTest {
         String cogSgId = store.createSubgraph(
                 new SubgraphInput("cognitive", SubgraphTypes.COGNITIVE, null), TENANT);
         store.addNode(NodeInput.of("curiosity-" + AGENT, cogSgId)
-                               .withTraits(java.util.Set.of(CuriosityPromptSection.GENERATED_TRAIT))
+                               .withTraits(java.util.Set.of(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED))
                                .withProperties(java.util.Map.of(
                                        "agent-id", AGENT,
                                        "description", "A crystallised curiosity description.")), TENANT);

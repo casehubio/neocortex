@@ -16,6 +16,7 @@ import io.casehub.neocortex.mindmap.NodeRef;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.SubThoughtRef;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.intelligence.SubgraphUtils;
 import jakarta.annotation.Priority;
@@ -234,7 +235,7 @@ public class SubThoughtConsolidationPhase implements ConsolidationPhase {
             NodeInput.of(pair.entity() + " — " + pair.type(), subgraphId)
                 .withConfidence(Confidence.inferred(0.7, Instant.now()))
                 .withProvenance("sub-thought-graduation")
-                .withTraits(Set.of("graduated-sub-thought"))
+                .withTraits(Set.of(ConsolidationTraits.GRADUATED_SUB_THOUGHT))
                 .withRefs(refs)
                 .withProperties(Map.of(
                     "cognitiveKind", pair.type(),

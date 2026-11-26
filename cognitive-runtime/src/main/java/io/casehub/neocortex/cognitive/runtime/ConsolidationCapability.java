@@ -19,6 +19,7 @@ import io.casehub.neocortex.cognition.prompt.BlockTag;
 import io.casehub.neocortex.cognition.prompt.CognitionPromptRenderer;
 import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
 import io.casehub.neocortex.cognition.prompt.SectionTier;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
@@ -29,9 +30,6 @@ import java.util.List;
 
 public class ConsolidationCapability implements CognitiveCapability {
 
-    static final String TRAIT_GRADUATED = "graduated-sub-thought";
-    static final String TRAIT_SUMMARY = "Summary";
-    static final String TRAIT_CURIOSITY = "CuriosityDescriptionGenerated";
     private final MindMapStore mindMapStore;
     private final boolean cognitionActive;
     private String tenantId;
@@ -70,9 +68,9 @@ public class ConsolidationCapability implements CognitiveCapability {
 
             for (var node : allNodes) {
                 var traits = node.traits();
-                if (traits.contains(TRAIT_GRADUATED)) graduated.add(node);
-                else if (traits.contains(TRAIT_SUMMARY)) summaries.add(node);
-                else if (traits.contains(TRAIT_CURIOSITY)) curiosity.add(node);
+                if (traits.contains(ConsolidationTraits.GRADUATED_SUB_THOUGHT)) graduated.add(node);
+                else if (traits.contains(ConsolidationTraits.SUMMARY)) summaries.add(node);
+                else if (traits.contains(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED)) curiosity.add(node);
             }
 
             if (graduated.isEmpty() && summaries.isEmpty() && curiosity.isEmpty()) {

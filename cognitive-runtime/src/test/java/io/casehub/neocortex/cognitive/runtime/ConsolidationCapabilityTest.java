@@ -18,6 +18,7 @@ package io.casehub.neocortex.cognitive.runtime;
 import io.casehub.neocortex.cognition.prompt.BlockTag;
 import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
 import io.casehub.neocortex.cognition.prompt.SectionTier;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
@@ -46,7 +47,7 @@ class ConsolidationCapabilityTest {
     @Test
     void rendersGraduatedNodes() {
         mindMapStore.addNode(NodeInput.of("Pattern recognition", SubgraphTypes.COGNITIVE)
-            .withTraits(Set.of("graduated-sub-thought")), TENANT);
+            .withTraits(Set.of(ConsolidationTraits.GRADUATED_SUB_THOUGHT)), TENANT);
 
         var ctx = new CognitionRenderContext("agent-1", TENANT, null);
         var content = capability.promptSections().getFirst().render(ctx);
@@ -57,7 +58,7 @@ class ConsolidationCapabilityTest {
     @Test
     void rendersSummaryNodes() {
         mindMapStore.addNode(NodeInput.of("Community overview", SubgraphTypes.COGNITIVE)
-            .withTraits(Set.of("Summary")), TENANT);
+            .withTraits(Set.of(ConsolidationTraits.SUMMARY)), TENANT);
 
         var ctx = new CognitionRenderContext("agent-1", TENANT, null);
         var content = capability.promptSections().getFirst().render(ctx);
@@ -68,7 +69,7 @@ class ConsolidationCapabilityTest {
     @Test
     void rendersCuriosityNodes() {
         mindMapStore.addNode(NodeInput.of("Information gap about topology", SubgraphTypes.COGNITIVE)
-            .withTraits(Set.of("CuriosityDescriptionGenerated")), TENANT);
+            .withTraits(Set.of(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED)), TENANT);
 
         var ctx = new CognitionRenderContext("agent-1", TENANT, null);
         var content = capability.promptSections().getFirst().render(ctx);
@@ -79,9 +80,9 @@ class ConsolidationCapabilityTest {
     @Test
     void groupsByTraitType() {
         mindMapStore.addNode(NodeInput.of("Graduated entity", SubgraphTypes.COGNITIVE)
-            .withTraits(Set.of("graduated-sub-thought")), TENANT);
+            .withTraits(Set.of(ConsolidationTraits.GRADUATED_SUB_THOUGHT)), TENANT);
         mindMapStore.addNode(NodeInput.of("Summary node", SubgraphTypes.COGNITIVE)
-            .withTraits(Set.of("Summary")), TENANT);
+            .withTraits(Set.of(ConsolidationTraits.SUMMARY)), TENANT);
 
         var ctx = new CognitionRenderContext("agent-1", TENANT, null);
         var content = capability.promptSections().getFirst().render(ctx);

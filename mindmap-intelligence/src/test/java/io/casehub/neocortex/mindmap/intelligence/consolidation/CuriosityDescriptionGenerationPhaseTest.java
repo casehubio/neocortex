@@ -8,6 +8,7 @@ import io.casehub.platform.agent.session.SessionPipeline;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.neocortex.mindmap.intelligence.InformationGapDetector;
@@ -41,7 +42,7 @@ class CuriosityDescriptionGenerationPhaseTest {
         phase.run(TENANT, List.of());
 
         var nodes = store.search(MindMapQuery.of(TENANT, 10)
-                .withTraits(Set.of(CuriosityDescriptionGenerationPhase.GENERATED_TRAIT)));
+                .withTraits(Set.of(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED)));
         assertThat(nodes).isEmpty();
     }
 
@@ -58,11 +59,11 @@ class CuriosityDescriptionGenerationPhaseTest {
         phase.run(TENANT, List.of());
 
         var nodes = store.search(MindMapQuery.of(TENANT, 10)
-                .withTraits(Set.of(CuriosityDescriptionGenerationPhase.GENERATED_TRAIT)));
+                .withTraits(Set.of(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED)));
         assertThat(nodes).hasSize(1);
 
         var node = nodes.getFirst();
-        assertThat(node.traits()).contains(CuriosityDescriptionGenerationPhase.GENERATED_TRAIT);
+        assertThat(node.traits()).contains(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED);
         assertThat(node.property("agent-id")).hasValue(AGENT);
         assertThat(node.property("description")).isPresent();
         assertThat(node.property("description").get()).isNotBlank();
@@ -82,7 +83,7 @@ class CuriosityDescriptionGenerationPhaseTest {
         phase.run(TENANT, List.of());
 
         var nodes = store.search(MindMapQuery.of(TENANT, 10)
-                .withTraits(Set.of(CuriosityDescriptionGenerationPhase.GENERATED_TRAIT)));
+                .withTraits(Set.of(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED)));
         assertThat(nodes).hasSize(1);
     }
 
@@ -99,7 +100,7 @@ class CuriosityDescriptionGenerationPhaseTest {
         phase.run(TENANT, List.of());
 
         var description = store.search(MindMapQuery.of(TENANT, 10)
-                        .withTraits(Set.of(CuriosityDescriptionGenerationPhase.GENERATED_TRAIT)))
+                        .withTraits(Set.of(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED)))
                 .getFirst().property("description").orElse("");
         // Fallback with default deprivation bias (0.5) = BLENDED hedonic
         assertThat(description).isNotBlank();

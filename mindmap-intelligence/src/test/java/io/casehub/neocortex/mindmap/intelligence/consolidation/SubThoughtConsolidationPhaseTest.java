@@ -8,6 +8,7 @@ import io.casehub.neocortex.memory.experience.SubThoughtTypes;
 import io.casehub.neocortex.memory.inmem.InMemoryMemoryStore;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.SubThoughtRef;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.platform.api.identity.CurrentPrincipal;
@@ -54,7 +55,7 @@ class SubThoughtConsolidationPhaseTest {
         phase.run(TENANT, List.of(SubgraphTypes.COGNITIVE));
 
         var nodes = mindMapStore.search(
-            MindMapQuery.of(TENANT, 100).withTraits(Set.of("graduated-sub-thought")));
+            MindMapQuery.of(TENANT, 100).withTraits(Set.of(ConsolidationTraits.GRADUATED_SUB_THOUGHT)));
         assertThat(nodes).hasSize(1);
         var node = nodes.getFirst();
         assertThat(node.properties()).containsEntry("cognitiveKind", "causal-inference");
@@ -73,7 +74,7 @@ class SubThoughtConsolidationPhaseTest {
         phase.run(TENANT, List.of(SubgraphTypes.COGNITIVE));
 
         var nodes = mindMapStore.search(
-            MindMapQuery.of(TENANT, 100).withTraits(Set.of("graduated-sub-thought")));
+            MindMapQuery.of(TENANT, 100).withTraits(Set.of(ConsolidationTraits.GRADUATED_SUB_THOUGHT)));
         assertThat(nodes).isEmpty();
     }
 
@@ -88,7 +89,7 @@ class SubThoughtConsolidationPhaseTest {
         phase.run(TENANT, List.of(SubgraphTypes.COGNITIVE));
 
         var nodes = mindMapStore.search(
-            MindMapQuery.of(TENANT, 100).withTraits(Set.of("graduated-sub-thought")));
+            MindMapQuery.of(TENANT, 100).withTraits(Set.of(ConsolidationTraits.GRADUATED_SUB_THOUGHT)));
         assertThat(nodes).isEmpty();
     }
 
@@ -220,7 +221,7 @@ class SubThoughtConsolidationPhaseTest {
         phase.run(TENANT, List.of());
 
         var graduatedNodes = mindMapStore.search(
-            MindMapQuery.of(TENANT, 100).withTraits(Set.of("graduated-sub-thought")));
+            MindMapQuery.of(TENANT, 100).withTraits(Set.of(ConsolidationTraits.GRADUATED_SUB_THOUGHT)));
         assertThat(graduatedNodes).hasSize(2);
 
         var sarahNode = graduatedNodes.stream()

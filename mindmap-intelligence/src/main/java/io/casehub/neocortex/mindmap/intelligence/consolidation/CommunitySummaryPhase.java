@@ -5,6 +5,7 @@ import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.runtime.MindMapAnalyzer;
 import io.casehub.platform.agent.session.SessionPipeline;
@@ -92,7 +93,7 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
                                                             Set<String> filtered = core.nodeIds().stream()
                                                                                        .filter(id -> {
                                                                                            try {
-                                                                                               return !store.getNode(id, tenantId).traits().contains("Summary");
+                                                                                               return !store.getNode(id, tenantId).traits().contains(ConsolidationTraits.SUMMARY);
                                                                                            } catch (Exception e) {
                                                                                                return true;
                                                                                            }
@@ -136,7 +137,7 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
                     String title = generateTitle(core.nodeIds(), tenantId);
                     newSummaryInputs.add(
                             NodeInput.of(title, sgId)
-                                     .withTraits(Set.of("Summary"))
+                                     .withTraits(Set.of(ConsolidationTraits.SUMMARY))
                                      .withProperties(Map.of(
                                              "coreHash", coreHash,
                                              "memberHash", memberHash,
@@ -164,7 +165,7 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
     private void cleanupStaleSummaries(String sgId, String tenantId,
                                         Set<String> currentHashes) {
         List<MindMapNode> summaries = store.nodesIn(sgId, tenantId).stream()
-            .filter(n -> n.traits().contains("Summary"))
+            .filter(n -> n.traits().contains(ConsolidationTraits.SUMMARY))
             .toList();
         for (MindMapNode summary : summaries) {
             String hash = summary.property("coreHash").orElse("");
@@ -177,7 +178,7 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
     private Optional<MindMapNode> findSummaryByCoreHash(String sgId, String tenantId,
                                                           String coreHash) {
         return store.nodesIn(sgId, tenantId).stream()
-            .filter(n -> n.traits().contains("Summary"))
+            .filter(n -> n.traits().contains(ConsolidationTraits.SUMMARY))
             .filter(n -> coreHash.equals(n.property("coreHash").orElse("")))
             .findFirst();
     }

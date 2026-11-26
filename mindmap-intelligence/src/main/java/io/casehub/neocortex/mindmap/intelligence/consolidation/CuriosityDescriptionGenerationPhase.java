@@ -7,6 +7,7 @@ import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer;
 import io.casehub.neocortex.mindmap.intelligence.InformationGapDetector;
@@ -32,7 +33,7 @@ import java.util.logging.Logger;
  * Consolidation phase that generates LLM prose describing an agent's curiosity
  * experience through four channels (Litman I/D, Silvia appraisal, Berlyne focus,
  * Loewenstein gap proximity). Crystallises to MindMap COGNITIVE subgraph nodes
- * with the {@value #GENERATED_TRAIT} trait.
+ * with the {@value ConsolidationTraits#CURIOSITY_DESCRIPTION_GENERATED} trait.
  * <p>
  * Runs at {@code @Priority(29)} — after SearchBudgetDescriptionGenerationPhase (28),
  * before CommunitySummaryPhase (30).
@@ -44,7 +45,6 @@ public class CuriosityDescriptionGenerationPhase implements ConsolidationPhase {
     private static final Logger LOG = Logger.getLogger(
             CuriosityDescriptionGenerationPhase.class.getName());
 
-    static final String GENERATED_TRAIT = "CuriosityDescriptionGenerated";
 
     private static final String SYSTEM_PROMPT = """
             You describe how curiosity feels from the inside for this specific character.
@@ -155,9 +155,9 @@ public class CuriosityDescriptionGenerationPhase implements ConsolidationPhase {
 
     private void crystallise(String agentId, String tenantId, String description) {
         var existing = store.search(MindMapQuery.of(tenantId, 10)
-                        .withTraits(Set.of(GENERATED_TRAIT)))
+                        .withTraits(Set.of(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED)))
                 .stream()
-                .filter(n -> n.traits().contains(GENERATED_TRAIT))
+                .filter(n -> n.traits().contains(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED))
                 .filter(n -> agentId.equals(n.property("agent-id").orElse(null)))
                 .findFirst();
 
@@ -168,7 +168,7 @@ public class CuriosityDescriptionGenerationPhase implements ConsolidationPhase {
         } else {
             store.addNode(
                     NodeInput.of("curiosity-" + agentId, SubgraphTypes.COGNITIVE)
-                            .withTraits(Set.of(GENERATED_TRAIT))
+                            .withTraits(Set.of(ConsolidationTraits.CURIOSITY_DESCRIPTION_GENERATED))
                             .withProperties(Map.of(
                                     "agent-id", agentId,
                                     "description", description)),

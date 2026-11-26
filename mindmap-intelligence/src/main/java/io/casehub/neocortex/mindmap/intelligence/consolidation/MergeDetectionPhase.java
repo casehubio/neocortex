@@ -3,6 +3,7 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 import io.casehub.neocortex.mindmap.AttentionSignal;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.ConsolidationTraits;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SignalCategory;
@@ -124,7 +125,7 @@ public class MergeDetectionPhase implements ConsolidationPhase {
 
     List<MergeCandidate> detectCandidates(String subgraphId, String tenantId) {
         List<MindMapNode> nodes = store.nodesIn(subgraphId, tenantId).stream()
-                                       .filter(n -> !n.traits().contains("Summary"))
+                                       .filter(n -> !n.traits().contains(ConsolidationTraits.SUMMARY))
                                        .filter(n -> !n.traits().contains("CapsGenerated"))
                                        .toList();
 
