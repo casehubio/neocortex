@@ -101,7 +101,7 @@ class DriveComposerTest {
     @Test
     void compose_personalityModulation_socialOrientAmplifiesAffiliation() {
         var disposition = AgentDisposition.builder()
-                .socialOrient(DispositionValue.of("cooperative"))
+                .socialOrient(DispositionValue.of("collaborative"))
                 .build();
 
         var profile = composer.compose(uniformRaw(0.5), disposition, null, List.of(), DriveConfig.defaults(),
@@ -110,6 +110,28 @@ class DriveComposerTest {
         assertThat(profile.drives().get(DriveAxis.AFFILIATION).intensity())
                 .isGreaterThan(profile.drives().get(DriveAxis.COMPETENCE).intensity());
     }
+
+    @Test
+    void cautiousAndBoldProduceOppositeModulationOnCuriosity() {
+        var boldDisp = AgentDisposition.builder()
+                                       .riskAppetite(DispositionValue.of("bold"))
+                                       .build();
+        var cautiousDisp = AgentDisposition.builder()
+                                           .riskAppetite(DispositionValue.of("cautious"))
+                                           .build();
+
+        var boldProfile = composer.compose(uniformRaw(0.5), boldDisp, null,
+                                           List.of(), DriveConfig.defaults(), "a", "t", now);
+        var cautiousProfile = composer.compose(uniformRaw(0.5), cautiousDisp, null,
+                                               List.of(), DriveConfig.defaults(), "a", "t", now);
+
+        double boldCuriosity     = boldProfile.drives().get(DriveAxis.CURIOSITY).intensity();
+        double cautiousCuriosity = cautiousProfile.drives().get(DriveAxis.CURIOSITY).intensity();
+
+        assertThat(boldCuriosity).as("bold should amplify curiosity above 0.5").isGreaterThan(0.5);
+        assertThat(cautiousCuriosity).as("cautious should dampen curiosity below 0.5").isLessThan(0.5);
+    }
+
 
     @Test
     void compose_personalityModulation_noDispositionValues_noEffect() {

@@ -119,8 +119,9 @@ public class DriveComposer {
         var values = disposition.get(matchedAxis);
         if (values.isEmpty()) {return 0.0;}
 
+        double sign   = matchedAxis.signedPosition(values.getFirst().term());
         double weight = values.getFirst().weight();
-        return weight * config.personalityModulationStrength();
+        return sign * weight * config.personalityModulationStrength();
     }
 
     private double computeComposite(Map<DriveAxis, DriveIntensity> drives, DriveConfig config) {
