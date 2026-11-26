@@ -448,10 +448,10 @@ class BehavioralSynthesisPhaseTest {
         assertThat(capturingEngine.lastInputActivations).isNotNull();
         assertThat(capturingEngine.lastInputActivations).containsKey("reward");
         assertThat(capturingEngine.lastInputActivations)
-                .as("D1 mapping: scheming → dominance, distrust, self_direct at drive intensity")
+                .as("D1 mapping: scheming → dominance, betrayal, agency_granted at drive intensity")
                 .containsKey("dominance")
-                .containsKey("distrust")
-                .containsKey("self_direct");
+                .containsKey("betrayal")
+                .containsKey("agency_granted");
         assertThat(capturingEngine.lastInputActivations.get("dominance"))
                 .as("dominance activation should equal drive intensity 0.75")
                 .isEqualTo(0.75);

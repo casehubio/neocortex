@@ -64,7 +64,8 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
         FeatureField.categorical("disposition-ruleFollowing"),
         FeatureField.categorical("disposition-riskAppetite"),
         FeatureField.categorical("disposition-autonomy"),
-        FeatureField.categorical("disposition-conflictMode"));
+        FeatureField.categorical("disposition-conflictMode"),
+        FeatureField.categorical("valence"));
 
     private final SituationClassifier delegate;
     private final CbrRecordStore cbrStore;
@@ -114,9 +115,7 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
             CbrFeatureRecord cached = hits.getFirst().cbrRecord();
             List<SituationActivation> parsed = parseActivations(cached.solution());
             if (!parsed.isEmpty()) {
-                String eventType = metadata != null ? metadata.getOrDefault("event-type", "") : "";
-                String cognitiveKind = metadata != null ? metadata.getOrDefault("cognitiveKind", "") : "";
-                String caseId = computeCaseId(description, eventType, cognitiveKind, metadata);
+                String caseId = hits.getFirst().caseId();
                 LOG.fine(() -> "CBR hit for: " + excerpt(description));
                 return new ClassificationResult(parsed, caseId);
             }
@@ -147,6 +146,12 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
                             CbrFilter.contains(val));
                     }
                 }
+                for (var entry : metadata.entrySet()) {
+                    if (entry.getKey().startsWith("pid5.") || entry.getKey().startsWith("appraisal.")) {
+                        query = query.withFilter(entry.getKey().replace('.', '-'),
+                            CbrFilter.contains(entry.getValue()));
+                    }
+                }
             }
             return cbrStore.retrieveSimilar(query, CbrFeatureRecord.class);
         } catch (Exception e) {
@@ -171,6 +176,7 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
                 "cognitiveKind", FeatureValue.string(cognitiveKind),
                 "model-version", FeatureValue.string(modelVersion)));
             addPersonalityFeatures(features, metadata);
+            features.put("valence", FeatureValue.string(classifyValence(activations)));
 
             var record = new CbrFeatureRecord(description, solution,
                 null, null, features, null, null);
@@ -202,6 +208,23 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
                 .forEach(e -> features.put(
                         e.getKey().replace('.', '-'), FeatureValue.string(e.getValue())));
     }
+
+    static String classifyValence(List<SituationActivation> activations) {
+        var positive = java.util.Set.of("approach", "trust", "proximity_seek", "persist",
+                                        "risk_take", "self_direct", "rebel", "explore");
+        var negative = java.util.Set.of("withdraw", "distrust", "distance_maintain", "flight",
+                                        "freeze", "fawn", "submit", "abandon", "comply", "depend");
+
+        String dominant = activations.stream()
+                                     .max(java.util.Comparator.comparingDouble(SituationActivation::confidence))
+                                     .map(SituationActivation::nodeId)
+                                     .orElse("");
+
+        if (positive.contains(dominant)) {return "positive";}
+        if (negative.contains(dominant)) {return "negative";}
+        return "neutral";
+    }
+
 
     String serializeActivations(List<SituationActivation> activations) {
         try {

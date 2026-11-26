@@ -13,7 +13,7 @@ public final class ClassificationOutcomeEvaluator {
     public static CbrOutcome evaluate(SettlingResult result, Instant now) {
         double convergenceFactor = switch (result.convergence()) {
             case CONVERGED      -> 1.0;
-            case OSCILLATION    -> 0.3;
+            case OSCILLATION    -> 0.7;
             case MAX_ITERATIONS -> 0.1;
         };
         double attractorFactor = result.attractors().stream()

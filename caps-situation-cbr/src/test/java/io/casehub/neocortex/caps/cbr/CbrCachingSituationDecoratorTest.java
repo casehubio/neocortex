@@ -65,6 +65,7 @@ class CbrCachingSituationDecoratorTest {
             null, null, Map.of("model-version", FeatureValue.string("haiku")),
             null, null);
         when(match.cbrRecord()).thenReturn(record);
+        when(match.caseId()).thenReturn("cached-case-123");
         when(match.score()).thenReturn(0.92);
         when(cbrStore.retrieveSimilar(any(CbrQuery.class), eq(CbrFeatureRecord.class)))
             .thenReturn(List.of(match));

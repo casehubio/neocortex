@@ -39,13 +39,13 @@ class ClassificationOutcomeEvaluatorTest {
     }
 
     @Test
-    void oscillation_lowSuccessRate() {
+    void oscillation_moderateSuccessRate() {
         var result = new SettlingResult(Map.of(), 50, ConvergenceType.OSCILLATION, 0.5,
             List.of(new CapsAttractor("approach", "reward", 0.8, false, 1)));
 
         CbrOutcome outcome = ClassificationOutcomeEvaluator.evaluate(result, NOW);
 
-        assertThat(outcome.successRate()).isCloseTo(0.24, org.assertj.core.data.Offset.offset(0.001));
+        assertThat(outcome.successRate()).isCloseTo(0.56, org.assertj.core.data.Offset.offset(0.001));
         assertThat(outcome.result()).isEqualTo(CbrOutcome.Outcome.PARTIAL);
     }
 

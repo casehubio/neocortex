@@ -26,20 +26,20 @@ public final class DriveCompetitionDetector {
             + "differently. Notice which feeling is shaping your response, not just what you do.";
 
     public static final Map<String, List<String>> DRIVE_CAPS_MAPPINGS = Map.ofEntries(
-            Map.entry("gallantry",         List.of("other_safety", "acceptance", "approach")),
-            Map.entry("proving-worth",     List.of("mastery", "competence_recognition", "self_efficacy")),
-            Map.entry("protection",        List.of("other_safety", "physical_threat", "approach")),
-            Map.entry("scheming",          List.of("dominance", "distrust", "self_direct")),
-            Map.entry("gloating",          List.of("dominance", "BAS_activation")),
-            Map.entry("self-preservation", List.of("threat_sensitivity", "escape_assessment", "FFFS_activation")),
-            Map.entry("recognition",       List.of("competence_recognition", "self_worth", "BAS_activation")),
-            Map.entry("curiosity",         List.of("explore", "BAS_activation")),
-            Map.entry("social-harmony",    List.of("other_safety", "acceptance", "proximity_seek")),
-            Map.entry("adventure",         List.of("explore", "BAS_activation", "approach")),
-            Map.entry("greed",             List.of("BAS_activation", "approach", "persist")),
-            Map.entry("loyalty",           List.of("other_reliability", "proximity_seek", "trust")),
-            Map.entry("suspicion",         List.of("threat_sensitivity", "distrust", "BIS_activation")),
-            Map.entry("dominance",         List.of("dominance", "self_direct", "assert"))
+            Map.entry("gallantry",         List.of("perceived_responsiveness", "acceptance", "reward")),
+            Map.entry("proving-worth",     List.of("mastery", "competence_recognition")),
+            Map.entry("protection",        List.of("perceived_responsiveness", "physical_threat", "reward")),
+            Map.entry("scheming",          List.of("dominance", "betrayal", "agency_granted")),
+            Map.entry("gloating",          List.of("dominance", "reward")),
+            Map.entry("self-preservation", List.of("physical_threat", "unpredictable_danger")),
+            Map.entry("recognition",       List.of("competence_recognition", "secure_attachment", "reward")),
+            Map.entry("curiosity",         List.of("reward")),
+            Map.entry("social-harmony",    List.of("perceived_responsiveness", "acceptance", "inconsistent_care")),
+            Map.entry("adventure",         List.of("reward")),
+            Map.entry("greed",             List.of("reward")),
+            Map.entry("loyalty",           List.of("perceived_responsiveness", "inconsistent_care", "secure_attachment")),
+            Map.entry("suspicion",         List.of("physical_threat", "betrayal", "social_threat")),
+            Map.entry("dominance",         List.of("dominance", "agency_granted"))
     );
 
     /**

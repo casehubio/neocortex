@@ -4,6 +4,8 @@ import io.casehub.neocortex.caps.AgentCapsState;
 import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsEngine;
+import io.casehub.neocortex.caps.CapsNode;
+import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.ConvergenceType;
@@ -517,7 +519,12 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
             List<String> targetNodes = DriveCompetitionDetector.DRIVE_CAPS_MAPPINGS.get(driveType);
             if (targetNodes != null) {
+                var topo = capsEngine.topology();
                 for (String nodeId : targetNodes) {
+                    if (topo != null) {
+                        CapsNode capsNode = topo.nodes().get(nodeId);
+                        if (capsNode == null || capsNode.type() != NodeType.INPUT) continue;
+                    }
                     combinedActivations.merge(nodeId, intensity, Math::max);
                 }
             } else if (classifier != null) {
