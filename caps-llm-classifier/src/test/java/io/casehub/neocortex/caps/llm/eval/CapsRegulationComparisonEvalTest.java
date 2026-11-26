@@ -67,19 +67,19 @@ class CapsRegulationComparisonEvalTest {
         sessionPipeline = EvalTestSupport.sessionPipeline();
         defaultsRegistry = EffectiveCognitiveDefaults.forTesting(
                 buildDefaults("eval-sit-select",
-                        new DispositionAxes("cooperative", "flexible", "conservative", "low", "avoidant"),
+                        new DispositionAxes("collaborative", "flexible", "conservative", "directed", "avoiding"),
                         new RegulationDefaults(0.40, 0.50, 0.60)),
                 buildDefaults("eval-sit-modify",
-                        new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
+                        new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing"),
                         new RegulationDefaults(0.40, 0.40, 0.30)),
                 buildDefaults("eval-attn-deploy",
-                        new DispositionAxes("cooperative", "flexible", "bold", "low", "protective"),
+                        new DispositionAxes("collaborative", "flexible", "bold", "directed", "protective"),
                         new RegulationDefaults(0.50, 0.50, 0.60)),
                 buildDefaults("eval-cog-change",
-                        new DispositionAxes("cooperative", "flexible", "conservative", "high", "accommodating"),
+                        new DispositionAxes("collaborative", "flexible", "conservative", "autonomous", "accommodating"),
                         new RegulationDefaults(0.80, 0.40, 0.30)),
                 buildDefaults("eval-resp-mod",
-                        new DispositionAxes("competitive", "strict", "conservative", "high", "competitive"),
+                        new DispositionAxes("collaborative", "strict", "conservative", "autonomous", "competing"),
                         new RegulationDefaults(0.35, 0.80, 0.40))
         );
     }
@@ -166,7 +166,7 @@ class CapsRegulationComparisonEvalTest {
     private List<Scenario> defineScenarios() {
         return List.of(
                 new Scenario("eval-sit-select", "Situation Selection (avoidant shame)",
-                        new DispositionAxes("cooperative", "flexible", "conservative", "low", "avoidant"),
+                        new DispositionAxes("collaborative", "flexible", "conservative", "directed", "avoiding"),
                         new RegulationDefaults(0.40, 0.50, 0.60),
                         """
                         You misremembered Clara's birthday and gave her a gift \
@@ -177,7 +177,7 @@ class CapsRegulationComparisonEvalTest {
                         and the embarrassment will start again.""",
                         "cooperative", "flexible", "conservative", "low", "avoidant"),
                 new Scenario("eval-sit-modify", "Situation Modification (bold competition)",
-                        new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
+                        new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing"),
                         new RegulationDefaults(0.40, 0.40, 0.30),
                         """
                         Clara has written your name on the chore rota for kitchen duty \
@@ -187,7 +187,7 @@ class CapsRegulationComparisonEvalTest {
                         someone, change the situation before anyone notices.""",
                         "competitive", "flexible", "bold", "high", "competitive"),
                 new Scenario("eval-attn-deploy", "Attentional Deployment (fear/urgency)",
-                        new DispositionAxes("cooperative", "flexible", "bold", "low", "protective"),
+                        new DispositionAxes("collaborative", "flexible", "bold", "directed", "protective"),
                         new RegulationDefaults(0.50, 0.50, 0.60),
                         """
                         The ceiling beam above Clara is cracking. Plaster dust is falling \
@@ -197,7 +197,7 @@ class CapsRegulationComparisonEvalTest {
                         decides where.""",
                         "cooperative", "flexible", "bold", "low", "protective"),
                 new Scenario("eval-cog-change", "Cognitive Change (reappraisal)",
-                        new DispositionAxes("cooperative", "flexible", "conservative", "high", "accommodating"),
+                        new DispositionAxes("collaborative", "flexible", "conservative", "autonomous", "accommodating"),
                         new RegulationDefaults(0.80, 0.40, 0.30),
                         """
                         The breakfast tea has run out again. James took the last cup \
@@ -208,7 +208,7 @@ class CapsRegulationComparisonEvalTest {
                         skin.""",
                         "cooperative", "flexible", "conservative", "high", "accommodating"),
                 new Scenario("eval-resp-mod", "Response Modulation (suppression)",
-                        new DispositionAxes("competitive", "strict", "conservative", "high", "competitive"),
+                        new DispositionAxes("collaborative", "strict", "conservative", "autonomous", "competing"),
                         new RegulationDefaults(0.35, 0.80, 0.40),
                         """
                         Clara suggested at breakfast that perhaps you should let James \

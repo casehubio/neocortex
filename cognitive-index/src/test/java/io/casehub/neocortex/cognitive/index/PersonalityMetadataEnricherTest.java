@@ -30,15 +30,15 @@ class PersonalityMetadataEnricherTest {
 
     @Test
     void enrichesDisposition() {
-        var defaults = buildDefaults(new DispositionAxes("cooperative", "high", "low", "moderate", "avoid"), List.of(), null);
+        var defaults = buildDefaults(new DispositionAxes("collaborative", "strict", "conservative", "semi-autonomous", "avoid"), List.of(), null);
         var registry = CognitiveDefaultsRegistry.forTesting(defaults);
 
         var result = PersonalityMetadataEnricher.enrich(Map.of(), AGENT_ID, registry);
 
-        assertThat(result).containsEntry("disposition.socialOrient", "cooperative");
-        assertThat(result).containsEntry("disposition.ruleFollowing", "high");
-        assertThat(result).containsEntry("disposition.riskAppetite", "low");
-        assertThat(result).containsEntry("disposition.autonomy", "moderate");
+        assertThat(result).containsEntry("disposition.socialOrient", "collaborative");
+        assertThat(result).containsEntry("disposition.ruleFollowing", "strict");
+        assertThat(result).containsEntry("disposition.riskAppetite", "conservative");
+        assertThat(result).containsEntry("disposition.autonomy", "semi-autonomous");
         assertThat(result).containsEntry("disposition.conflictMode", "avoid");
     }
 

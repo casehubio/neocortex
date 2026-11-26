@@ -12,8 +12,7 @@ class CognitiveEmergenceSampleTest extends CognitiveEmergenceTest {
 
     @Test
     void rewardedAgentApproachesSimilarSituations() {
-        var scenario = scenario("agent1", new DispositionAxes(
-            "cooperative", "moderate", "bold", "moderate", "cooperative"));
+        var scenario = scenario("agent1", new DispositionAxes("collaborative", "principled", "bold", "semi-autonomous", "collaborating"));
 
         scenario.withExperience(
             "Was rewarded and praised for helping others", 0.7, 0.8, 5);
@@ -26,8 +25,7 @@ class CognitiveEmergenceSampleTest extends CognitiveEmergenceTest {
 
     @Test
     void threatenedCautiousAgentWithdraws() {
-        var scenario = scenario("agent2", new DispositionAxes(
-                "cooperative", "moderate", "conservative", "moderate", "avoidant"));
+        var scenario = scenario("agent2", new DispositionAxes("collaborative", "principled", "conservative", "semi-autonomous", "avoiding"));
 
         scenario.withExperience(
                 "Was attacked and hurt in a violent confrontation", 0.9, -0.8, 3);
@@ -41,10 +39,8 @@ class CognitiveEmergenceSampleTest extends CognitiveEmergenceTest {
 
     @Test
     void dispositionInfluencesBehavior() {
-        var boldDisposition = new DispositionAxes(
-                "cooperative", "moderate", "bold", "moderate", "assertive");
-        var cautiousDisposition = new DispositionAxes(
-                "cooperative", "moderate", "conservative", "moderate", "avoidant");
+        var boldDisposition = new DispositionAxes("collaborative", "principled", "bold", "semi-autonomous", "assertive");
+        var cautiousDisposition = new DispositionAxes("collaborative", "principled", "conservative", "semi-autonomous", "avoiding");
 
         var boldScenario     = scenario("bold-agent", boldDisposition);
         var cautiousScenario = scenario("cautious-agent", cautiousDisposition);
@@ -63,8 +59,7 @@ class CognitiveEmergenceSampleTest extends CognitiveEmergenceTest {
 
     @Test
     void classifierDrivenSettling() {
-        var scenario = scenario("agent3", new DispositionAxes(
-            "cooperative", "moderate", "calculated", "moderate", "analytical"));
+        var scenario = scenario("agent3", new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"));
 
         SettlingResult result = scenario.settleFromDescription(
             "He was rejected and abandoned by his close friend who betrayed him");

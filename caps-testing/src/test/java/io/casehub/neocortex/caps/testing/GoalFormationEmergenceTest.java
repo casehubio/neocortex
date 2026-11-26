@@ -15,10 +15,8 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void competitiveAgentApproachesMoreThanCooperative() {
-            var competitive = new DispositionAxes(
-                    "competitive", "flexible", "bold", "high", "competitive");
-            var cooperative = new DispositionAxes(
-                    "cooperative", "strict", "conservative", "low", "avoidant");
+            var competitive = new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing");
+            var cooperative = new DispositionAxes("collaborative", "strict", "conservative", "directed", "avoiding");
 
             var boldResult = scenario("bold", competitive)
                     .settle(Map.of("social_threat", 0.7, "dominance", 0.6));
@@ -34,10 +32,8 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void highAutonomyExploresMoreThanLow() {
-            var autonomous = new DispositionAxes(
-                    "independent", "flexible", "bold", "high", "competitive");
-            var dependent = new DispositionAxes(
-                    "cooperative", "strict", "conservative", "low", "avoidant");
+            var autonomous = new DispositionAxes("independent", "flexible", "bold", "autonomous", "competing");
+            var dependent = new DispositionAxes("collaborative", "strict", "conservative", "directed", "avoiding");
 
             var rebelResult = scenario("rebel", autonomous)
                     .settle(Map.of("controlled", 0.8, "agency_granted", 0.3));
@@ -53,10 +49,8 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void boldAgentApproachesMoreThanConservative() {
-            var bold = new DispositionAxes(
-                    "competitive", "flexible", "bold", "high", "competitive");
-            var conservative = new DispositionAxes(
-                    "cooperative", "strict", "conservative", "low", "avoidant");
+            var bold = new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing");
+            var conservative = new DispositionAxes("collaborative", "strict", "conservative", "directed", "avoiding");
 
             var boldResult = scenario("bold", bold)
                     .settle(Map.of("competition", 0.7, "scarcity", 0.5));
@@ -76,8 +70,7 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void repeatedBetrayalShiftsTrustToDistrust() {
-            var neutral = new DispositionAxes(
-                    "cooperative", "moderate", "calculated", "moderate", "analytical");
+            var neutral = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
 
             var trusting = scenario("trusting", neutral)
                     .settle(Map.of("secure_attachment", 0.6));
@@ -99,8 +92,7 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void repeatedRewardStrengthensApproach() {
-            var neutral = new DispositionAxes(
-                    "cooperative", "moderate", "calculated", "moderate", "analytical");
+            var neutral = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
 
             var unrewarded = scenario("novice", neutral)
                     .settle(Map.of("reward", 0.5));
@@ -117,8 +109,7 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void positiveReinforcementStrengthensApproachOverBaseline() {
-            var neutral = new DispositionAxes(
-                    "cooperative", "moderate", "bold", "moderate", "analytical");
+            var neutral = new DispositionAxes("collaborative", "principled", "bold", "semi-autonomous", "compromising");
 
             var baseline = scenario("baseline", neutral)
                     .settle(Map.of("reward", 0.6, "mastery", 0.5));
@@ -146,10 +137,8 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void flippingRiskAppetiteChangesApproachStrength() {
-            var boldAxes = new DispositionAxes(
-                    "cooperative", "moderate", "bold", "moderate", "analytical");
-            var cautiousAxes = new DispositionAxes(
-                    "cooperative", "moderate", "conservative", "moderate", "analytical");
+            var boldAxes = new DispositionAxes("collaborative", "principled", "bold", "semi-autonomous", "compromising");
+            var cautiousAxes = new DispositionAxes("collaborative", "principled", "conservative", "semi-autonomous", "compromising");
 
             var boldResult = scenario("bold", boldAxes)
                     .settle(Map.of("competition", 0.7));
@@ -165,8 +154,7 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void addingPositiveExperienceModeratesThreatResponse() {
-            var cautious = new DispositionAxes(
-                    "cooperative", "moderate", "conservative", "moderate", "avoidant");
+            var cautious = new DispositionAxes("collaborative", "principled", "conservative", "semi-autonomous", "avoiding");
 
             var pureAnxiety = scenario("anxious", cautious)
                     .withExperience("Was rejected and abandoned by everyone", 0.8, -0.8, 5)
@@ -188,10 +176,8 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void conflictModeAloneShiftsApproachWithdraw() {
-            var competitive = new DispositionAxes(
-                    "cooperative", "moderate", "moderate", "moderate", "competitive");
-            var avoidant = new DispositionAxes(
-                    "cooperative", "moderate", "moderate", "moderate", "avoidant");
+            var competitive = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "competing");
+            var avoidant = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "avoiding");
 
             var compResult = scenario("comp", competitive)
                                      .settle(Map.of("dominance", 0.7, "social_threat", 0.5));
@@ -215,8 +201,7 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void progressiveRewardBuildsApproach() {
-            var neutral = new DispositionAxes(
-                    "cooperative", "moderate", "calculated", "moderate", "analytical");
+            var neutral = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
 
             var result1 = scenario("r1", neutral)
                     .withExperience("Was rewarded and praised", 0.5, 0.6, 1)
@@ -244,8 +229,7 @@ class GoalFormationEmergenceTest extends CognitiveEmergenceTest {
 
         @Test
         void mixedExperiencesProduceModerateBehavior() {
-            var neutral = new DispositionAxes(
-                    "cooperative", "moderate", "calculated", "moderate", "analytical");
+            var neutral = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
 
             var purePositive = scenario("positive", neutral)
                     .withExperience("Was accepted and valued by friends", 0.7, 0.8, 8)

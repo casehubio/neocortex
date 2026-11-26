@@ -31,15 +31,15 @@ class PredictorScenarioValidationTest {
 
     static final List<CharacterProfile> CHARACTERS = List.of(
             new CharacterProfile("penelope-pitstop",
-                    new DispositionAxes("cooperative", "strict", "moderate", "low", "cooperative")),
+                    new DispositionAxes("collaborative", "strict", "measured", "directed", "collaborating")),
             new CharacterProfile("hooded-claw",
-                    new DispositionAxes("competitive", "flexible", "bold", "high", "competitive")),
+                    new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing")),
             new CharacterProfile("ant-hill-mob",
-                    new DispositionAxes("cooperative", "flexible", "bold", "low", "cooperative")),
+                    new DispositionAxes("collaborative", "flexible", "bold", "directed", "collaborating")),
             new CharacterProfile("dick-dastardly",
-                    new DispositionAxes("competitive", "flexible", "bold", "high", "competitive")),
+                    new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing")),
             new CharacterProfile("peter-perfect",
-                    new DispositionAxes("cooperative", "strict", "bold", "low", "cooperative"))
+                    new DispositionAxes("collaborative", "strict", "bold", "directed", "collaborating"))
     );
 
     static final EmotionType[] REGULATION_EMOTIONS = {

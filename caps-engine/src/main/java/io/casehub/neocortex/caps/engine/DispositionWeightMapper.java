@@ -155,13 +155,9 @@ public class DispositionWeightMapper {
 // settling unstable — small input perturbations flip the dominant attractor. (#831)
     static Set<String> detectApproachAvoidanceConflict(DispositionAxes disposition) {
         var     conflicts = new HashSet<String>();
-        boolean avoidant  = "avoidant".equals(disposition.conflictMode());
+        boolean avoidant  = "avoiding".equals(disposition.conflictMode());
         if (!avoidant) {return conflicts;}
 
-        if ("competitive".equals(disposition.socialOrient())) {
-            conflicts.add("socialOrient");
-            conflicts.add("conflictMode");
-        }
         if ("bold".equals(disposition.riskAppetite())) {
             conflicts.add("riskAppetite");
             conflicts.add("conflictMode");
@@ -176,12 +172,9 @@ public class DispositionWeightMapper {
                                        Map<String, NodeState> nodeStates,
                                        Set<String> conflicting) {
         // MEDIATING nodes — tonic sensitivity (Gray 1982), always applied
-        if ("cooperative".equals(disposition.socialOrient())) {
+        if ("collaborative".equals(disposition.socialOrient())) {
             addResting(nodeStates, "other_reliability", 0.3);
             addResting(nodeStates, "self_worth", 0.2);
-        } else if ("competitive".equals(disposition.socialOrient())) {
-            addResting(nodeStates, "social_comparison", 0.3);
-            addResting(nodeStates, "BAS_activation", 0.2);
         }
         if ("bold".equals(disposition.riskAppetite())) {
             addResting(nodeStates, "BAS_activation", 0.3);
@@ -198,21 +191,16 @@ public class DispositionWeightMapper {
         } else if ("dependent".equals(disposition.autonomy())) {
             addResting(nodeStates, "other_reliability", 0.15);
         }
-        if ("competitive".equals(disposition.conflictMode())) {
+        if ("competing".equals(disposition.conflictMode())) {
             addResting(nodeStates, "threat_sensitivity", 0.15);
-        } else if ("avoidant".equals(disposition.conflictMode())) {
+        } else if ("avoiding".equals(disposition.conflictMode())) {
             addResting(nodeStates, "escape_assessment", 0.2);
         }
 
         // OUTPUT nodes — behavioral attractor baselines (Read et al. 2010)
         // Skipped for conflicting axes to prevent unstable settling (#831)
         if (!conflicting.contains("socialOrient")) {
-            if ("competitive".equals(disposition.socialOrient())) {
-                addResting(nodeStates, "approach", 0.2);
-                addResting(nodeStates, "fight", 0.15);
-                addResting(nodeStates, "assert", 0.15);
-                addResting(nodeStates, "distrust", 0.1);
-            } else if ("cooperative".equals(disposition.socialOrient())) {
+            if ("collaborative".equals(disposition.socialOrient())) {
                 addResting(nodeStates, "cautious_approach", 0.2);
                 addResting(nodeStates, "trust", 0.15);
                 addResting(nodeStates, "proximity_seek", 0.15);
@@ -231,10 +219,10 @@ public class DispositionWeightMapper {
             }
         }
         if (!conflicting.contains("conflictMode")) {
-            if ("competitive".equals(disposition.conflictMode())) {
+            if ("competing".equals(disposition.conflictMode())) {
                 addResting(nodeStates, "fight", 0.15);
                 addResting(nodeStates, "assert", 0.1);
-            } else if ("avoidant".equals(disposition.conflictMode())) {
+            } else if ("avoiding".equals(disposition.conflictMode())) {
                 addResting(nodeStates, "flight", 0.15);
                 addResting(nodeStates, "withdraw", 0.1);
             }
@@ -249,15 +237,15 @@ public class DispositionWeightMapper {
 
         // OUTPUT nodes — regulation attractor baselines (#806, #906, Gross 1998, Zaki & Williams 2013)
         if (!conflicting.contains("conflictMode")) {
-            if ("avoidant".equals(disposition.conflictMode())) {
+            if ("avoiding".equals(disposition.conflictMode())) {
                 addResting(nodeStates, "situation_selection", 0.3);
                 addResting(nodeStates, "social_withdrawal", 0.2);
-            } else if ("analytical".equals(disposition.conflictMode())) {
+            } else if ("compromising".equals(disposition.conflictMode())) {
                 addResting(nodeStates, "cognitive_change", 0.3);
-            } else if ("cooperative".equals(disposition.conflictMode())) {
+            } else if ("collaborating".equals(disposition.conflictMode())) {
                 addResting(nodeStates, "co_regulation", 0.25);
                 addResting(nodeStates, "social_sharing", 0.15);
-            } else if ("competitive".equals(disposition.conflictMode())) {
+            } else if ("competing".equals(disposition.conflictMode())) {
                 addResting(nodeStates, "response_modulation", 0.25);
                 addResting(nodeStates, "deliberate_provocation", 0.15);
                 addResting(nodeStates, "situation_modification", 0.10);
@@ -280,7 +268,7 @@ public class DispositionWeightMapper {
             }
         }
         if (!conflicting.contains("socialOrient")) {
-            if ("cooperative".equals(disposition.socialOrient())) {
+            if ("collaborative".equals(disposition.socialOrient())) {
                 addResting(nodeStates, "social_support_seeking", 0.25);
                 addResting(nodeStates, "co_regulation", 0.15);
             } else if ("independent".equals(disposition.socialOrient())) {

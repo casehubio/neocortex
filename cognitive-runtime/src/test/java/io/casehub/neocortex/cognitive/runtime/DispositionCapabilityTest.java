@@ -31,7 +31,7 @@ class DispositionCapabilityTest {
 
     @Test
     void rendersDispositionAxes() {
-        var axes = new DispositionAxes("collaborative", "high", "low", "high", "collaborative");
+        var axes = new DispositionAxes("collaborative", "strict", "conservative", "autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-1", axes, List.of(), List.of());
         var profile = CognitiveDefaults.empty("agent-1").withDescriptor(descriptor);
         var capability = new DispositionCapability(profile);
@@ -40,8 +40,8 @@ class DispositionCapabilityTest {
         var content = capability.promptSections().getFirst().render(ctx);
         assertNotNull(content);
         assertTrue(content.contains("Social orientation: collaborative"));
-        assertTrue(content.contains("Rule following: high"));
-        assertTrue(content.contains("Risk appetite: low"));
+        assertTrue(content.contains("Rule following: strict"));
+        assertTrue(content.contains("Risk appetite: conservative"));
     }
 
     @Test

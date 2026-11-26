@@ -37,7 +37,7 @@ class LearningProfileTest {
 
     @Test
     void extractsDispositionAxes() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         var view = DescriptorView.of("agent-1", axes, List.of(), List.of());
         var defaults = CognitiveDefaults.empty("agent-1").withDescriptor(view);
         var profile = LearningProfile.from(defaults);

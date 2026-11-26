@@ -42,7 +42,7 @@ class MindMapDriveSourceTest {
         var store = new InMemoryMindMapStore();
         store.createSubgraph(new SubgraphInput("cognitive", SubgraphTypes.COGNITIVE, null), "t1");
 
-        var axes = new DispositionAxes("cooperative", "strict", "aggressive", "moderate", "analytical");
+        var axes = new DispositionAxes("collaborative", "strict", "aggressive", "semi-autonomous", "compromising");
         var view = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDerivationEngine.derive(view);
         var registry = EffectiveCognitiveDefaults.forTesting(defaults);
@@ -58,7 +58,7 @@ class MindMapDriveSourceTest {
     @Test
     void affiliationBaselineFromCooperativeDisposition() {
         var store = new InMemoryMindMapStore();
-        var axes = new DispositionAxes("cooperative", "moderate", "moderate", "moderate", "accommodating");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "accommodating");
         var view = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDerivationEngine.derive(view);
         var registry = EffectiveCognitiveDefaults.forTesting(defaults);
@@ -72,7 +72,7 @@ class MindMapDriveSourceTest {
     @Test
     void autonomyBaselineFromHighAutonomy() {
         var store = new InMemoryMindMapStore();
-        var axes = new DispositionAxes("independent", "flexible", "conservative", "high", "confronting");
+        var axes = new DispositionAxes("independent", "flexible", "conservative", "autonomous", "confronting");
         var view = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDerivationEngine.derive(view);
         var registry = EffectiveCognitiveDefaults.forTesting(defaults);
@@ -103,7 +103,7 @@ class MindMapDriveSourceTest {
                         "agent-id", "a1", "intensity", "0.8",
                         "description", "deep social bonds from shared adventures")), "t1");
 
-        var axes = new DispositionAxes("independent", "flexible", "conservative", "low", "avoidant");
+        var axes = new DispositionAxes("independent", "flexible", "conservative", "directed", "avoiding");
         var view = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDerivationEngine.derive(view);
         var registry = EffectiveCognitiveDefaults.forTesting(defaults);

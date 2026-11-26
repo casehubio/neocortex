@@ -103,7 +103,7 @@ public class RegulationStrategyPredictor {
         }
         // Nathanson 1992 compass of shame: avoidant personalities withdraw from shame
         // Bonanno & Burton 2013: fall through if redirect capacity degraded by prior failures
-        if (axes != null && "avoidant".equals(axes.conflictMode())
+        if (axes != null && "avoiding".equals(axes.conflictMode())
             && rd.redirectTendency() >= VIABLE_ALTERNATIVE) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.SITUATION_SELECTION, 0.75, ALIGNED_EFFECTIVENESS));
@@ -139,16 +139,15 @@ public class RegulationStrategyPredictor {
 
 
     private boolean hasCompetitiveAvoidantConflict(DispositionAxes axes) {
-        boolean competitive = "competitive".equals(axes.conflictMode())
-                              || "competitive".equals(axes.socialOrient());
-        boolean avoidant = "avoidant".equals(axes.conflictMode());
+        boolean competitive = "competing".equals(axes.conflictMode());
+        boolean avoidant = "avoiding".equals(axes.conflictMode());
         return competitive && avoidant;
     }
 
     private static EmotionRegulationStrategy predictUnderHighLoad(DispositionAxes axes) {
         return switch (axes.conflictMode()) {
-            case "avoidant" -> EmotionRegulationStrategy.RESPONSE_MODULATION;
-            case "competitive" -> EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT;
+            case "avoiding" -> EmotionRegulationStrategy.RESPONSE_MODULATION;
+            case "competing" -> EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT;
             default -> switch (axes.riskAppetite()) {
                 case "bold" -> EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT;
                 default -> EmotionRegulationStrategy.RESPONSE_MODULATION;

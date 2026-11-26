@@ -108,7 +108,7 @@ class CognitivePipelineTest {
     void stage2_graduatedNodesProduceBehavioralAttractors() {
         storeFormativeMemory(AGENT_A, "formative A", 0.9, 1.5, null, null, null);
         capsEngine.initializeAgent(TENANT, AGENT_A,
-            new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"));
+            new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing"));
 
         runGraduation();
         runBehavioralSynthesis();
@@ -134,9 +134,9 @@ class CognitivePipelineTest {
         }
 
         capsEngine.initializeAgent(TENANT, AGENT_A,
-            new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"));
+            new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing"));
         capsEngine.initializeAgent(TENANT, AGENT_B,
-            new DispositionAxes("cooperative", "strict", "calculated", "moderate", "cooperative"));
+            new DispositionAxes("collaborative", "strict", "measured", "semi-autonomous", "collaborating"));
 
         runGraduation();
         runBehavioralSynthesis();
@@ -172,9 +172,9 @@ class CognitivePipelineTest {
         }
 
         capsEngine.initializeAgent(TENANT, AGENT_A,
-            new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"));
+            new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing"));
         capsEngine.initializeAgent(TENANT, AGENT_B,
-            new DispositionAxes("cooperative", "strict", "calculated", "moderate", "cooperative"));
+            new DispositionAxes("collaborative", "strict", "measured", "semi-autonomous", "collaborating"));
 
         runGraduation();
 

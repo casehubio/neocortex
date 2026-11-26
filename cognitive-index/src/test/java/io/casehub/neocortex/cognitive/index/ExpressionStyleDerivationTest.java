@@ -100,7 +100,7 @@ class ExpressionStyleDerivationTest {
                 new PersonalityFacet("Callousness", 0.90, null),
                 new PersonalityFacet("Manipulativeness", 0.80, null));
         var descriptor = new DescriptorView("agent-1",
-                new DispositionAxes("competitive", "strict", "bold", "high", "aggressive"),
+                new DispositionAxes("collaborative", "strict", "bold", "autonomous", "aggressive"),
                 List.of(), List.of(), null, facets);
 
         var defaults = CognitiveDerivationEngine.derive(descriptor);

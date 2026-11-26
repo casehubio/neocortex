@@ -22,7 +22,7 @@ class EmotionRegulationGenerationPhaseStrategyConstraintTest {
     @Test
     void highSuppression_rendersResponseModulationConstraint() {
         var rd = new RegulationDefaults(0.35, 0.80, 0.40);
-        var axes = new DispositionAxes("competitive", "strict", "conservative", "high", "competitive");
+        var axes = new DispositionAxes("collaborative", "strict", "conservative", "autonomous", "competing");
 
         String message = buildMessage(rd, axes, EmotionType.ANGER);
 
@@ -33,7 +33,7 @@ class EmotionRegulationGenerationPhaseStrategyConstraintTest {
     @Test
     void highReappraisal_rendersCognitiveChangeConstraint() {
         var rd = new RegulationDefaults(0.80, 0.40, 0.30);
-        var axes = new DispositionAxes("cooperative", "flexible", "conservative", "high", "accommodating");
+        var axes = new DispositionAxes("collaborative", "flexible", "conservative", "autonomous", "accommodating");
 
         String message = buildMessage(rd, axes, EmotionType.FEAR);
 
@@ -44,7 +44,7 @@ class EmotionRegulationGenerationPhaseStrategyConstraintTest {
     @Test
     void highRedirect_rendersAttentionalDeploymentConstraint() {
         var rd = new RegulationDefaults(0.30, 0.30, 0.80);
-        var axes = new DispositionAxes("cooperative", "flexible", "bold", "low", "protective");
+        var axes = new DispositionAxes("collaborative", "flexible", "bold", "directed", "protective");
 
         String message = buildMessage(rd, axes, EmotionType.FEAR);
 
@@ -55,7 +55,7 @@ class EmotionRegulationGenerationPhaseStrategyConstraintTest {
     @Test
     void tiedCapacities_noStrategyConstraint() {
         var rd = new RegulationDefaults(0.70, 0.70, 0.30);
-        var axes = new DispositionAxes("cooperative", "flexible", "conservative", "high", "accommodating");
+        var axes = new DispositionAxes("collaborative", "flexible", "conservative", "autonomous", "accommodating");
 
         String message = buildMessage(rd, axes, EmotionType.ANGER);
 

@@ -19,11 +19,11 @@ briefing:
 descriptor:
   agentId: thorough-planner
   disposition:
-    socialOrient: moderate
-    ruleFollowing: high
-    riskAppetite: low
-    autonomy: moderate
-    conflictMode: cooperative
+    socialOrient: facilitative
+    ruleFollowing: strict
+    riskAppetite: conservative
+    autonomy: semi-autonomous
+    conflictMode: collaborating
 
 behavioralDefaults:
   curiosity:

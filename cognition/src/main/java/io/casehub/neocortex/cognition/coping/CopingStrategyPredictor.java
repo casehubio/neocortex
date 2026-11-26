@@ -116,7 +116,7 @@ public class CopingStrategyPredictor {
         // Stage 4: Self-conscious emotion refinement (Nathanson 1992)
         if (SELF_CONSCIOUS.contains(dominant.type()) && viable.contains(CopingStrategy.AVOIDANCE)) {
             boolean avoidantPersonality = defaults.avoidanceTendency() > AVOIDANCE_TENDENCY_THRESHOLD;
-            boolean avoidantConflict = axes != null && "avoidant".equals(axes.conflictMode());
+            boolean avoidantConflict = axes != null && "avoiding".equals(axes.conflictMode());
             if (avoidantPersonality || avoidantConflict) {
                 return Optional.of(new CopingPrediction(
                         CopingStrategy.AVOIDANCE, HIGH_CONFIDENCE, null));

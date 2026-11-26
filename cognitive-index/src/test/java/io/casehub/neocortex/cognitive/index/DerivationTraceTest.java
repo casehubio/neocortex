@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DerivationTraceTest {
 
     private static final DispositionAxes DEFAULT_AXES =
-            new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical");
+            new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
 
     private static final List<WeightedTerm> BALANCED_PROFILE = List.of(
             new WeightedTerm("ni", 0.3), new WeightedTerm("te", 0.25),

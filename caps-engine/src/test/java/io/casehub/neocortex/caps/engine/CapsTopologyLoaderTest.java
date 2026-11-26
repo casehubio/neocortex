@@ -149,7 +149,7 @@ class CapsTopologyLoaderTest {
 
         assertThat(topology.dispositionModifiers()).containsKey("socialOrient");
         var social = topology.dispositionModifiers().get("socialOrient");
-        assertThat(social.valueModifiers()).containsKey("cooperative");
+        assertThat(social.valueModifiers()).containsKey("collaborative");
     }
 
     @Test

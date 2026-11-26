@@ -15,21 +15,18 @@ public final class DispositionTension {
         new TensionEntry("riskAppetite", "bold", "ruleFollowing", "strict",
             1.0, "approach vs inhibition",
             "wants to act decisively but feels bound by rules — ambiguous situations feel like tests of whether the rules permit the action"),
-        new TensionEntry("autonomy", "high", "conflictMode", "avoidant",
+        new TensionEntry("autonomy", "autonomous", "conflictMode", "avoiding",
             0.9, "independent but won't confront",
             "values independence but avoids confrontation — perceives social expectations as constraints but won't push against them directly"),
-        new TensionEntry("socialOrient", "cooperative", "autonomy", "high",
+        new TensionEntry("socialOrient", "collaborative", "autonomy", "autonomous",
             0.8, "group-oriented but self-directed",
             "drawn to group goals but resistant to group control — reads situations for both collaboration potential and threats to independence"),
-        new TensionEntry("riskAppetite", "bold", "conflictMode", "avoidant",
+        new TensionEntry("riskAppetite", "bold", "conflictMode", "avoiding",
             0.7, "acts but doesn't confront",
             "impulsive toward action but shrinks from interpersonal friction — sees opportunities but worries about the social cost of seizing them"),
-        new TensionEntry("socialOrient", "independent", "autonomy", "low",
+        new TensionEntry("socialOrient", "independent", "autonomy", "directed",
             0.7, "independent identity but follows",
-            "identifies as self-reliant but defers to authority — notices when others lead but feels conflicted about following"),
-        new TensionEntry("socialOrient", "competitive", "ruleFollowing", "strict",
-            0.6, "driven to win but bound by rules",
-            "driven to win but constrained by propriety — seeks advantage within the rules, alert to where rules create or block competitive edges")
+            "identifies as self-reliant but defers to authority — notices when others lead but feels conflicted about following")
     );
 
     private DispositionTension() {}

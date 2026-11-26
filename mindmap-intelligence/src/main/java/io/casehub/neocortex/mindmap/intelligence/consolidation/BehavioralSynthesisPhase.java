@@ -594,7 +594,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
      */
     private static final io.casehub.neocortex.cognitive.index.DispositionAxes DEFAULT_DISPOSITION =
         new io.casehub.neocortex.cognitive.index.DispositionAxes(
-            "cooperative", "moderate", "calculated", "moderate", "cooperative");
+            "collaborative", "principled", "measured", "semi-autonomous", "collaborating");
 
     private io.casehub.neocortex.cognitive.index.DispositionAxes resolveDispositionForAgent(
             String agentId, String tenantId) {

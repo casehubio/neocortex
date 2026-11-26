@@ -44,8 +44,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void initializeAgentCreatesState() {
-        var disposition = new DispositionAxes(
-            "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var disposition = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition);
 
         assertThat(state.agentId()).isEqualTo("agent1");
@@ -56,8 +55,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void initializeAgentSeedsCopingAttractorsFromCopingDefaults() {
-        var disposition = new DispositionAxes(
-                "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var disposition = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         var coping = new CopingDefaults(0.8, 0.3, 0.2, 0.7, 0.6, 0.7, 0.2, 0.3);
 
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition, coping);
@@ -92,8 +90,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void initializeAgentWithoutCopingDefaultsDoesNotSeedCopingAttractors() {
-        var disposition = new DispositionAxes(
-                "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var disposition = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
 
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition);
 
@@ -106,8 +103,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void highBISInputActivatesAvoidantCopingAttractors() {
-        var disposition = new DispositionAxes(
-                "cooperative", "moderate", "conservative", "moderate", "avoidant");
+        var disposition = new DispositionAxes("collaborative", "principled", "conservative", "semi-autonomous", "avoiding");
         var coping = new CopingDefaults(0.3, 0.3, 0.8, 0.3, 0.3, 0.2, 0.7, 0.6);
 
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition, coping);
@@ -123,8 +119,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void copingBiasDirectionallyDifferentiatesProfiles() {
-        var disposition = new DispositionAxes(
-                "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var disposition = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         var planful  = new CopingDefaults(0.8, 0.5, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5);
         var avoidant = new CopingDefaults(0.2, 0.5, 0.8, 0.5, 0.5, 0.5, 0.5, 0.5);
 
@@ -168,8 +163,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void loadStateReturnsInitializedState() {
-        var disposition = new DispositionAxes(
-            "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var disposition = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         engine.initializeAgent("t1", "agent1", disposition);
 
         AgentCapsState loaded = engine.loadState("t1", "agent1");
@@ -178,8 +172,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void saveStateIncrementsGeneration() {
-        var disposition = new DispositionAxes(
-            "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var disposition = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition);
 
         assertThat(state.generation()).isEqualTo(0);
@@ -196,8 +189,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void settlingConvergesWithSimpleInput() {
-        var disposition = new DispositionAxes(
-            "cooperative", "moderate", "bold", "moderate", "cooperative");
+        var disposition = new DispositionAxes("collaborative", "principled", "bold", "semi-autonomous", "collaborating");
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition);
 
         var inputs = Map.of("reward", 0.8);
@@ -212,8 +204,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void highBISInputProducesCautiousApproach() {
-        var disposition = new DispositionAxes(
-            "cooperative", "moderate", "conservative", "moderate", "avoidant");
+        var disposition = new DispositionAxes("collaborative", "principled", "conservative", "semi-autonomous", "avoiding");
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition);
 
         var inputs = Map.of("physical_threat", 0.9, "unpredictable_danger", 0.7);
@@ -226,8 +217,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void weightUpdateModifiesState() {
-        var disposition = new DispositionAxes(
-            "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var disposition = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition);
 
         var inputs = Map.of("reward", 0.8);
@@ -245,8 +235,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void empiricalWeightsResistChange() {
-        var disposition = new DispositionAxes(
-            "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var disposition = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition);
 
         var inputs = Map.of("reward", 0.8);
@@ -275,8 +264,7 @@ public abstract class CapsEngineContractTest {
 
     @Test
     void inputNodesAreClampedDuringSettling() {
-        var disposition = new DispositionAxes(
-            "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var disposition = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition);
 
         var inputs = Map.of("reward", 0.8, "punishment", 0.3);
@@ -289,7 +277,7 @@ public abstract class CapsEngineContractTest {
     @Test
     void zeroInputProducesZeroOutputActivation() {
         var state = engine.initializeAgent("t1", "zero-test",
-                                           new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "collaborative"));
+                                           new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating"));
         var result = engine.settle(state, Map.of());
         for (var entry : result.activations().entrySet()) {
             CapsNode node = engine.topology().nodes().get(entry.getKey());
@@ -304,9 +292,9 @@ public abstract class CapsEngineContractTest {
     @Test
     void autonomyModifiersProduceWeightDifferences() {
         var independent = engine.initializeAgent("t1", "ind",
-                                                 new DispositionAxes("cooperative", "moderate", "calculated", "independent", "collaborative"));
+                                                 new DispositionAxes("collaborative", "principled", "measured", "autonomous", "collaborating"));
         var dependent = engine.initializeAgent("t1", "dep",
-                                               new DispositionAxes("cooperative", "moderate", "calculated", "dependent", "collaborative"));
+                                               new DispositionAxes("collaborative", "principled", "measured", "directed", "collaborating"));
         boolean anyDifference = false;
         for (String connId : independent.weights().keySet()) {
             double wInd = independent.weights().get(connId).excitatory();
@@ -325,7 +313,7 @@ public abstract class CapsEngineContractTest {
     @Test
     void restingActivationsClampedWithinBounds() {
         var state = engine.initializeAgent("t1", "extreme",
-                                           new DispositionAxes("competitive", "defiant", "bold", "independent", "confrontational"));
+                                           new DispositionAxes("collaborative", "defiant", "bold", "autonomous", "confrontational"));
         for (var entry : state.nodeStates().entrySet()) {
             double resting = entry.getValue().restingActivation();
             assertThat(resting)
@@ -337,7 +325,7 @@ public abstract class CapsEngineContractTest {
     @Test
     void noInputRankingDiffersFromThreatRanking() {
         var state = engine.initializeAgent("t1", "ranking",
-                                           new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "collaborative"));
+                                           new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating"));
 
         var noInput = engine.settle(state, Map.of());
         var threat  = engine.settle(state, Map.of("physical_threat", 1.0));
@@ -362,9 +350,9 @@ public abstract class CapsEngineContractTest {
     @Test
     void oppositePersonalitiesDiverge() {
         var bold = engine.initializeAgent("t1", "bold",
-                                          new DispositionAxes("competitive", "defiant", "bold", "independent", "confrontational"));
+                                          new DispositionAxes("collaborative", "defiant", "bold", "autonomous", "confrontational"));
         var cautious = engine.initializeAgent("t1", "cautious",
-                                              new DispositionAxes("cooperative", "compliant", "conservative", "dependent", "avoidant"));
+                                              new DispositionAxes("collaborative", "compliant", "conservative", "directed", "avoiding"));
 
         var input          = Map.of("physical_threat", 0.7, "social_threat", 0.5);
         var boldResult     = engine.settle(bold, input);

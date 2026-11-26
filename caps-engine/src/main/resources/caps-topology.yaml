@@ -684,7 +684,7 @@ connections:
     to: self_worth
     weight: 0.25
     provenance: consensus
-    source: "social acceptance → self-worth (cooperative disposition boost)"
+    source: "social acceptance → self-worth (collaborative disposition boost)"
     tags: [social_input]
   - from: mastery
     to: self_worth
@@ -696,7 +696,7 @@ connections:
     to: self_worth
     weight: 0.20
     provenance: consensus
-    source: "performance evaluation → self-worth (competitive disposition boost)"
+    source: "performance evaluation → self-worth (competing disposition boost)"
     tags: []
   - from: mastery
     to: self_efficacy
@@ -1696,18 +1696,15 @@ disposition_modifiers:
     independent:
       social_input_connections: 0.5
       mastery_to_self_worth: 1.3
-    cooperative:
+    collaborative:
       acceptance_to_self_worth: 1.3
       other_reliability_to_trust: 1.2
-    competitive:
-      performance_judged_to_self_worth: 1.3
-      BAS_activation_to_approach: 1.2
 
   ruleFollowing:
     flexible:
       punishment_to_FFFS_activation: 0.7
       schema_connections: 0.8
-    moderate:
+    principled:
       _default: 1.0
     strict:
       social_threat_to_BIS_activation: 1.4
@@ -1719,7 +1716,7 @@ disposition_modifiers:
       BIS_connections: 1.3
       threat_sensitivity_threshold: 1.2
       BAS_connections: 0.7
-    calculated:
+    measured:
       BIS_connections: 1.05
       BAS_connections: 0.95
     bold:
@@ -1728,24 +1725,24 @@ disposition_modifiers:
       BIS_connections: 0.7
 
   autonomy:
-    dependent:
+    directed:
       compliance_connections: 1.3
       agency_granted: 0.6
-    moderate:
+    semi-autonomous:
       _default: 1.0
-    independent:
+    autonomous:
       self_direction_connections: 1.3
       controlled_to_comply: 0.6
 
   conflictMode:
-    cooperative:
+    collaborating:
       fawn_accommodate_pathways: 1.3
-    competitive:
+    competing:
       fight_assert_pathways: 1.3
-    analytical:
+    compromising:
       cautious_approach: 1.3
       BIS_activation_to_cautious_approach: 1.2
-    avoidant:
+    avoiding:
       flight_freeze_withdraw_pathways: 1.3
 
 # Cognitive distortions — data-driven definitions applied generically

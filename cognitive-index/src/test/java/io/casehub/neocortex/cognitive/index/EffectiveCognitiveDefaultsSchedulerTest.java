@@ -24,7 +24,7 @@ class EffectiveCognitiveDefaultsSchedulerTest {
         var scheduler = new EffectiveCognitiveDefaultsScheduler(defaults, 60, 24, 10);
 
         var updatedView = DescriptorView.of("agent-1",
-                new DispositionAxes("competitive", "strict", "bold", "high", "analytical"),
+                new DispositionAxes("collaborative", "strict", "bold", "autonomous", "compromising"),
                 List.of(new WeightedTerm("te", 0.9)), List.of());
         viewSource.add("t1", updatedView);
 

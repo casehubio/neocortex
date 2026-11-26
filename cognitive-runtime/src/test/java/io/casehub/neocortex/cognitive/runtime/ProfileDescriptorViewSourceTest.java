@@ -29,14 +29,14 @@ class ProfileDescriptorViewSourceTest {
 
     @Test
     void findsAgentByIdAndTenant() {
-        var descriptor = DescriptorView.of("mentor", new DispositionAxes("moderate", "high", "low", "high", "collaborative"), List.of(), List.of());
+        var descriptor = DescriptorView.of("mentor", new DispositionAxes("facilitative", "strict", "conservative", "autonomous", "collaborating"), List.of(), List.of());
         var profile = CognitiveDefaults.empty("mentor").withDescriptor(descriptor);
         var registry = CognitiveDefaultsRegistry.forTesting(profile);
         var source = new ProfileDescriptorViewSource(registry);
 
         var result = source.find("any-tenant", "mentor");
         assertTrue(result.isPresent());
-        assertEquals("high", result.get().disposition().ruleFollowing());
+        assertEquals("strict", result.get().disposition().ruleFollowing());
     }
 
     @Test

@@ -30,7 +30,7 @@ class CopingGenerationPhaseTest {
     private static final CognitiveEmotion FEAR = emotion(EmotionType.FEAR, 0.55);
 
     private static final DispositionAxes AXES =
-            new DispositionAxes("cooperative", "flexible", "calculated", "high", "analytical");
+            new DispositionAxes("collaborative", "flexible", "measured", "autonomous", "compromising");
 
     private static final CopingDefaults DEFAULTS =
             new CopingDefaults(0.8, 0.5, 0.2, 0.4, 0.6, 0.6, 0.2, 0.3);
@@ -433,8 +433,8 @@ class CopingGenerationPhaseTest {
     void buildUserMessage_includesPersonalityAxes() {
         var msg = CopingGenerationPhase.buildUserMessage(
                 basicAppraisalContext(), basicState(), null, null);
-        assertThat(msg).contains("conflict-mode: analytical");
-        assertThat(msg).contains("social-orient: cooperative");
+        assertThat(msg).contains("conflict-mode: compromising");
+        assertThat(msg).contains("social-orient: collaborative");
     }
 
     @Test

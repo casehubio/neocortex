@@ -27,9 +27,9 @@ class CopingStrategyPredictorTest {
     private static final CopingDefaults BALANCED = new CopingDefaults(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
 
     private static final DispositionAxes AVOIDANT_AXES =
-            new DispositionAxes("independent", "flexible", "conservative", "low", "avoidant");
+            new DispositionAxes("independent", "flexible", "conservative", "directed", "avoiding");
     private static final DispositionAxes ANALYTICAL_AXES =
-            new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+            new DispositionAxes("collaborative", "strict", "measured", "autonomous", "compromising");
 
     private static Map<String, Double> dims(double controllability) {
         return Map.of("controllability", controllability, "adjustability", 0.5);

@@ -56,8 +56,8 @@ public class TestAppraisalStrategy implements AppraisalStrategy {
             return List.of(new ActionTendency(ActionReadiness.ATTENDING, 0.4, ""));
         }
         return switch (axes.conflictMode()) {
-            case "cooperative" -> List.of(new ActionTendency(ActionReadiness.APPROACH, 0.6, ""));
-            case "avoidant" -> List.of(new ActionTendency(ActionReadiness.AVOIDANCE, 0.6, ""));
+            case "collaborating" -> List.of(new ActionTendency(ActionReadiness.APPROACH, 0.6, ""));
+            case "avoiding" -> List.of(new ActionTendency(ActionReadiness.AVOIDANCE, 0.6, ""));
             default -> List.of(new ActionTendency(ActionReadiness.ATTENDING, 0.4, ""));
         };
     }

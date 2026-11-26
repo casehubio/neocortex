@@ -58,8 +58,7 @@ class BehavioralSynthesisPhaseTest {
             new SubgraphInput("Cognitive", SubgraphTypes.COGNITIVE, null), TENANT);
 
         capsEngine.initializeAgent(TENANT, AGENT,
-            new DispositionAxes("cooperative", "moderate", "calculated",
-                "moderate", "analytical"));
+            new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"));
     }
 
     @Test
@@ -160,7 +159,7 @@ class BehavioralSynthesisPhaseTest {
     void emotionBearingNodesUseTargetedReinforcement() {
         var emotionEngine = new EmotionAwareStubCapsEngine();
         emotionEngine.initializeAgent(TENANT, AGENT,
-                                      new io.casehub.neocortex.cognitive.index.DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"));
+                                      new io.casehub.neocortex.cognitive.index.DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"));
         SituationClassifier classifier = (desc, meta, ctx) ->
                                                  new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
         var emotionPhase = new BehavioralSynthesisPhase(store, emotionEngine, classifier, 20);
@@ -188,7 +187,7 @@ class BehavioralSynthesisPhaseTest {
     void nodesWithoutEmotionUsePadFallback() {
         var emotionEngine = new EmotionAwareStubCapsEngine();
         emotionEngine.initializeAgent(TENANT, AGENT,
-                                      new io.casehub.neocortex.cognitive.index.DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"));
+                                      new io.casehub.neocortex.cognitive.index.DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"));
         SituationClassifier classifier = (desc, meta, ctx) ->
                                                  new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
         var emotionPhase = new BehavioralSynthesisPhase(store, emotionEngine, classifier, 20);
@@ -330,8 +329,7 @@ class BehavioralSynthesisPhaseTest {
         SituationClassifier classifier = (desc, meta, ctx) ->
             new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
 
-        var agentDisposition = new DispositionAxes(
-            "competitive", "flexible", "impulsive", "high", "confrontational");
+        var agentDisposition = new DispositionAxes("collaborative", "flexible", "impulsive", "autonomous", "confrontational");
         var view = DescriptorView.of(AGENT, agentDisposition, List.of(), List.of());
         var defaults = EffectiveCognitiveDefaults.forTesting();
         defaults.updateBase(TENANT, view, "test-init");
@@ -350,7 +348,7 @@ class BehavioralSynthesisPhaseTest {
         phase.run(TENANT, List.of());
 
         assertThat(capturingEngine.capturedDisposition).isNotNull();
-        assertThat(capturingEngine.capturedDisposition.socialOrient()).isEqualTo("competitive");
+        assertThat(capturingEngine.capturedDisposition.socialOrient()).isEqualTo("collaborative");
         assertThat(capturingEngine.capturedDisposition.riskAppetite()).isEqualTo("impulsive");
     }
 
@@ -386,8 +384,7 @@ class BehavioralSynthesisPhaseTest {
     void oscillationSettlingStoresConvergenceType() {
         var oscEngine = new OscillatingStubCapsEngine();
         oscEngine.initializeAgent(TENANT, AGENT,
-                                  new DispositionAxes("cooperative", "moderate", "calculated",
-                                                      "moderate", "analytical"));
+                                  new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"));
         SituationClassifier classifier = (desc, meta, ctx) ->
                                                  new ClassificationResult(List.of(new SituationActivation("exclusion", 0.9)));
         var oscPhase = new BehavioralSynthesisPhase(store, oscEngine, classifier, 20);
@@ -418,8 +415,7 @@ class BehavioralSynthesisPhaseTest {
     void driveIntensitiesInfluenceCapsActivations() {
         var capturingEngine = new CapturingCapsEngine();
         capturingEngine.initializeAgent(TENANT, AGENT,
-                                        new DispositionAxes("cooperative", "moderate", "calculated",
-                                                            "moderate", "analytical"));
+                                        new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"));
 
         SituationClassifier classifier = (desc, meta, ctx) ->
                                                  new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
@@ -717,7 +713,7 @@ class BehavioralSynthesisPhaseTest {
             return new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
         };
 
-        var axes = new DispositionAxes("competitive", "flexible", "bold", "high", "assertive");
+        var axes = new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "assertive");
         var descriptor = new DescriptorView(AGENT, axes, List.of(), List.of(), null, List.of());
         var defaults = CognitiveDefaults.empty(AGENT).withDescriptor(descriptor);
         var effectiveDefaults = EffectiveCognitiveDefaults.forTesting(defaults);
@@ -737,10 +733,10 @@ class BehavioralSynthesisPhaseTest {
 
         assertThat(capturedMetadata).isNotEmpty();
         var meta = capturedMetadata.getFirst();
-        assertThat(meta).containsEntry("disposition.socialOrient", "competitive");
+        assertThat(meta).containsEntry("disposition.socialOrient", "collaborative");
         assertThat(meta).containsEntry("disposition.ruleFollowing", "flexible");
         assertThat(meta).containsEntry("disposition.riskAppetite", "bold");
-        assertThat(meta).containsEntry("disposition.autonomy", "high");
+        assertThat(meta).containsEntry("disposition.autonomy", "autonomous");
         assertThat(meta).containsEntry("disposition.conflictMode", "assertive");
     }
 

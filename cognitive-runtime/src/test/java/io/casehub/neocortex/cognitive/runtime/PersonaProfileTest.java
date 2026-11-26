@@ -82,11 +82,11 @@ class PersonaProfileTest {
         assertNotNull(profile.descriptor(), "stoic-mentor should have a descriptor");
         var axes = profile.descriptor().disposition();
         assertNotNull(axes, "stoic-mentor should have disposition axes");
-        assertEquals("high", axes.ruleFollowing());
-        assertEquals("low", axes.riskAppetite());
-        assertEquals("high", axes.autonomy());
-        assertEquals("moderate", axes.socialOrient());
-        assertEquals("collaborative", axes.conflictMode());
+        assertEquals("strict", axes.ruleFollowing());
+        assertEquals("conservative", axes.riskAppetite());
+        assertEquals("autonomous", axes.autonomy());
+        assertEquals("facilitative", axes.socialOrient());
+        assertEquals("collaborating", axes.conflictMode());
     }
 
     @Test
@@ -95,11 +95,11 @@ class PersonaProfileTest {
         assertNotNull(profile.descriptor(), "bold-strategist should have a descriptor");
         var axes = profile.descriptor().disposition();
         assertNotNull(axes, "bold-strategist should have disposition axes");
-        assertEquals("low", axes.ruleFollowing());
-        assertEquals("high", axes.riskAppetite());
-        assertEquals("high", axes.autonomy());
-        assertEquals("high", axes.socialOrient());
-        assertEquals("competitive", axes.conflictMode());
+        assertEquals("flexible", axes.ruleFollowing());
+        assertEquals("bold", axes.riskAppetite());
+        assertEquals("autonomous", axes.autonomy());
+        assertEquals("collaborative", axes.socialOrient());
+        assertEquals("competing", axes.conflictMode());
     }
 
     @Test
@@ -117,10 +117,10 @@ class PersonaProfileTest {
         assertNotNull(profile.descriptor());
         var axes = profile.descriptor().disposition();
         assertNotNull(axes);
-        assertEquals("high", axes.ruleFollowing());
-        assertEquals("low", axes.riskAppetite());
-        assertEquals("moderate", axes.autonomy());
-        assertEquals("cooperative", axes.conflictMode());
+        assertEquals("strict", axes.ruleFollowing());
+        assertEquals("conservative", axes.riskAppetite());
+        assertEquals("semi-autonomous", axes.autonomy());
+        assertEquals("collaborating", axes.conflictMode());
     }
 
     @Test
@@ -138,9 +138,9 @@ class PersonaProfileTest {
         assertNotNull(profile.descriptor());
         var axes = profile.descriptor().disposition();
         assertNotNull(axes);
-        assertEquals("moderate", axes.ruleFollowing());
-        assertEquals("moderate", axes.riskAppetite());
-        assertEquals("high", axes.socialOrient());
+        assertEquals("principled", axes.ruleFollowing());
+        assertEquals("measured", axes.riskAppetite());
+        assertEquals("collaborative", axes.socialOrient());
         assertEquals("accommodating", axes.conflictMode());
     }
 

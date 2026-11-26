@@ -16,7 +16,7 @@ public final class DivergenceFixtures {
     public static final String TENANT = "test";
 
     public static final DispositionAxes OPEN_AXES =
-            new DispositionAxes("cooperative", "moderate", "bold", "high", "cooperative");
+            new DispositionAxes("collaborative", "principled", "bold", "autonomous", "collaborating");
 
     public static final List<PersonalityFacet> OPEN_FACETS = List.of(
             new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.2, "test"),
@@ -31,7 +31,7 @@ public final class DivergenceFixtures {
             new PersonalityFacet(PersonalityFacet.IMPULSIVITY, 0.3, "test"));
 
     public static final DispositionAxes CAUTIOUS_AXES =
-            new DispositionAxes("independent", "strict", "conservative", "low", "avoidant");
+            new DispositionAxes("independent", "strict", "conservative", "directed", "avoiding");
 
     public static final List<PersonalityFacet> CAUTIOUS_FACETS = List.of(
             new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.85, "test"),

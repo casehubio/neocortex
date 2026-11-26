@@ -277,15 +277,15 @@ public class EntityEnrichmentHandler implements BiographyHandler {
 
     private DispositionAxes resolveDisposition(BiographyProfile profile) {
         if (profile.dispositionProfiles().isEmpty()) {
-            return new DispositionAxes("moderate", "moderate", "calculated", "moderate", "analytical");
+            return new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         }
         var dp = profile.dispositionProfiles().getFirst();
         return new DispositionAxes(
-                dp.socialOrient() != null ? dp.socialOrient() : "moderate",
-                dp.ruleFollowing() != null ? dp.ruleFollowing() : "moderate",
-                dp.riskAppetite() != null ? dp.riskAppetite() : "calculated",
-                dp.autonomy() != null ? dp.autonomy() : "moderate",
-                dp.conflictMode() != null ? dp.conflictMode() : "analytical");
+                dp.socialOrient() != null ? dp.socialOrient() : "collaborative",
+                dp.ruleFollowing() != null ? dp.ruleFollowing() : "principled",
+                dp.riskAppetite() != null ? dp.riskAppetite() : "measured",
+                dp.autonomy() != null ? dp.autonomy() : "semi-autonomous",
+                dp.conflictMode() != null ? dp.conflictMode() : "compromising");
     }
 
 

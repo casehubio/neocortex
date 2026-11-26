@@ -14,8 +14,7 @@ class RegulationDispositionMappingTest {
 
     @Test
     void avoidantConflictModeBoostsSituationSelection() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated",
-            "moderate", "avoidant");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "avoiding");
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "a1", axes);
         var situationSelection = state.nodeStates().get("situation_selection");
@@ -25,8 +24,7 @@ class RegulationDispositionMappingTest {
 
     @Test
     void analyticalConflictModeBoostsCognitiveChange() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated",
-            "moderate", "analytical");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "a1", axes);
         var cognitiveChange = state.nodeStates().get("cognitive_change");
@@ -36,8 +34,7 @@ class RegulationDispositionMappingTest {
 
     @Test
     void accommodatingConflictModeBoostsCognitiveChange() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated",
-                                       "moderate", "accommodating");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "accommodating");
         var mapper          = new DispositionWeightMapper(topology);
         var state           = mapper.initializeWeights("t1", "a1", axes);
         var cognitiveChange = state.nodeStates().get("cognitive_change");
@@ -48,8 +45,7 @@ class RegulationDispositionMappingTest {
 
     @Test
     void cooperativeSocialOrientBoostsSocialSupportSeeking() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated",
-            "moderate", "cooperative");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "a1", axes);
         var supportSeeking = state.nodeStates().get("social_support_seeking");
@@ -59,8 +55,7 @@ class RegulationDispositionMappingTest {
 
     @Test
     void competitiveConflictModeBoostsResponseModulation() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated",
-            "moderate", "competitive");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "competing");
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "a1", axes);
         var responseModulation = state.nodeStates().get("response_modulation");
@@ -70,8 +65,7 @@ class RegulationDispositionMappingTest {
 
     @Test
     void conservativeRiskBoostsSituationSelection() {
-        var axes = new DispositionAxes("independent", "moderate", "conservative",
-            "moderate", "cooperative");
+        var axes = new DispositionAxes("independent", "principled", "conservative", "semi-autonomous", "collaborating");
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "a1", axes);
         var situationSelection = state.nodeStates().get("situation_selection");
@@ -81,8 +75,7 @@ class RegulationDispositionMappingTest {
 
     @Test
     void boldRiskBoostsSituationModification() {
-        var axes = new DispositionAxes("independent", "moderate", "bold",
-            "moderate", "cooperative");
+        var axes = new DispositionAxes("independent", "principled", "bold", "semi-autonomous", "collaborating");
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "a1", axes);
         var situationModification = state.nodeStates().get("situation_modification");
@@ -92,8 +85,7 @@ class RegulationDispositionMappingTest {
 
     @Test
     void independentSocialOrientBoostsResponseModulation() {
-        var axes = new DispositionAxes("independent", "moderate", "calculated",
-            "moderate", "cooperative");
+        var axes = new DispositionAxes("independent", "principled", "measured", "semi-autonomous", "collaborating");
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "a1", axes);
         var responseModulation = state.nodeStates().get("response_modulation");
@@ -103,8 +95,7 @@ class RegulationDispositionMappingTest {
 
     @Test
     void competitiveConflictModeSetsExistingBehavioralAttractors() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated",
-            "moderate", "competitive");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "competing");
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "a1", axes);
         var fight = state.nodeStates().get("fight");

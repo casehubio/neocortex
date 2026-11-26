@@ -679,7 +679,7 @@ public class EmotionRegulationGenerationPhase {
 
         if (pinnedStrategy == null && isSelfConscious
                 && (shameContext == null || !shameContext.isSurfaceLevel())) {
-            boolean isAvoidant = axes != null && "avoidant".equals(axes.conflictMode());
+            boolean isAvoidant = axes != null && "avoiding".equals(axes.conflictMode());
             if (isAvoidant && shameContext != null && shameContext.isCompounding()) {
                 sb.append("Avoidant shame — exhausted withdrawal (Nathanson 1992): ")
                   .append("This avoidant personality's default shame response is withdrawal, ")

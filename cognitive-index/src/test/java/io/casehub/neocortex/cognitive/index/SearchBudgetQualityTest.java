@@ -19,7 +19,7 @@ class SearchBudgetQualityTest {
                 new PersonalityFacet(PersonalityFacet.SUSPICIOUSNESS, 0.1, "d"),
                 new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.1, "d"),
                 new PersonalityFacet(PersonalityFacet.EMOTIONAL_LABILITY, 0.2, "d"));
-        var boldAxes = new DispositionAxes("cooperative", "flexible", "bold", "independent", "collaborative");
+        var boldAxes = new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "collaborating");
         var bold = CognitiveDerivationEngine.deriveSearchBudgetDefaults(boldFacets, boldAxes, 0.8);
 
         var cautiousFacets = List.of(
@@ -30,7 +30,7 @@ class SearchBudgetQualityTest {
                 new PersonalityFacet(PersonalityFacet.SUSPICIOUSNESS, 0.7, "d"),
                 new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.8, "d"),
                 new PersonalityFacet(PersonalityFacet.EMOTIONAL_LABILITY, 0.7, "d"));
-        var cautiousAxes = new DispositionAxes("cooperative", "strict", "conservative", "dependent", "avoidant");
+        var cautiousAxes = new DispositionAxes("collaborative", "strict", "conservative", "directed", "avoiding");
         var cautious = CognitiveDerivationEngine.deriveSearchBudgetDefaults(cautiousFacets, cautiousAxes, 0.3);
 
         var defaults = SearchBudgetConfig.defaults();

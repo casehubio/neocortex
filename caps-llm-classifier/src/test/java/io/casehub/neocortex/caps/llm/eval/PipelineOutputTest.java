@@ -46,7 +46,7 @@ class PipelineOutputTest {
                     agentId, data.drives().size(), data.formationMemories().size());
 
             capsEngine.initializeAgent(TENANT, agentId,
-                    new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative"));
+                    new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating"));
 
             seedGraduatedMemories(agentId, data, store, sgId);
         }

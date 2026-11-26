@@ -110,7 +110,7 @@ class EmotionRegulationTickParticipantTest {
     void strategyPrediction_requiresGenerationPhaseForNarrative() {
         // Predictor provides strategy hint, but generation phase produces the result.
         // Without a generation phase, no regulation result even when predictor fires.
-        var axes = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+        var axes = new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding");
         var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
 
@@ -135,7 +135,7 @@ class EmotionRegulationTickParticipantTest {
     @Test
     void mechanicalPrediction_fallsToLlmWhenAmbiguous() {
         // cooperative + moderate → mild reappraiser signals but insufficient for prediction
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
 
@@ -174,7 +174,7 @@ class EmotionRegulationTickParticipantTest {
     @Test
     void passesDispositionAxesOnFallThrough() {
         // Incoherent personality → predictor falls through
-        var axes       = new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant");
+        var axes       = new DispositionAxes("independent", "flexible", "conservative", "semi-autonomous", "avoiding");
         var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults   = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
 

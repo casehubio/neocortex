@@ -84,7 +84,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void conservativeRisk_lowerPleasureBaseline() {
-        var axes = new DispositionAxes("independent", "strict", "conservative", "moderate", "analytical");
+        var axes = new DispositionAxes("independent", "strict", "conservative", "semi-autonomous", "compromising");
         var descriptor = DescriptorView.of("agent-5", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -95,7 +95,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void boldRisk_higherPleasureBaseline() {
-        var axes = new DispositionAxes("cooperative", "flexible", "bold", "high", "cooperative");
+        var axes = new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-6", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -106,7 +106,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void highAutonomy_higherDominanceBaseline() {
-        var axes = new DispositionAxes("independent", "moderate", "calculated", "high", "analytical");
+        var axes = new DispositionAxes("independent", "principled", "measured", "autonomous", "compromising");
         var descriptor = DescriptorView.of("agent-7", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -135,7 +135,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void fullDescriptor_derivesAllSections() {
-        var axes = new DispositionAxes("independent", "moderate", "calculated", "high", "analytical");
+        var axes = new DispositionAxes("independent", "principled", "measured", "autonomous", "compromising");
         var descriptor = DescriptorView.of("analyst-01", axes,
             List.of(
                 new WeightedTerm("ni", 0.35),
@@ -161,7 +161,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void highAutonomy_boostsStructuralCuriosity() {
-        var axes       = new DispositionAxes("independent", "moderate", "calculated", "high", "analytical");
+        var axes       = new DispositionAxes("independent", "principled", "measured", "autonomous", "compromising");
         var descriptor = DescriptorView.of("agent-c1", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -173,7 +173,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void strictRuleFollowing_boostsQualityCuriosity() {
-        var axes       = new DispositionAxes("cooperative", "strict", "calculated", "moderate", "cooperative");
+        var axes       = new DispositionAxes("collaborative", "strict", "measured", "semi-autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-c2", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -184,7 +184,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void cooperativeSocial_boostsCentralityCuriosity() {
-        var axes       = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes       = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-c3", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -195,7 +195,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void strategicGoal_boostsCentralityAndStructural() {
-        var axes = new DispositionAxes("independent", "moderate", "calculated", "high", "analytical");
+        var axes = new DispositionAxes("independent", "principled", "measured", "autonomous", "compromising");
         var descriptor = DescriptorView.of("agent-c4", axes, List.of(),
                                             List.of("identify strategic patterns"));
 
@@ -217,7 +217,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveAndMerge_explicitCuriosityWins() {
-        var axes              = new DispositionAxes("cooperative", "strict", "bold", "high", "cooperative");
+        var axes              = new DispositionAxes("collaborative", "strict", "bold", "autonomous", "collaborating");
         var explicitCuriosity = CuriosityConfig.defaults().withCategoryWeights(Map.of("QUALITY", 2.0));
         var explicit = CognitiveDefaults.empty("agent-c6")
                 .withTenantId("t1")
@@ -231,7 +231,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveAndMerge_fallsThroughToDerivedCuriosity() {
-        var axes = new DispositionAxes("cooperative", "strict", "bold", "high", "cooperative");
+        var axes = new DispositionAxes("collaborative", "strict", "bold", "autonomous", "collaborating");
         var explicit = CognitiveDefaults.empty("agent-c7")
                 .withTenantId("t1")
                 .withDescriptor(DescriptorView.of("agent-c7", axes, List.of(), List.of()));
@@ -245,7 +245,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void careerGoal_boostsProjectProximity() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-t1", axes, List.of(),
                                             List.of("advance career"));
 
@@ -257,7 +257,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void familyGoal_boostsPersonProximity() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-t2", axes, List.of(),
                                             List.of("support family"));
 
@@ -269,7 +269,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void noGoals_noTemporalFocus() {
-        var axes       = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes       = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-t3", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -279,7 +279,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveAndMerge_explicitTemporalFocusWins() {
-        var axes          = new DispositionAxes("cooperative", "moderate", "bold", "moderate", "cooperative");
+        var axes          = new DispositionAxes("collaborative", "principled", "bold", "semi-autonomous", "collaborating");
         var explicitFocus = TemporalFocusConfig.defaults().withSubgraphProximityWeights(Map.of("CONCEPT", 2.0));
         var explicit = CognitiveDefaults.empty("agent-t4")
                 .withTenantId("t1")
@@ -293,7 +293,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void strictRuleFollowing_stricterCbrStrategy() {
-        var axes = new DispositionAxes("cooperative", "strict", "conservative", "moderate", "cooperative");
+        var axes = new DispositionAxes("collaborative", "strict", "conservative", "semi-autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-s1", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -305,7 +305,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void flexibleRuleFollowing_broaderCbrStrategy() {
-        var axes = new DispositionAxes("cooperative", "flexible", "bold", "moderate", "cooperative");
+        var axes = new DispositionAxes("collaborative", "flexible", "bold", "semi-autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-s2", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -327,7 +327,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void cooperativeSocial_fasterTrustFormation() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-sc1", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -339,7 +339,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void competitiveConflict_informationInterpretation() {
-        var axes = new DispositionAxes("independent", "strict", "bold", "high", "competitive");
+        var axes = new DispositionAxes("independent", "strict", "bold", "autonomous", "competing");
         var descriptor = DescriptorView.of("agent-sc2", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
@@ -466,7 +466,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void multiKeywordGoal_accumulatesSubgraphWeights() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var descriptor = DescriptorView.of("agent-mk1", axes, List.of(),
             List.of("advance career in professional research"));
 
@@ -479,7 +479,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveAndMerge_explicitCbrStrategyWins() {
-        var axes = new DispositionAxes("cooperative", "strict", "bold", "high", "cooperative");
+        var axes = new DispositionAxes("collaborative", "strict", "bold", "autonomous", "collaborating");
         var view = DescriptorView.of("agent-m1", axes, List.of(new WeightedTerm("fe", 0.8)), List.of());
         var explicitCbr = new CbrStrategyDefaults(0.9, 30, RetrievalMode.FEATURE_ONLY);
         var explicit = CognitiveDefaults.empty("agent-m1")
@@ -493,7 +493,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveAndMerge_explicitSocialCognitionWins() {
-        var axes = new DispositionAxes("cooperative", "strict", "bold", "high", "cooperative");
+        var axes = new DispositionAxes("collaborative", "strict", "bold", "autonomous", "collaborating");
         var explicitSocial = new SocialCognitionDefaults(0.9, ConflictInterpretation.DISENGAGE);
         var explicit = CognitiveDefaults.empty("agent-m2")
                 .withTenantId("t1")
@@ -508,7 +508,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveAndMerge_explicitGraphStructureWins() {
-        var axes = new DispositionAxes("cooperative", "strict", "bold", "high", "cooperative");
+        var axes = new DispositionAxes("collaborative", "strict", "bold", "autonomous", "collaborating");
         var explicitGraph = new GraphStructureDefaults(GraphStructureDefaults.InferenceStyle.CATEGORICAL, 0.2);
         var explicit = CognitiveDefaults.empty("agent-m3")
                 .withTenantId("t1")
@@ -525,7 +525,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveAndMerge_explicitExtractionBiasWins() {
-        var axes = new DispositionAxes("cooperative", "strict", "bold", "high", "cooperative");
+        var axes = new DispositionAxes("collaborative", "strict", "bold", "autonomous", "collaborating");
         var explicitBias = new ExtractionBiasDefaults(2.0, 0.5);
         var explicit = CognitiveDefaults.empty("agent-m4")
                 .withTenantId("t1")
@@ -618,7 +618,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveAndMerge_explicitAppraisalWeightsWins() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var explicit = CognitiveDefaults.empty("test")
                 .withAppraisalWeights(new AppraisalWeights(1.2, 0.9, 0.8, 1.0, 1.0))
                 .withDescriptor(DescriptorView.of("test", axes,
@@ -635,7 +635,7 @@ class CognitiveDerivationEngineTest {
     @Test
     void deriveAppraisalWeights_strictRuleFollowing_highStrictness() {
         var profile = List.of(new WeightedTerm("fi", 1.0));
-        var axes    = new DispositionAxes("balanced", "strict", "moderate", "balanced", "cooperative");
+        var axes    = new DispositionAxes("balanced", "strict", "measured", "balanced", "collaborating");
         var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, axes);
         assertThat(w.selfStandardsStrictness()).isCloseTo(1.6, within(0.01));
         assertThat(w.otherStandardsStrictness()).isCloseTo(1.4, within(0.01));
@@ -644,7 +644,7 @@ class CognitiveDerivationEngineTest {
     @Test
     void deriveAppraisalWeights_flexibleRuleFollowing_lowStrictness() {
         var profile = List.of(new WeightedTerm("fi", 1.0));
-        var axes    = new DispositionAxes("balanced", "flexible", "moderate", "balanced", "cooperative");
+        var axes    = new DispositionAxes("balanced", "flexible", "measured", "balanced", "collaborating");
         var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, axes);
         assertThat(w.selfStandardsStrictness()).isCloseTo(0.7, within(0.01));
         assertThat(w.otherStandardsStrictness()).isCloseTo(0.6, within(0.01));
@@ -653,18 +653,18 @@ class CognitiveDerivationEngineTest {
     @Test
     void deriveAppraisalWeights_cooperativeSocialOrient_reducesOtherStrictness() {
         var profile = List.of(new WeightedTerm("fi", 1.0));
-        var axes    = new DispositionAxes("cooperative", "strict", "moderate", "balanced", "cooperative");
+        var axes    = new DispositionAxes("collaborative", "strict", "measured", "balanced", "collaborating");
         var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, axes);
         assertThat(w.selfStandardsStrictness()).isCloseTo(1.6, within(0.01));
         assertThat(w.otherStandardsStrictness()).isCloseTo(1.2, within(0.01));
     }
 
     @Test
-    void deriveAppraisalWeights_competitiveSocialOrient_increasesOtherStrictness() {
+    void deriveAppraisalWeights_collaborativeSocialOrient_decreasesOtherStrictness() {
         var profile = List.of(new WeightedTerm("fi", 1.0));
-        var axes    = new DispositionAxes("competitive", "moderate", "moderate", "balanced", "cooperative");
+        var axes    = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, axes);
-        assertThat(w.otherStandardsStrictness()).isCloseTo(1.2, within(0.01));
+        assertThat(w.otherStandardsStrictness()).isCloseTo(0.8, within(0.01));
     }
 
     @Test
@@ -676,17 +676,17 @@ class CognitiveDerivationEngineTest {
     }
 
     @Test
-    void deriveAppraisalWeights_strictCompetitive_clampsToMax() {
+    void deriveAppraisalWeights_strictCollaborative_setsStrictness() {
         var profile = List.of(new WeightedTerm("fi", 1.0));
-        var axes    = new DispositionAxes("competitive", "strict", "moderate", "balanced", "cooperative");
+        var axes    = new DispositionAxes("collaborative", "strict", "measured", "semi-autonomous", "collaborating");
         var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, axes);
-        assertThat(w.otherStandardsStrictness()).isCloseTo(1.6, within(0.01));
+        assertThat(w.otherStandardsStrictness()).isCloseTo(1.2, within(0.01));
         assertThat(w.otherStandardsStrictness()).isLessThanOrEqualTo(2.0);
     }
 
     @Test
     void deriveRegulationDefaults_reappraiserProfile() {
-        var axes = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+        var axes = new DispositionAxes("collaborative", "strict", "measured", "autonomous", "compromising");
         var rd   = CognitiveDerivationEngine.deriveRegulationDefaults(axes);
         assertThat(rd).isNotNull();
         assertThat(rd.reappraisalCapacity()).isGreaterThanOrEqualTo(0.85);
@@ -696,7 +696,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveRegulationDefaults_suppressorProfile() {
-        var axes = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+        var axes = new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding");
         var rd   = CognitiveDerivationEngine.deriveRegulationDefaults(axes);
         assertThat(rd).isNotNull();
         assertThat(rd.suppressionCapacity()).isGreaterThanOrEqualTo(0.7);
@@ -706,7 +706,7 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveRegulationDefaults_mixedProfile() {
-        var axes = new DispositionAxes("independent", "moderate", "calculated", "moderate", "competitive");
+        var axes = new DispositionAxes("independent", "principled", "measured", "semi-autonomous", "competing");
         var rd   = CognitiveDerivationEngine.deriveRegulationDefaults(axes);
         assertThat(rd).isNotNull();
         assertThat(Math.abs(rd.reappraisalCapacity() - rd.suppressionCapacity())).isLessThan(0.20);
@@ -719,14 +719,14 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveRegulationDefaults_gregariousSocialTendency() {
-        var axes = new DispositionAxes("gregarious", "moderate", "calculated", "collaborative", "harmonizing");
+        var axes = new DispositionAxes("gregarious", "principled", "measured", "collaborative", "harmonizing");
         var rd   = CognitiveDerivationEngine.deriveRegulationDefaults(axes);
         assertThat(rd.socialRegulationTendency()).isGreaterThan(0.6);
     }
 
     @Test
     void deriveRegulationDefaults_reservedSocialTendency() {
-        var axes = new DispositionAxes("reserved", "moderate", "bold", "independent", "confrontational");
+        var axes = new DispositionAxes("reserved", "principled", "bold", "autonomous", "confrontational");
         var rd   = CognitiveDerivationEngine.deriveRegulationDefaults(axes);
         assertThat(rd.socialRegulationTendency()).isLessThan(0.4);
     }

@@ -41,10 +41,10 @@ class CognitiveDerivationIntegrationTest {
               agentId: analyst-01
               disposition:
                 socialOrient: independent
-                ruleFollowing: moderate
-                riskAppetite: calculated
-                autonomy: high
-                conflictMode: analytical
+                ruleFollowing: principled
+                riskAppetite: measured
+                autonomy: autonomous
+                conflictMode: compromising
               dispositionProfile:
                 - term: ni
                   weight: 0.35

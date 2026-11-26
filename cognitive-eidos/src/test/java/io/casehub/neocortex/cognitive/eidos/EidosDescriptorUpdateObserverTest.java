@@ -21,7 +21,7 @@ class EidosDescriptorUpdateObserverTest {
     void descriptorUpdate_invalidatesEffectiveCognitiveDefaults() {
         var registry = new CognitiveDefaultsRegistry();
         var view = DescriptorView.of("agent-1",
-                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"),
                 List.of(new WeightedTerm("fe", 0.8)), List.of());
         var viewSource = new StubDescriptorViewSource();
         viewSource.add("tenant-1", view);
@@ -32,7 +32,7 @@ class EidosDescriptorUpdateObserverTest {
         assertNotNull(before);
 
         var updatedView = DescriptorView.of("agent-1",
-                new DispositionAxes("independent", "moderate", "calculated", "moderate", "analytical"),
+                new DispositionAxes("independent", "principled", "measured", "semi-autonomous", "compromising"),
                 List.of(new WeightedTerm("ti", 0.9)), List.of());
         viewSource.add("tenant-1", updatedView);
 

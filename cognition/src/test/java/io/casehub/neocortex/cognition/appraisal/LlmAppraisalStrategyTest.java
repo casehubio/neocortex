@@ -148,8 +148,7 @@ class LlmAppraisalStrategyTest {
             @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
             @Override public void close(java.time.Duration timeout) {}
         }));
-        var disposition = new DispositionAxes(
-                "assertive", "low", "high", "high", "confrontational");
+        var disposition = new DispositionAxes("assertive", "flexible", "bold", "autonomous", "confrontational");
         var ctx = new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough("a rival challenges authority"),
                 List.of(new Drive("dominance", DriveCategory.CHARACTER, 0.8, "")),
@@ -159,7 +158,7 @@ class LlmAppraisalStrategyTest {
 
         assertThat(capturedMessage[0]).contains("Disposition:");
         assertThat(capturedMessage[0]).contains("Social orientation: assertive");
-        assertThat(capturedMessage[0]).contains("Risk appetite: high");
+        assertThat(capturedMessage[0]).contains("Risk appetite: bold");
         assertThat(capturedMessage[0]).contains("Conflict mode: confrontational");
     }
 

@@ -15,15 +15,15 @@ class RegulationStrategyPredictorTest {
     // Coherent suppressor: avoidant + conservative, no CC-enabling traits
     // (cooperative social is mild CC signal but below threshold)
     private static final DispositionAxes SUPPRESSOR =
-            new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+            new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding");
 
     // Coherent reappraiser: analytical + strict + cooperative + high autonomy
     private static final DispositionAxes REAPPRAISER =
-            new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+            new DispositionAxes("collaborative", "strict", "measured", "autonomous", "compromising");
 
     // Incoherent by signal-count, but continuous weights resolve as clear suppressor
     private static final DispositionAxes INCOHERENT =
-            new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant");
+            new DispositionAxes("independent", "flexible", "conservative", "semi-autonomous", "avoiding");
 
     private static final RegulationDefaults SUPPRESSOR_RD = CognitiveDerivationEngine.deriveRegulationDefaults(SUPPRESSOR);
     private static final RegulationDefaults REAPPRAISER_RD = CognitiveDerivationEngine.deriveRegulationDefaults(REAPPRAISER);
@@ -142,7 +142,7 @@ class RegulationStrategyPredictorTest {
     @Test
     void predict_strongReappraiser_controllableNeg_pinsCognitiveChange() {
         var rd     = new RegulationDefaults(0.90, 0.40, 0.20);
-        var axes   = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+        var axes   = new DispositionAxes("collaborative", "strict", "measured", "autonomous", "compromising");
         var result = predictor.predict(rd, axes, EmotionType.ANGER, 0.55, 0.0, null);
         assertThat(result).isPresent();
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
@@ -151,7 +151,7 @@ class RegulationStrategyPredictorTest {
     @Test
     void predict_strongSuppressor_controllableNeg_pinsResponseModulation() {
         var rd     = new RegulationDefaults(0.30, 0.80, 0.60);
-        var axes   = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+        var axes   = new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding");
         var result = predictor.predict(rd, axes, EmotionType.ANGER, 0.55, 0.0, null);
         assertThat(result).isPresent();
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.RESPONSE_MODULATION);
@@ -160,7 +160,7 @@ class RegulationStrategyPredictorTest {
     @Test
     void predict_mixedProfile_controllableNeg_fallsThrough() {
         var rd     = new RegulationDefaults(0.68, 0.70, 0.45);
-        var axes   = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes   = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var result = predictor.predict(rd, axes, EmotionType.ANGER, 0.55, 0.0, null);
         assertThat(result).isEmpty();
     }
@@ -169,7 +169,7 @@ class RegulationStrategyPredictorTest {
     void predict_selfConscious_avoidant_pinsSituationSelection() {
         // Nathanson 1992: avoidant conflict mode → SS for self-conscious emotions
         var rd     = new RegulationDefaults(0.30, 0.80, 0.60);
-        var axes   = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+        var axes   = new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding");
         var result = predictor.predict(rd, axes, EmotionType.SHAME, 0.55, 0.0, null);
         assertThat(result).isPresent();
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.SITUATION_SELECTION);
@@ -178,7 +178,7 @@ class RegulationStrategyPredictorTest {
     @Test
     void predict_selfConscious_nonAvoidant_lowReappraisal_fallsThrough() {
         var rd     = new RegulationDefaults(0.30, 0.80, 0.60);
-        var axes   = new DispositionAxes("cooperative", "moderate", "conservative", "low", "cooperative");
+        var axes   = new DispositionAxes("collaborative", "principled", "conservative", "directed", "collaborating");
         var result = predictor.predict(rd, axes, EmotionType.SHAME, 0.55, 0.0, null);
         assertThat(result).isEmpty();
     }
@@ -186,7 +186,7 @@ class RegulationStrategyPredictorTest {
     @Test
     void predict_selfConscious_strongReappraiser_pinsCognitiveChange() {
         var rd     = new RegulationDefaults(0.90, 0.40, 0.20);
-        var axes   = new DispositionAxes("cooperative", "strict", "bold", "high", "analytical");
+        var axes   = new DispositionAxes("collaborative", "strict", "bold", "autonomous", "compromising");
         var result = predictor.predict(rd, axes, EmotionType.SHAME, 0.55, 0.0, null);
         assertThat(result).isPresent();
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
@@ -195,7 +195,7 @@ class RegulationStrategyPredictorTest {
     @Test
     void predict_highIntensity_overrides_toAD() {
         var rd     = new RegulationDefaults(0.90, 0.40, 0.20);
-        var axes   = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+        var axes   = new DispositionAxes("collaborative", "strict", "measured", "autonomous", "compromising");
         var result = predictor.predict(rd, axes, EmotionType.ANGER, 0.80, 0.0, null);
         assertThat(result).isPresent();
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
@@ -206,7 +206,7 @@ class RegulationStrategyPredictorTest {
         // reappraisal(0.90) - suppression(0.50) = 0.40 > OVERWHELMING_DOMINANCE(0.30)
         // Reappraisal overwhelmingly dominates — pin CC despite viable alternatives
         var rd     = new RegulationDefaults(0.90, 0.50, 0.45);
-        var axes   = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes   = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var result = predictor.predict(rd, axes, EmotionType.ANGER, 0.55, 0.0, null);
         assertThat(result).isPresent();
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
@@ -217,7 +217,7 @@ class RegulationStrategyPredictorTest {
         // Ford & Troy 2019: genuinely competitive capacities (gap < 0.30) → fall through
         // reappraisal(0.70) - suppression(0.55) = 0.15 < OVERWHELMING_DOMINANCE(0.30)
         var rd     = new RegulationDefaults(0.70, 0.55, 0.30);
-        var axes   = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes   = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var result = predictor.predict(rd, axes, EmotionType.ANGER, 0.55, 0.0, null);
         assertThat(result).isEmpty();
     }
@@ -226,7 +226,7 @@ class RegulationStrategyPredictorTest {
     void predict_ccDominant_noViableAlternatives_pinsCC() {
         // Clear reappraiser: no viable suppression or redirect
         var rd     = new RegulationDefaults(0.90, 0.40, 0.20);
-        var axes   = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+        var axes   = new DispositionAxes("collaborative", "strict", "measured", "autonomous", "compromising");
         var result = predictor.predict(rd, axes, EmotionType.ANGER, 0.55, 0.0, null);
         assertThat(result).isPresent();
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);

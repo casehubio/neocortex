@@ -40,19 +40,19 @@ class PerStrategyRegulationEvalTest {
         sessionPipeline = EvalTestSupport.sessionPipeline();
         defaultsRegistry = EffectiveCognitiveDefaults.forTesting(
                 buildDefaults("eval-sit-select",
-                        new DispositionAxes("cooperative", "flexible", "conservative", "low", "avoidant"),
+                        new DispositionAxes("collaborative", "flexible", "conservative", "directed", "avoiding"),
                         new RegulationDefaults(0.40, 0.50, 0.60)),
                 buildDefaults("eval-sit-modify",
-                        new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
+                        new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing"),
                         new RegulationDefaults(0.40, 0.40, 0.30)),
                 buildDefaults("eval-attn-deploy",
-                        new DispositionAxes("cooperative", "flexible", "bold", "low", "protective"),
+                        new DispositionAxes("collaborative", "flexible", "bold", "directed", "protective"),
                         new RegulationDefaults(0.50, 0.50, 0.60)),
                 buildDefaults("eval-cog-change",
-                        new DispositionAxes("cooperative", "flexible", "conservative", "high", "accommodating"),
+                        new DispositionAxes("collaborative", "flexible", "conservative", "autonomous", "accommodating"),
                         new RegulationDefaults(0.80, 0.40, 0.30)),
                 buildDefaults("eval-resp-mod",
-                        new DispositionAxes("competitive", "strict", "conservative", "high", "competitive"),
+                        new DispositionAxes("collaborative", "strict", "conservative", "autonomous", "competing"),
                         new RegulationDefaults(0.35, 0.80, 0.40))
         );
     }

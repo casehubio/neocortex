@@ -75,17 +75,17 @@ class StrategyExplorationTest {
 
     private static final List<BoundaryCase> BOUNDARY_CASES = List.of(
             new BoundaryCase("mixed-anger",
-                    new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative"),
+                    new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating"),
                     EmotionType.ANGER,
                     "moderate across all axes, cooperative orientation",
                     "ANGER at a betrayal of trust"),
             new BoundaryCase("suppressor-shame",
-                    new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant"),
+                    new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding"),
                     EmotionType.SHAME,
                     "avoidant conflict style, conservative risk appetite, cooperative, moderate rules, low autonomy",
                     "SHAME from failing to meet their own standards"),
             new BoundaryCase("compounding-shame",
-                    new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant"),
+                    new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding"),
                     EmotionType.SHAME,
                     "avoidant conflict style, conservative risk appetite, cooperative, moderate rules, low autonomy",
                     "SHAME from repeated failures — 4th episode of shame in recent history")

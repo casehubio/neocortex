@@ -19,11 +19,11 @@ briefing:
 descriptor:
   agentId: bold-strategist
   disposition:
-    socialOrient: high
-    ruleFollowing: low
-    riskAppetite: high
-    autonomy: high
-    conflictMode: competitive
+    socialOrient: collaborative
+    ruleFollowing: flexible
+    riskAppetite: bold
+    autonomy: autonomous
+    conflictMode: competing
 
 behavioralDefaults:
   curiosity:

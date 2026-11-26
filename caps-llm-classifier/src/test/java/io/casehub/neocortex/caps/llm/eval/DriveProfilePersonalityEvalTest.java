@@ -122,13 +122,13 @@ class DriveProfilePersonalityEvalTest {
 
     private static EffectiveCognitiveDefaults buildRegistry() {
         var pp = CognitiveDerivationEngine.derive(DescriptorView.of("peter-perfect",
-                new DispositionAxes("cooperative", "strict", "conservative", "low", "protective"),
+                new DispositionAxes("collaborative", "strict", "conservative", "directed", "protective"),
                 List.of(), List.of()));
         var hc = CognitiveDerivationEngine.derive(DescriptorView.of("hooded-claw",
-                new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
+                new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing"),
                 List.of(), List.of()));
         var pen = CognitiveDerivationEngine.derive(DescriptorView.of("penelope-pitstop",
-                new DispositionAxes("cooperative", "flexible", "bold", "collaborative", "protective"),
+                new DispositionAxes("collaborative", "flexible", "bold", "collaborative", "protective"),
                 List.of(), List.of()));
         return EffectiveCognitiveDefaults.forTesting(pp, hc, pen);
     }

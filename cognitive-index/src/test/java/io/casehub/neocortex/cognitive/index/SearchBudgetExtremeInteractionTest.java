@@ -195,7 +195,7 @@ class SearchBudgetExtremeInteractionTest {
     }
 
     private static DispositionAxes boldAxes() {
-        return new DispositionAxes("cooperative", "flexible", "bold", "independent", "collaborative");
+        return new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "collaborating");
     }
 
     private static List<PersonalityFacet> anxiousWorrierFacets() {
@@ -210,7 +210,7 @@ class SearchBudgetExtremeInteractionTest {
     }
 
     private static DispositionAxes anxiousWorrierAxes() {
-        return new DispositionAxes("cooperative", "flexible", "conservative", "dependent", "avoidant");
+        return new DispositionAxes("collaborative", "flexible", "conservative", "directed", "avoiding");
     }
 
     private static List<PersonalityFacet> disciplinedFacets() {
@@ -225,7 +225,7 @@ class SearchBudgetExtremeInteractionTest {
     }
 
     private static DispositionAxes disciplinedAxes() {
-        return new DispositionAxes("cooperative", "strict", "conservative", "dependent", "avoidant");
+        return new DispositionAxes("collaborative", "strict", "conservative", "directed", "avoiding");
     }
 
     private static double activationWithDecay(double x, double k, double midpoint, double decay, double peak) {

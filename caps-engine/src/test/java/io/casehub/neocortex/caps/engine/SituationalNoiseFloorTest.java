@@ -45,8 +45,7 @@ class SituationalNoiseFloorTest {
 
     @Test
     void subFloorInputsProduceSubFloorMediatingResponses() {
-        var disposition = new DispositionAxes(
-                "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var disposition = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         var mapper = new DispositionWeightMapper(topology);
         var state  = mapper.initializeWeights("t1", "agent-1", disposition);
 
@@ -76,8 +75,7 @@ class SituationalNoiseFloorTest {
 
     @Test
     void uncalibratedDefaultFloorAlsoSubThreshold() {
-        var disposition = new DispositionAxes(
-                "competitive", "bold", "flexible", "independent", "confrontational");
+        var disposition = new DispositionAxes("collaborative", "bold", "flexible", "autonomous", "confrontational");
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "agent-2", disposition);
 

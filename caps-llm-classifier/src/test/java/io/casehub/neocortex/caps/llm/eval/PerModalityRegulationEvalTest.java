@@ -46,8 +46,7 @@ class PerModalityRegulationEvalTest {
 
     @Test
     void fatigue_sustainedRegulation_overridesToAttentionalDeployment() {
-        var axes = new DispositionAxes(
-                "cooperative", "flexible", "conservative", "high", "accommodating");
+        var axes = new DispositionAxes("collaborative", "flexible", "conservative", "autonomous", "accommodating");
         var rd = new RegulationDefaults(0.80, 0.40, 0.30);
         var registry = EffectiveCognitiveDefaults.forTesting(
                 buildDefaults("eval-fatigue", axes, rd));
@@ -115,8 +114,7 @@ class PerModalityRegulationEvalTest {
 
     @Test
     void automatic_predictorMatchesLlmFreeChoice() {
-        var axes = new DispositionAxes(
-                "competitive", "strict", "conservative", "high", "competitive");
+        var axes = new DispositionAxes("collaborative", "strict", "conservative", "autonomous", "competing");
         var rd = new RegulationDefaults(0.35, 0.80, 0.40);
 
         var descriptor = AgentDescriptor.builder()
@@ -176,8 +174,7 @@ class PerModalityRegulationEvalTest {
 
     @Test
     void monitoring_decliningEffectiveness_triggersStrategySwitch() {
-        var axes = new DispositionAxes(
-                "competitive", "strict", "conservative", "high", "competitive");
+        var axes = new DispositionAxes("collaborative", "strict", "conservative", "autonomous", "competing");
         var rd = new RegulationDefaults(0.35, 0.80, 0.40);
         var registry = EffectiveCognitiveDefaults.forTesting(
                 buildDefaults("eval-monitor", axes, rd));
@@ -229,8 +226,7 @@ class PerModalityRegulationEvalTest {
 
     @Test
     void proactive_memoryBasedAvoidance_producesAvoidanceGoal() {
-        var axes = new DispositionAxes(
-                "cooperative", "flexible", "conservative", "low", "avoidant");
+        var axes = new DispositionAxes("collaborative", "flexible", "conservative", "directed", "avoiding");
         var rd = new RegulationDefaults(0.40, 0.50, 0.80);
         var registry = EffectiveCognitiveDefaults.forTesting(
                 buildDefaults("eval-proactive", axes, rd));

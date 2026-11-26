@@ -67,9 +67,9 @@ public class MindMapDriveSource implements DriveSource {
     private static double axisValue(String value) {
         if (value == null) {return 0.4;}
         return switch (value.toLowerCase()) {
-            case "cooperative", "strict", "aggressive", "high", "autonomous", "confronting", "competitive" -> 0.6;
-            case "moderate", "collaborative", "analytical", "accommodating" -> 0.4;
-            case "independent", "flexible", "conservative", "low", "avoidant" -> 0.3;
+            case "collaborative", "strict", "aggressive", "autonomous", "confronting", "competing", "collaborating" -> 0.6;
+            case "principled", "semi-autonomous", "measured", "compromising", "accommodating" -> 0.4;
+            case "independent", "flexible", "conservative", "directed", "avoiding" -> 0.3;
             default -> 0.4;
         };
     }

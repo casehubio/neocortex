@@ -29,7 +29,7 @@ class EffectiveCognitiveDefaultsTest {
     @Test
     void forAgentReturnsEffectiveDefaults() {
         var view = DescriptorView.of("agent-1",
-                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"),
                 List.of(new WeightedTerm("fe", 0.8)), List.of());
         viewSource.add("tenant-1", view);
 
@@ -42,7 +42,7 @@ class EffectiveCognitiveDefaultsTest {
     @Test
     void restingForReturnsLearningProfile() {
         var view = DescriptorView.of("agent-1",
-                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"),
                 List.of(new WeightedTerm("fe", 0.8)), List.of());
         viewSource.add("tenant-1", view);
 
@@ -57,7 +57,7 @@ class EffectiveCognitiveDefaultsTest {
                 new PersonalityFacet("Anxiousness", 0.5, "eidos"),
                 new PersonalityFacet("Emotional Lability", 0.5, "eidos"));
         var view = new DescriptorView("agent-1",
-                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"),
                 List.of(new WeightedTerm("fe", 0.8)), List.of(), null, facets);
         viewSource.add("tenant-1", view);
 
@@ -80,7 +80,7 @@ class EffectiveCognitiveDefaultsTest {
                 .withRegulationDefaults(new RegulationDefaults(0.99, 0.1, 0.1, 0.1));
         registry.register(explicit);
         var view = DescriptorView.of("agent-1",
-                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"),
                 List.of(new WeightedTerm("fe", 0.8)), List.of());
         viewSource.add("tenant-1", view);
 
@@ -135,13 +135,13 @@ class EffectiveCognitiveDefaultsTest {
     @Test
     void updateBaseRefreshesSlot() {
         var view = DescriptorView.of("agent-1",
-                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"),
                 List.of(new WeightedTerm("fe", 0.8)), List.of());
         viewSource.add("t1", view);
         effective.forAgent("t1", "agent-1");
 
         var updatedView = DescriptorView.of("agent-1",
-                new DispositionAxes("competitive", "strict", "bold", "high", "analytical"),
+                new DispositionAxes("collaborative", "strict", "bold", "autonomous", "compromising"),
                 List.of(new WeightedTerm("te", 0.9)), List.of());
         effective.updateBase("t1", updatedView, "tick-2");
 
@@ -159,13 +159,13 @@ class EffectiveCognitiveDefaultsTest {
     @Test
     void refreshStaleRecomputesSlotsOlderThanMaxAge() {
         var view = DescriptorView.of("agent-1",
-                                     new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                                     new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"),
                                      List.of(new WeightedTerm("fe", 0.8)), List.of());
         viewSource.add("t1", view);
         effective.forAgent("t1", "agent-1");
 
         var updatedView = DescriptorView.of("agent-1",
-                                            new DispositionAxes("competitive", "strict", "bold", "high", "analytical"),
+                                            new DispositionAxes("collaborative", "strict", "bold", "autonomous", "compromising"),
                                             List.of(new WeightedTerm("te", 0.9)), List.of());
         viewSource.add("t1", updatedView);
 
@@ -180,7 +180,7 @@ class EffectiveCognitiveDefaultsTest {
     void restingExcludesDisplacementEffectiveIncludes() {
         var facets = List.of(new PersonalityFacet("Anxiousness", 0.5, "eidos"));
         var view = new DescriptorView("agent-1",
-                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"),
                 List.of(new WeightedTerm("fe", 0.8)), List.of(), null, facets);
         viewSource.add("t1", view);
 
@@ -229,7 +229,7 @@ class EffectiveCognitiveDefaultsTest {
                 new PersonalityFacet(PersonalityFacet.WITHDRAWAL, 0.2, "eidos"),
                 new PersonalityFacet(PersonalityFacet.INTIMACY_AVOIDANCE, 0.2, "eidos"));
         var view = new DescriptorView("agent-1",
-                                      new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative"),
+                                      new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating"),
                                       List.of(new WeightedTerm("fe", 0.8), new WeightedTerm("si", 0.5)),
                                       List.of("goal-a"), null, facets);
         viewSource.add("t1", view);

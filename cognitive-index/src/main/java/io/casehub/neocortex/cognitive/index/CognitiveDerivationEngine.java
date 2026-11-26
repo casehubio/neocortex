@@ -52,37 +52,35 @@ public final class CognitiveDerivationEngine {
 
     private static final Map<String, Double> RISK_PLEASURE = Map.of(
         "conservative", -0.1,
-        "calculated", 0.1,
+        "measured", 0.1,
         "bold", 0.3
     );
 
     private static final Map<String, Double> SOCIAL_AROUSAL = Map.of(
         "independent", -0.1,
-        "cooperative", 0.1,
-        "competitive", 0.2
+        "collaborative", 0.1
     );
 
     private static final Map<String, Double> AUTONOMY_DOMINANCE = Map.of(
-        "low", -0.2,
-        "moderate", 0.2,
-        "high", 0.4
+        "directed", -0.2,
+        "semi-autonomous", 0.2,
+        "autonomous", 0.4
     );
     private static final Map<String, Double> AUTONOMY_STRUCTURAL = Map.of(
-        "low", 0.8,
-        "moderate", 1.0,
-        "high", 1.3
+        "directed", 0.8,
+        "semi-autonomous", 1.0,
+        "autonomous", 1.3
     );
 
     private static final Map<String, Double> RULE_QUALITY = Map.of(
         "flexible", 0.8,
-        "moderate", 1.0,
+        "principled", 1.0,
         "strict", 1.3
     );
 
     private static final Map<String, Double> SOCIAL_CENTRALITY = Map.of(
         "independent", 0.8,
-        "cooperative", 1.2,
-        "competitive", 1.0
+        "collaborative", 1.2
     );
 
     private static final Map<String, String> GOAL_SUBGRAPH_MAPPING = Map.of(
@@ -99,90 +97,89 @@ public final class CognitiveDerivationEngine {
 
     private static final Map<String, Double> RULE_MIN_SIMILARITY = Map.of(
         "flexible", 0.35,
-        "moderate", 0.5,
+        "principled", 0.5,
         "strict", 0.65
     );
 
     private static final Map<String, Integer> RISK_DECAY_DAYS = Map.of(
         "conservative", 60,
-        "calculated", 90,
+        "measured", 90,
         "bold", 180
     );
     private static final Map<String, Double>  RISK_HABITUATION_RATE = Map.of(
             "conservative", 0.1,
-            "calculated", 0.2,
+            "measured", 0.2,
             "bold", 0.4
                                                                             );
     private static final Map<String, Double>  RISK_NOVELTY_THRESHOLD = Map.of(
             "conservative", 0.2,
-            "calculated", 0.3,
+            "measured", 0.3,
             "bold", 0.5
                                                                              );
     private static final Map<String, Double>  RULE_REPETITION_TOLERANCE = Map.of(
             "flexible", 3.0,
-            "moderate", 5.0,
+            "principled", 5.0,
             "strict", 8.0
                                                                                 );
 
 
     private static final Map<String, RetrievalMode> RULE_RETRIEVAL_MODE = Map.of(
         "flexible", RetrievalMode.SEMANTIC_ONLY,
-        "moderate", RetrievalMode.HYBRID,
+        "principled", RetrievalMode.HYBRID,
         "strict", RetrievalMode.FEATURE_ONLY
     );
 
     private static final Map<String, Double> SOCIAL_TRUST_RATE = Map.of(
         "independent", 0.3,
-        "cooperative", 0.7,
-        "competitive", 0.4
+        "collaborative", 0.7
     );
 
     private static final Map<String, ConflictInterpretation> CONFLICT_INTERPRETATION = Map.of(
-        "cooperative", ConflictInterpretation.REPAIR,
-        "competitive", ConflictInterpretation.INFORMATION,
-        "analytical", ConflictInterpretation.NEUTRAL,
-        "avoidant", ConflictInterpretation.DISENGAGE
+        "collaborating", ConflictInterpretation.REPAIR,
+        "competing", ConflictInterpretation.INFORMATION,
+        "compromising", ConflictInterpretation.NEUTRAL,
+        "avoiding", ConflictInterpretation.DISENGAGE
     );
     private static final Map<String, Double>                 REAPPRAISAL_CONFLICT    = Map.of(
-            "analytical", 0.30, "cooperative", 0.15, "avoidant", -0.15, "competitive", 0.05);
+            "compromising", 0.30, "collaborating", 0.15, "avoiding", -0.15, "competing", 0.05);
     private static final Map<String, Double>                 REAPPRAISAL_AUTONOMY    = Map.of(
-            "high", 0.25, "moderate", 0.05, "low", -0.10);
+            "autonomous", 0.25, "semi-autonomous", 0.05, "directed", -0.10);
     private static final Map<String, Double>                 REAPPRAISAL_RULES       = Map.of(
-            "strict", 0.15, "flexible", 0.15, "moderate", 0.05);
+            "strict", 0.15, "flexible", 0.15, "principled", 0.05);
     private static final Map<String, Double>                 REAPPRAISAL_RISK        = Map.of(
-            "bold", 0.20, "calculated", 0.05, "conservative", -0.10);
+            "bold", 0.20, "measured", 0.05, "conservative", -0.10);
     private static final Map<String, Double>                 REAPPRAISAL_SOCIAL      = Map.of(
-            "cooperative", 0.10, "independent", 0.05, "competitive", 0.05);
+            "collaborative", 0.10, "independent", 0.05);
 
     private static final Map<String, Double> SUPPRESSION_CONFLICT = Map.of(
-            "avoidant", 0.10, "competitive", 0.15, "analytical", -0.10, "cooperative", -0.05);
+            "avoiding", 0.10, "competing", 0.15, "compromising", -0.10, "collaborating", -0.05);
     private static final Map<String, Double> SUPPRESSION_SOCIAL   = Map.of(
-            "competitive", 0.10, "independent", 0.05, "cooperative", -0.05);
+            "independent", 0.05, "collaborative", -0.05);
     private static final Map<String, Double> SUPPRESSION_RISK     = Map.of(
-            "conservative", 0.15, "calculated", 0.05, "bold", -0.10);
+            "conservative", 0.15, "measured", 0.05, "bold", -0.10);
     private static final Map<String, Double> SUPPRESSION_AUTONOMY = Map.of(
-            "low", 0.10, "moderate", 0.05, "high", -0.05);
+            "directed", 0.10, "semi-autonomous", 0.05, "autonomous", -0.05);
     private static final Map<String, Double> SUPPRESSION_RULES    = Map.of(
-            "strict", 0.05, "moderate", 0.0, "flexible", -0.05);
+            "strict", 0.05, "principled", 0.0, "flexible", -0.05);
 
     private static final Map<String, Double> REDIRECT_CONFLICT = Map.of(
-            "avoidant", 0.25, "cooperative", 0.05, "analytical", -0.15, "competitive", -0.10);
+            "avoiding", 0.25, "collaborating", 0.05, "compromising", -0.15, "competing", -0.10);
     private static final Map<String, Double> REDIRECT_RISK     = Map.of(
-            "conservative", 0.20, "calculated", 0.05, "bold", -0.15);
+            "conservative", 0.20, "measured", 0.05, "bold", -0.15);
     private static final Map<String, Double> REDIRECT_AUTONOMY = Map.of(
-            "low", 0.10, "moderate", 0.05, "high", -0.10);
+            "directed", 0.10, "semi-autonomous", 0.05, "autonomous", -0.10);
     private static final Map<String, Double> REDIRECT_SOCIAL   = Map.of(
-            "independent", 0.05, "cooperative", 0.0, "competitive", -0.05);
+            "independent", 0.05, "collaborative", 0.0);
     private static final Map<String, Double> REDIRECT_RULES    = Map.of(
-            "strict", 0.0, "moderate", 0.0, "flexible", -0.10);
+            "strict", 0.0, "principled", 0.0, "flexible", -0.10);
     private static final Map<String, Double> SOCIAL_REG_SOCIAL = Map.of(
             "gregarious", 0.20, "reserved", -0.15, "selective", 0.05,
-            "cooperative", 0.10, "competitive", -0.05, "independent", -0.10);
+            "collaborative", 0.10, "independent", -0.10);
     private static final Map<String, Double> SOCIAL_REG_CONFLICT = Map.of(
-            "harmonizing", 0.15, "confrontational", -0.10, "analytical", 0.0, "avoidant", -0.05);
+            "harmonizing", 0.15, "confrontational", -0.10, "compromising", 0.0, "avoiding", -0.05);
     private static final Map<String, Double> SOCIAL_REG_AUTONOMY = Map.of(
             "independent", -0.10, "collaborative", 0.10, "dependent", 0.15,
-            "high", -0.10, "moderate", 0.05, "low", 0.10);
+            "autonomous", -0.10, "semi-autonomous", 0.05, "directed", 0.10);
 
 
     private CognitiveDerivationEngine() {}
@@ -672,8 +669,7 @@ public final class CognitiveDerivationEngine {
             }
             if (axes.socialOrient() != null) {
                 switch (axes.socialOrient()) {
-                    case "cooperative" -> otherStrictness -= 0.2;
-                    case "competitive" -> otherStrictness += 0.2;
+                    case "collaborative" -> otherStrictness -= 0.2;
                     default -> {}
                 }
             }
@@ -709,7 +705,7 @@ public final class CognitiveDerivationEngine {
         double habRate = RISK_HABITUATION_RATE.getOrDefault(lower(axes.riskAppetite()), 0.2);
         double novelty = RISK_NOVELTY_THRESHOLD.getOrDefault(lower(axes.riskAppetite()), 0.3);
         double repTol  = RULE_REPETITION_TOLERANCE.getOrDefault(lower(axes.ruleFollowing()), 5.0);
-        if ("high".equalsIgnoreCase(axes.autonomy())) {repTol -= 1.0;}
+        if ("autonomous".equalsIgnoreCase(axes.autonomy())) {repTol -= 1.0;}
         ctx.base("habituationRate", habRate);
         ctx.base("noveltyThreshold", novelty);
         ctx.base("repetitionTolerance", repTol);
@@ -1032,7 +1028,7 @@ public final class CognitiveDerivationEngine {
 
 
     private static final Map<String, Double> RULE_FOLLOWING_NUMERIC = Map.of(
-            "strict", 0.8, "moderate", 0.5, "flexible", 0.2
+            "strict", 0.8, "principled", 0.5, "flexible", 0.2
     );
 
     /**

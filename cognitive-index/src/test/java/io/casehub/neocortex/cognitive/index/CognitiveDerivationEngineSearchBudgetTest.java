@@ -16,7 +16,7 @@ class CognitiveDerivationEngineSearchBudgetTest {
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.RISK_TAKING, 0.8, "derived"),
                 new PersonalityFacet(PersonalityFacet.IMPULSIVITY, 0.3, "derived"));
-        var axes = new DispositionAxes("cooperative", "flexible", "bold", "independent", "collaborative");
+        var axes = new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "collaborating");
         var config = CognitiveDerivationEngine.deriveSearchBudgetDefaults(
                 facets, axes, 0.7);
         assertNotNull(config);
@@ -28,7 +28,7 @@ class CognitiveDerivationEngineSearchBudgetTest {
     void strict_rule_following_lowers_depth_midpoint() {
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.IMPULSIVITY, 0.1, "derived"));
-        var axes = new DispositionAxes("cooperative", "strict", "conservative", "dependent", "collaborative");
+        var axes = new DispositionAxes("collaborative", "strict", "conservative", "directed", "collaborating");
         var config = CognitiveDerivationEngine.deriveSearchBudgetDefaults(
                 facets, axes, 0.5);
         assertNotNull(config);
@@ -41,7 +41,7 @@ class CognitiveDerivationEngineSearchBudgetTest {
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.9, "derived"),
                 new PersonalityFacet(PersonalityFacet.EMOTIONAL_LABILITY, 0.8, "derived"));
-        var axes = new DispositionAxes("cooperative", "moderate", "conservative", "dependent", "avoidant");
+        var axes = new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding");
         var config = CognitiveDerivationEngine.deriveSearchBudgetDefaults(
                 facets, axes, 0.5);
         assertNotNull(config);
@@ -55,7 +55,7 @@ class CognitiveDerivationEngineSearchBudgetTest {
                 new PersonalityFacet(PersonalityFacet.WITHDRAWAL, 0.1, "derived"),
                 new PersonalityFacet(PersonalityFacet.INTIMACY_AVOIDANCE, 0.1, "derived"),
                 new PersonalityFacet(PersonalityFacet.SUSPICIOUSNESS, 0.1, "derived"));
-        var axes = new DispositionAxes("cooperative", "moderate", "moderate", "independent", "collaborative");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "autonomous", "collaborating");
         var config = CognitiveDerivationEngine.deriveSearchBudgetDefaults(
                 facets, axes, 0.5);
         assertNotNull(config);
@@ -76,7 +76,7 @@ class CognitiveDerivationEngineSearchBudgetTest {
     @Test
     void derive_includes_search_budget_config() {
         var descriptor = new DescriptorView("test-agent",
-                new DispositionAxes("cooperative", "strict", "conservative", "dependent", "collaborative"),
+                new DispositionAxes("collaborative", "strict", "conservative", "directed", "collaborating"),
                 List.of(new WeightedTerm("te", 0.5), new WeightedTerm("si", 0.5)),
                 List.of("learn"),
                 null,
@@ -112,7 +112,7 @@ class CognitiveDerivationEngineSearchBudgetTest {
                 new PersonalityFacet(PersonalityFacet.INTIMACY_AVOIDANCE, 0.5, "derived"),
                 new PersonalityFacet(PersonalityFacet.SUSPICIOUSNESS, 0.5, "derived"),
                 new PersonalityFacet(PersonalityFacet.RISK_TAKING, 0.5, "derived"));
-        var axes   = new DispositionAxes("cooperative", "strict", "conservative", "dependent", "collaborative");
+        var axes   = new DispositionAxes("collaborative", "strict", "conservative", "directed", "collaborating");
         var config = CognitiveDerivationEngine.deriveSearchBudgetDefaults(facets, axes, 0.5);
         assertNotNull(config);
         assertNotNull(config.channelModulation());

@@ -16,7 +16,7 @@ class CapsSettlerConvergenceTest {
         var settler = new CapsSettler(topology);
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "osc",
-            new DispositionAxes("competitive", "defiant", "bold", "independent", "confrontational"));
+            new DispositionAxes("collaborative", "defiant", "bold", "autonomous", "confrontational"));
 
         var result = settler.settle(state, Map.of(
             "physical_threat", 0.9,

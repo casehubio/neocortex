@@ -11,7 +11,7 @@ class EffectiveCognitiveDefaultsProducerTest {
 
     private static DescriptorView view(String agentId) {
         return DescriptorView.of(agentId,
-                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising"),
                 List.of(new WeightedTerm("fe", 0.8)), List.of());
     }
 

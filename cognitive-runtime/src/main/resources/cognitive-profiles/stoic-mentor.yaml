@@ -19,11 +19,11 @@ briefing:
 descriptor:
   agentId: stoic-mentor
   disposition:
-    socialOrient: moderate
-    ruleFollowing: high
-    riskAppetite: low
-    autonomy: high
-    conflictMode: collaborative
+    socialOrient: facilitative
+    ruleFollowing: strict
+    riskAppetite: conservative
+    autonomy: autonomous
+    conflictMode: collaborating
 
 behavioralDefaults:
   curiosity:

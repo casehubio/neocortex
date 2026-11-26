@@ -79,7 +79,7 @@ class EidosCognitiveProfileBridgeTest {
     void derivationFromViewProducesAllPathways() {
         var view = DescriptorView.of(
                 "muttley",
-                new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
+                new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing"),
                 List.of(new WeightedTerm("Se", 0.8), new WeightedTerm("Te", 0.6)),
                 List.of("cause chaos", "avoid punishment"));
 
@@ -101,12 +101,12 @@ class EidosCognitiveProfileBridgeTest {
     void differentDispositionsProduceDifferentProfiles() {
         var muttleyView = DescriptorView.of(
                 "muttley",
-                new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
+                new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing"),
                 List.of(new WeightedTerm("Se", 0.8), new WeightedTerm("Te", 0.6)),
                 List.of("cause chaos"));
         var penelopeView = DescriptorView.of(
                 "penelope",
-                new DispositionAxes("cooperative", "strict", "conservative", "moderate", "cooperative"),
+                new DispositionAxes("collaborative", "strict", "conservative", "semi-autonomous", "collaborating"),
                 List.of(new WeightedTerm("Fe", 0.9), new WeightedTerm("Fi", 0.7)),
                 List.of("help others", "stay safe"));
 
@@ -125,7 +125,7 @@ class EidosCognitiveProfileBridgeTest {
         var explicit = CognitiveDefaults.empty("muttley").withMoodBaseline(yamlMood);
         var view = DescriptorView.of(
                 "muttley",
-                new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
+                new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing"),
                 List.of(new WeightedTerm("Se", 0.8)),
                 List.of("cause chaos"));
         var derived = io.casehub.neocortex.cognitive.index.CognitiveDerivationEngine.derive(view);
@@ -141,7 +141,7 @@ class EidosCognitiveProfileBridgeTest {
     void emptyDispositionProfileProducesNullGraphStructure() {
         var view = DescriptorView.of(
                 "no-profile",
-                new DispositionAxes("cooperative", "strict", "conservative", "moderate", "cooperative"),
+                new DispositionAxes("collaborative", "strict", "conservative", "semi-autonomous", "collaborating"),
                 List.of(),
                 List.of("survive"));
 

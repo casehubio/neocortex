@@ -25,7 +25,7 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void highConscientiousness_highPlanfulTendency() {
-        var axes = new DispositionAxes("cooperative", "strict", "conservative", "moderate", "analytical");
+        var axes = new DispositionAxes("collaborative", "strict", "conservative", "semi-autonomous", "compromising");
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.IMPULSIVITY, 0.1, "test"),
                 new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.2, "test"),
@@ -46,7 +46,7 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void highNeuroticism_highAvoidanceTendency() {
-        var axes = new DispositionAxes("independent", "flexible", "conservative", "low", "avoidant");
+        var axes = new DispositionAxes("independent", "flexible", "conservative", "directed", "avoiding");
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.9, "test"),
                 new PersonalityFacet(PersonalityFacet.EMOTIONAL_LABILITY, 0.85, "test"),
@@ -68,7 +68,7 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void highOpenness_highReinterpretationTendency() {
-        var axes = new DispositionAxes("cooperative", "flexible", "bold", "high", "analytical");
+        var axes = new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "compromising");
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.WITHDRAWAL, 0.1, "test"),
                 new PersonalityFacet(PersonalityFacet.SUSPICIOUSNESS, 0.1, "test"),
@@ -88,7 +88,7 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void highAgreeablenessAndExtraversion_highSupportSeekingTendency() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating");
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.CALLOUSNESS, 0.1, "test"),
                 new PersonalityFacet(PersonalityFacet.HOSTILITY, 0.1, "test"),
@@ -108,7 +108,7 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void lowNeuroticism_highAcceptanceTendency() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.1, "test"),
                 new PersonalityFacet(PersonalityFacet.EMOTIONAL_LABILITY, 0.1, "test"),
@@ -128,7 +128,7 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void highExtraversionAndConscientiousness_highConfrontationTendency() {
-        var axes = new DispositionAxes("cooperative", "strict", "bold", "high", "competitive");
+        var axes = new DispositionAxes("collaborative", "strict", "bold", "autonomous", "competing");
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.IMPULSIVITY, 0.1, "test"),
                 new PersonalityFacet(PersonalityFacet.WITHDRAWAL, 0.1, "test"),
@@ -148,7 +148,7 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void highNeuroticismLowConscientiousness_highDisengagementTendency() {
-        var axes = new DispositionAxes("independent", "flexible", "conservative", "low", "avoidant");
+        var axes = new DispositionAxes("independent", "flexible", "conservative", "directed", "avoiding");
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.9, "test"),
                 new PersonalityFacet(PersonalityFacet.EMOTIONAL_LABILITY, 0.85, "test"),
@@ -168,7 +168,7 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void highNeuroticismAndRuleFollowing_highSuppressionTendency() {
-        var axes = new DispositionAxes("cooperative", "strict", "conservative", "moderate", "analytical");
+        var axes = new DispositionAxes("collaborative", "strict", "conservative", "semi-autonomous", "compromising");
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.85, "test"),
                 new PersonalityFacet(PersonalityFacet.EMOTIONAL_LABILITY, 0.8, "test"),
@@ -189,13 +189,13 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void nullFacets_returnsNull() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         assertThat(CognitiveDerivationEngine.deriveCopingDefaults(axes, null)).isNull();
     }
 
     @Test
     void emptyFacets_returnsNull() {
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical");
+        var axes = new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
         assertThat(CognitiveDerivationEngine.deriveCopingDefaults(axes, List.of())).isNull();
     }
 
@@ -217,7 +217,7 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void allValues_clampedToUnitInterval() {
-        var axes = new DispositionAxes("cooperative", "strict", "bold", "high", "analytical");
+        var axes = new DispositionAxes("collaborative", "strict", "bold", "autonomous", "compromising");
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.IMPULSIVITY, 0.0, "test"),
                 new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 1.0, "test"),
@@ -244,7 +244,7 @@ class CopingDefaultsDerivationTest {
 
     @Test
     void derivePipeline_wiresCopingDefaults() {
-        var axes = new DispositionAxes("cooperative", "strict", "conservative", "moderate", "analytical");
+        var axes = new DispositionAxes("collaborative", "strict", "conservative", "semi-autonomous", "compromising");
         var facets = List.of(
                 new PersonalityFacet(PersonalityFacet.IMPULSIVITY, 0.2, "test"),
                 new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.3, "test"),

@@ -76,13 +76,13 @@ class CopingEmergenceEvalTest {
             new CopingDefaults(0.55, 0.7, 0.25, 0.4, 0.5, 0.5, 0.25, 0.3);
 
     private static final DispositionAxes CONSCIENTIOUS_AXES =
-            new DispositionAxes("cooperative", "strict", "conservative", "moderate", "analytical");
+            new DispositionAxes("collaborative", "strict", "conservative", "semi-autonomous", "compromising");
 
     private static final DispositionAxes NEUROTIC_AXES =
-            new DispositionAxes("independent", "flexible", "conservative", "low", "avoidant");
+            new DispositionAxes("independent", "flexible", "conservative", "directed", "avoiding");
 
     private static final DispositionAxes BALANCED_AXES =
-            new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical");
+            new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "compromising");
 
     private AgentProvider agentProvider;
     private SessionPipeline sessionPipeline;

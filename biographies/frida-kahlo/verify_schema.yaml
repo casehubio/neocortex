@@ -146,15 +146,15 @@ converter_types:
       - entity_ref
     vocabularies:
       social_orient:
-        values: [independent, cooperative, competitive]
+        values: [independent, collaborative, facilitative]
       rule_following:
-        values: [defiant, flexible, conformist]
+        values: [flexible, principled, strict]
       risk_appetite:
-        values: [conservative, calculated, bold]
+        values: [conservative, measured, bold]
       autonomy:
-        values: [dependent, collaborative, autonomous]
+        values: [directed, semi-autonomous, autonomous]
       conflict_mode:
-        values: [avoidant, diplomatic, confrontational]
+        values: [avoiding, compromising, competing, collaborating, accommodating]
 
 # Converter configuration — controls convert_corpus.py behaviour.
 converter:

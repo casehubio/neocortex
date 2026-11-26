@@ -19,10 +19,10 @@ briefing:
 descriptor:
   agentId: pragmatic-assistant
   disposition:
-    socialOrient: high
-    ruleFollowing: moderate
-    riskAppetite: moderate
-    autonomy: moderate
+    socialOrient: collaborative
+    ruleFollowing: principled
+    riskAppetite: measured
+    autonomy: semi-autonomous
     conflictMode: accommodating
 
 behavioralDefaults:

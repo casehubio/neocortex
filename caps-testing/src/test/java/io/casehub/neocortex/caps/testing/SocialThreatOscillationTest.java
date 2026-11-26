@@ -23,8 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class SocialThreatOscillationTest {
 
-    private static final DispositionAxes COOPERATIVE_CAUTIOUS = new DispositionAxes(
-            "cooperative", "strict", "conservative", "moderate", "cooperative");
+    private static final DispositionAxes COOPERATIVE_CAUTIOUS = new DispositionAxes("collaborative", "strict", "conservative", "semi-autonomous", "collaborating");
 
     private static final Map<String, Double> SOCIAL_THREAT_INPUTS = Map.of(
             "exclusion", 0.95,

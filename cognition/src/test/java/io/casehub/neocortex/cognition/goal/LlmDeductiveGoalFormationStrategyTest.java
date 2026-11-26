@@ -58,8 +58,7 @@ class LlmDeductiveGoalFormationStrategyTest {
             @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
             @Override public void close(java.time.Duration timeout) {}
         }));
-        var disposition = new DispositionAxes(
-                "competitive", "flexible", "bold", "high", "competitive");
+        var disposition = new DispositionAxes("collaborative", "flexible", "bold", "autonomous", "competing");
         var profile = new DriveProfile("a1", "t1",
                 Map.of(DriveAxis.AUTONOMY, new DriveIntensity(DriveAxis.AUTONOMY, 0.9, "scheming")),
                 0.9, DriveAxis.AUTONOMY, Instant.now());
@@ -71,7 +70,7 @@ class LlmDeductiveGoalFormationStrategyTest {
 
         strategy.propose(ctx);
 
-        assertThat(capturedPrompt[0]).contains("competitive");
+        assertThat(capturedPrompt[0]).contains("competing");
         assertThat(capturedPrompt[0]).contains("bold");
         assertThat(capturedPrompt[0]).contains("will leaves everything");
         assertThat(capturedPrompt[0]).contains("killed my partner");

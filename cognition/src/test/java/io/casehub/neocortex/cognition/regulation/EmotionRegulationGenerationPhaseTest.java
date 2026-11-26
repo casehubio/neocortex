@@ -281,18 +281,18 @@ class EmotionRegulationGenerationPhaseTest {
         var emotion = new CognitiveEmotion(EmotionType.SHAME, 0.6, "self",
                                            Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
         var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
-        var axes      = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+        var axes      = new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding");
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
                 context, appraisal, List.of(), 0.5, null, 0.0, null, null, axes, EmotionType.SHAME);
 
         assertThat(message).contains("Personality disposition");
         assertThat(message).contains("predictor did not pin a strategy");
-        assertThat(message).contains("conflict-mode: avoidant");
-        assertThat(message).contains("social-orient: cooperative");
+        assertThat(message).contains("conflict-mode: avoiding");
+        assertThat(message).contains("social-orient: collaborative");
         assertThat(message).contains("risk-appetite: conservative");
-        assertThat(message).contains("autonomy: low");
-        assertThat(message).contains("rule-following: moderate");
+        assertThat(message).contains("autonomy: directed");
+        assertThat(message).contains("rule-following: principled");
     }
 
     @Test
@@ -300,7 +300,7 @@ class EmotionRegulationGenerationPhaseTest {
         var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.5, "rival",
                                            Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
         var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
-        var axes      = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+        var axes      = new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding");
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
                 context, appraisal, List.of(), 0.5, null, 0.0, null,
@@ -327,7 +327,7 @@ class EmotionRegulationGenerationPhaseTest {
         var emotion = new CognitiveEmotion(EmotionType.SHAME, 0.6, "self",
                                            Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
         var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
-        var axes      = new DispositionAxes("cooperative", "moderate", "conservative", "low", "confronting");
+        var axes      = new DispositionAxes("collaborative", "principled", "conservative", "directed", "confronting");
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
                 context, appraisal, List.of(), 0.5, null, 0.0, null, null, axes, EmotionType.SHAME);
@@ -343,7 +343,7 @@ class EmotionRegulationGenerationPhaseTest {
         var emotion = new CognitiveEmotion(EmotionType.SHAME, 0.6, "self",
                                            Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
         var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
-        var axes      = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+        var axes      = new DispositionAxes("collaborative", "principled", "conservative", "directed", "avoiding");
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
                 context, appraisal, List.of(), 0.5, null, 0.0, null, null, axes, EmotionType.SHAME);

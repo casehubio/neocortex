@@ -16,7 +16,7 @@ class CapsSettlerDistortionTest {
         var settler = new CapsSettler(topology);
         var mapper = new DispositionWeightMapper(topology);
         var state = mapper.initializeWeights("t1", "agent",
-            new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "collaborative"));
+            new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating"));
 
         var resultPositive = settler.settle(state, Map.of("reward", 0.8));
         var resultNegative = settler.settle(state, Map.of("punishment", 0.8));

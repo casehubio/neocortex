@@ -105,7 +105,7 @@ class PropagationBoundaryTest {
         var agentId = "pp-boundary-caps";
 
         var state = capsEngine.initializeAgent(tenant, agentId,
-                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative"));
+                new DispositionAxes("collaborative", "principled", "measured", "semi-autonomous", "collaborating"));
 
         assertNotNull(state, "initializeAgent should produce a non-null state");
         assertNotNull(capsEngine.loadState(tenant, agentId),
