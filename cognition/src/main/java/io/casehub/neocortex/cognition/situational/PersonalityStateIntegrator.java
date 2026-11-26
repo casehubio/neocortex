@@ -1,8 +1,5 @@
 package io.casehub.neocortex.cognition.situational;
 
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
-import org.jspecify.annotations.Nullable;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -11,18 +8,10 @@ import java.util.Map;
 public class PersonalityStateIntegrator {
 
     private final DynamicsConfig config;
-    private final @Nullable CognitiveDefaultsRegistry cognitiveDefaultsRegistry;
 
 
     public PersonalityStateIntegrator(DynamicsConfig config) {
-        this.config                    = config;
-        this.cognitiveDefaultsRegistry = null;
-    }
-
-    public PersonalityStateIntegrator(DynamicsConfig config,
-                                      CognitiveDefaultsRegistry cognitiveDefaultsRegistry) {
-        this.config                    = config;
-        this.cognitiveDefaultsRegistry = cognitiveDefaultsRegistry;
+        this.config = config;
     }
 
 

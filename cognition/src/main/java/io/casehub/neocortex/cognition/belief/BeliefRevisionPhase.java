@@ -69,30 +69,27 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
-        if (!config.enabled()) return;
-        if (sessionPipeline == null) return;
+        if (!config.enabled()) {return;}
+        if (sessionPipeline == null) {return;}
         var subgraphs = mindMapStore.listSubgraphs(tenantId);
         var cognitiveSubgraphs = subgraphs.stream()
-            .filter(sg -> "cognitive".equals(sg.type()))
-            .toList();
-        if (cognitiveSubgraphs.isEmpty()) return;
+                                          .filter(sg -> "cognitive".equals(sg.type()))
+                                          .toList();
+        if (cognitiveSubgraphs.isEmpty()) {return;}
 
-        var allBeliefs = new HashMap<String, List<MindMapNode>>();
+        var allBeliefs  = new HashMap<String, List<MindMapNode>>();
         var allEvidence = new HashMap<String, List<MindMapNode>>();
-        String cursorSubgraphId = null;
-        String cursorNodeId = null;
-        Instant lastProcessedAt = null;
+        var cursorNodes = new HashMap<String, CursorInfo>();
 
         for (var sg : cognitiveSubgraphs) {
             var nodes = mindMapStore.nodesIn(sg.id(), tenantId);
             for (var node : nodes) {
-                if (CURSOR_NODE_NAME.equals(node.name())) {
-                    cursorSubgraphId = sg.id();
-                    cursorNodeId = node.id();
-                    var tsStr = node.properties().get("last-processed-timestamp");
-                    if (tsStr != null) {
-                        lastProcessedAt = Instant.parse(tsStr);
-                    }
+                if (node.name() != null && node.name().startsWith(CURSOR_NODE_NAME)) {
+                    var agentKey = node.name().length() > CURSOR_NODE_NAME.length() + 1
+                                   ? node.name().substring(CURSOR_NODE_NAME.length() + 1) : null;
+                    var     tsStr = node.properties().get("last-processed-timestamp");
+                    Instant ts    = tsStr != null ? Instant.parse(tsStr) : null;
+                    cursorNodes.put(agentKey != null ? agentKey : "", new CursorInfo(sg.id(), node.id(), ts));
                     continue;
                 }
                 if (node.traits().contains(BELIEF_TRAIT)) {
@@ -109,27 +106,37 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
             }
         }
 
-        if (allBeliefs.isEmpty()) return;
+        if (allBeliefs.isEmpty()) {return;}
 
-        Instant latestTimestamp = lastProcessedAt;
         for (var agentId : allBeliefs.keySet()) {
-            var beliefs = allBeliefs.get(agentId);
-            var evidence = allEvidence.getOrDefault(agentId, List.of());
-            var newEvidence = filterNewEvidence(evidence, lastProcessedAt);
-            if (newEvidence.isEmpty()) continue;
+            var     beliefs     = allBeliefs.get(agentId);
+            var     evidence    = allEvidence.getOrDefault(agentId, List.of());
+            var     cursorInfo  = cursorNodes.get(agentId);
+            Instant agentCursor = cursorInfo != null ? cursorInfo.lastProcessedAt : null;
+            var     newEvidence = filterNewEvidence(evidence, agentCursor);
+            if (newEvidence.isEmpty()) {continue;}
 
-            processAgent(agentId, beliefs, newEvidence, tenantId);
-
-            for (var ev : newEvidence) {
-                if (ev.createdAt() != null && (latestTimestamp == null || ev.createdAt().isAfter(latestTimestamp))) {
-                    latestTimestamp = ev.createdAt();
+            try {
+                processAgent(agentId, beliefs, newEvidence, tenantId);
+                Instant latestTimestamp = agentCursor;
+                for (var ev : newEvidence) {
+                    if (ev.createdAt() != null && (latestTimestamp == null || ev.createdAt().isAfter(latestTimestamp))) {
+                        latestTimestamp = ev.createdAt();
+                    }
                 }
+                if (latestTimestamp != null && !latestTimestamp.equals(agentCursor)) {
+                    var cursorName = CURSOR_NODE_NAME + ":" + agentId;
+                    if (cursorInfo != null) {
+                        saveCursor(cursorInfo.subgraphId, cursorInfo.subgraphId,
+                                   cursorInfo.nodeId, latestTimestamp, tenantId);
+                    } else {
+                        saveCursor(cognitiveSubgraphs.get(0).id(), null,
+                                   null, latestTimestamp, tenantId, cursorName);
+                    }
+                }
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, agentId + ": belief revision failed, cursor not advanced", e);
             }
-        }
-
-        if (latestTimestamp != null && !latestTimestamp.equals(lastProcessedAt)) {
-            saveCursor(cognitiveSubgraphs.get(0).id(), cursorSubgraphId,
-                       cursorNodeId, latestTimestamp, tenantId);
         }
     }
 
@@ -142,48 +149,66 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
 
     private boolean processAgent(String agentId, List<MindMapNode> beliefs,
                                  List<MindMapNode> evidence, String tenantId) {
-        try {
-            var contradictions = detectContradictions(agentId, beliefs, evidence);
-            if (contradictions.isEmpty()) return false;
+        var contradictions = detectContradictions(agentId, beliefs, evidence);
 
-            for (var c : contradictions) {
-                var beliefNode = beliefs.stream()
-                    .filter(b -> b.id().equals(c.beliefNodeId) || b.name().equals(c.beliefText))
-                    .findFirst().orElse(null);
-                if (beliefNode == null) continue;
+        Set<String> contradictedBeliefIds = new java.util.HashSet<>();
+        for (var c : contradictions) {
+            var beliefNode = beliefs.stream()
+                                    .filter(b -> b.id().equals(c.beliefNodeId) || b.name().equals(c.beliefText))
+                                    .findFirst().orElse(null);
+            if (beliefNode == null) {continue;}
+            contradictedBeliefIds.add(beliefNode.id());
 
-                double currentConfidence = beliefNode.confidence().value();
-                double effectiveDecay = config.beliefDecayPerContradiction() * c.contradictionStrength;
-                double newConfidence = Math.max(0.0, currentConfidence - effectiveDecay);
-                if (newConfidence < config.beliefSupersessionThreshold()) {
-                    var subjectKey = beliefNode.property("subject").orElse(beliefNode.name());
-                    var newNodeId = mindMapStore.addNode(
+            double currentConfidence = beliefNode.confidence().value();
+            double effectiveDecay    = config.beliefDecayPerContradiction() * c.contradictionStrength;
+            double newConfidence     = Math.max(0.0, currentConfidence - effectiveDecay);
+            if (newConfidence < config.beliefSupersessionThreshold()) {
+                var subjectKey = beliefNode.property("subject").orElse(beliefNode.name());
+                var newNodeId = mindMapStore.addNode(
                         NodeInput.of(c.revisedBelief, beliefNode.subgraphId())
-                            .withConfidence(Confidence.inferred(
-                                config.revisedBeliefInitialConfidence(), Instant.now()))
-                            .withProvenance(REVISION_PROVENANCE)
-                            .withTraits(Set.of(BELIEF_TRAIT))
-                            .withProperties(Map.of("subject", subjectKey))
-                            .withPrincipalId(PrincipalId.agent(agentId)),
+                                 .withConfidence(Confidence.inferred(
+                                         config.revisedBeliefInitialConfidence(), Instant.now()))
+                                 .withProvenance(REVISION_PROVENANCE)
+                                 .withTraits(Set.of(BELIEF_TRAIT))
+                                 .withProperties(Map.of("subject", subjectKey))
+                                 .withPrincipalId(PrincipalId.agent(agentId)),
                         tenantId);
-                    mindMapStore.supersede(beliefNode.id(), newNodeId, c.reasoning, tenantId);
-                } else {
-                    mindMapStore.updateNode(beliefNode.id(),
-                        NodeUpdate.empty().withConfidence(
-                            new Confidence(ConfidenceOrigin.INFERRED, newConfidence, Instant.now())),
-                        tenantId);
-                }
+                mindMapStore.supersede(beliefNode.id(), newNodeId, c.reasoning, tenantId);
+            } else {
+                mindMapStore.updateNode(beliefNode.id(),
+                                        NodeUpdate.empty().withConfidence(
+                                                new Confidence(ConfidenceOrigin.INFERRED, newConfidence, Instant.now())),
+                                        tenantId);
             }
-            return true;
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, agentId + ": belief revision failed (non-fatal)", e);
-            return false;
         }
+
+        for (var beliefNode : beliefs) {
+            if (contradictedBeliefIds.contains(beliefNode.id())) {continue;}
+            double currentConfidence = beliefNode.confidence().value();
+            if (currentConfidence >= 1.0) {continue;}
+            var subjectKey = beliefNode.property("subject").orElse(beliefNode.name());
+            boolean supported = evidence.stream().anyMatch(ev ->
+                                                                   ev.name() != null && subjectKey != null
+                                                                   && ev.name().toLowerCase(java.util.Locale.ROOT)
+                                                                        .contains(subjectKey.toLowerCase(java.util.Locale.ROOT)));
+            if (supported) {
+                double reinforced = Math.min(currentConfidence + config.beliefReinforcementStep(), 1.0);
+                mindMapStore.updateNode(beliefNode.id(),
+                                        NodeUpdate.empty().withConfidence(
+                                                new Confidence(ConfidenceOrigin.INFERRED, reinforced, Instant.now())),
+                                        tenantId);
+            }
+        }
+
+        return !contradictions.isEmpty();
     }
 
     record Contradiction(String beliefNodeId, String beliefText,
                          String contradictingEvidence, String reasoning,
                          double contradictionStrength, String revisedBelief) {}
+
+    record CursorInfo(String subgraphId, String nodeId, Instant lastProcessedAt) {}
+
 
     private List<Contradiction> detectContradictions(String agentId,
             List<MindMapNode> beliefs, List<MindMapNode> evidence) {
@@ -319,4 +344,25 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
                 tenantId);
         }
     }
+
+    private void saveCursor(String defaultSubgraphId, String cursorSubgraphId,
+                            String cursorNodeId, Instant lastTimestamp, String tenantId,
+                            String cursorName) {
+        String sgId = cursorSubgraphId != null ? cursorSubgraphId : defaultSubgraphId;
+        if (cursorNodeId != null) {
+            mindMapStore.updateNode(cursorNodeId,
+                                    NodeUpdate.empty().withPropertiesToSet(
+                                            Map.of("last-processed-timestamp", lastTimestamp.toString())),
+                                    tenantId);
+        } else {
+            mindMapStore.addNode(
+                    NodeInput.of(cursorName, sgId)
+                             .withProvenance("belief-revision-cursor")
+                             .withProperties(Map.of(
+                                     "cognitiveKind", "cursor",
+                                     "last-processed-timestamp", lastTimestamp.toString())),
+                    tenantId);
+        }
+    }
+
 }

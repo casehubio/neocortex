@@ -340,7 +340,8 @@ public class GoalProposalOrchestrator {
         DispositionAxes disposition = null;
         if (cognitiveDefaultsRegistry != null) {
             var defaults = cognitiveDefaultsRegistry.forAgentOrDefaults(agentId);
-            disposition = defaults.descriptor().disposition();
+            var desc = defaults.descriptor();
+            if (desc != null) disposition = desc.disposition();
         }
 
         MoodState mood = null;
@@ -366,7 +367,9 @@ public class GoalProposalOrchestrator {
                 recentMemories = memoryStoreRef.query(experienceQuery).stream()
                                                .map(Memory::text).toList();
             } catch (Exception e) {
-                // graceful degradation
+                // graceful degradation — proceed with empty lists
+                java.util.logging.Logger.getLogger(GoalProposalOrchestrator.class.getName())
+                    .log(java.util.logging.Level.FINE, "Failed to query memories for deductive context", e);
             }
         }
 
