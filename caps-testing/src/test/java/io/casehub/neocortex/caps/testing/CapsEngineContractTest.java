@@ -1,6 +1,7 @@
 package io.casehub.neocortex.caps.testing;
 
 import io.casehub.neocortex.caps.AgentCapsState;
+import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.caps.CapsNode;
 import io.casehub.neocortex.caps.ConnectionWeight;
@@ -15,7 +16,10 @@ import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -328,6 +332,60 @@ public abstract class CapsEngineContractTest {
                     .as("resting activation for %s must be in [-0.5, 0.5]", entry.getKey())
                     .isBetween(-0.5, 0.5);
         }
+    }
+
+    @Test
+    void noInputRankingDiffersFromThreatRanking() {
+        var state = engine.initializeAgent("t1", "ranking",
+                                           new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "collaborative"));
+
+        var noInput = engine.settle(state, Map.of());
+        var threat  = engine.settle(state, Map.of("physical_threat", 1.0));
+
+        List<String> noInputTop3 = noInput.attractors().stream()
+                                          .sorted((a, b) -> Double.compare(b.strength(), a.strength()))
+                                          .limit(3)
+                                          .map(CapsAttractor::nodeId)
+                                          .toList();
+
+        List<String> threatTop3 = threat.attractors().stream()
+                                        .sorted((a, b) -> Double.compare(b.strength(), a.strength()))
+                                        .limit(3)
+                                        .map(CapsAttractor::nodeId)
+                                        .toList();
+
+        assertThat(threatTop3)
+                .as("top-3 attractors under physical_threat=1.0 must differ from no-input ranking")
+                .isNotEqualTo(noInputTop3);
+    }
+
+    @Test
+    void oppositePersonalitiesDiverge() {
+        var bold = engine.initializeAgent("t1", "bold",
+                                          new DispositionAxes("competitive", "defiant", "bold", "independent", "confrontational"));
+        var cautious = engine.initializeAgent("t1", "cautious",
+                                              new DispositionAxes("cooperative", "compliant", "conservative", "dependent", "avoidant"));
+
+        var input          = Map.of("physical_threat", 0.7, "social_threat", 0.5);
+        var boldResult     = engine.settle(bold, input);
+        var cautiousResult = engine.settle(cautious, input);
+
+        double      maxDifference = 0.0;
+        Set<String> allNodes      = new HashSet<>(boldResult.activations().keySet());
+        allNodes.addAll(cautiousResult.activations().keySet());
+        for (String nodeId : allNodes) {
+            CapsNode node = engine.topology().nodes().get(nodeId);
+            if (node != null && node.type() == NodeType.OUTPUT) {
+                double diff = Math.abs(
+                        boldResult.activations().getOrDefault(nodeId, 0.0)
+                        - cautiousResult.activations().getOrDefault(nodeId, 0.0));
+                maxDifference = Math.max(maxDifference, diff);
+            }
+        }
+
+        assertThat(maxDifference)
+                .as("max output activation difference between opposite personalities must be > 0.1")
+                .isGreaterThan(0.1);
     }
 
 
