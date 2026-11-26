@@ -220,9 +220,14 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
 
         if (appraisal.get().emotions().isEmpty()) {return;}
 
+        // Normal regulation: non-positive-valence emotions drive maxDiscrepancy
+        // Purely positive emotions skip regulation unless they hit the safety gate (intensity > 0.75)
         double maxDiscrepancy = appraisal.get().emotions().stream()
+                                         .filter(e -> e.pad().pleasure() <= 0
+                                                      || e.intensity() > SAFETY_INTENSITY_THRESHOLD)
                                          .mapToDouble(e -> Math.abs(e.intensity() - BASELINE_INTENSITY))
                                          .max().orElse(0.0);
+        if (maxDiscrepancy == 0.0) {return;}
 
         // Bosse et al. 2010: regulation effort v_n = α_n × d / d_max (proportional to discrepancy)
         double depletion = cognitiveResourcePool != null
@@ -258,7 +263,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         Map<String, Double>                                  capsInputActivations = null;
         AgentCapsState                                       capsState            = null;
 
-        // Layer 1: Safety hard gate — resource-based override, fires unconditionally
+        // Layer 1: Safety hard gate — resource or intensity override
         if (peakEmotion != null && (currentFatigue > SAFETY_FATIGUE_THRESHOLD
                                     || peakEmotion.intensity() > SAFETY_INTENSITY_THRESHOLD)) {
             pinnedStrategy = EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT;

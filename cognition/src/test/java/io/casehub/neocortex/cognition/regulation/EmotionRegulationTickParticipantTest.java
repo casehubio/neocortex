@@ -9,9 +9,9 @@ import io.casehub.neocortex.cognitive.EmotionSource;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -418,5 +418,43 @@ class EmotionRegulationTickParticipantTest {
         assertThat(briefing.signals().get(0).sourceNodeId()).isEqualTo("safety-plan");
         assertThat(briefing.signals().get(1).category()).isEqualTo(io.casehub.neocortex.mindmap.SignalCategory.COPING_SUPPRESS);
         assertThat(briefing.signals().get(1).sourceNodeId()).isEqualTo("threat-source");
+    }
+
+    @Test
+    void highJoyDoesNotTriggerNormalRegulation() {
+        var config = CognitionConfig.none().with("regulation", true).with("appraisal", true);
+        var joy = new CognitiveEmotion(EmotionType.JOY, 0.6, "subject1",
+                                       java.time.Instant.now(), io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                                       new io.casehub.neocortex.cognitive.PadProjection(0.6, 0.3, 0.2));
+        var appraisal = new AppraisalResult(List.of(joy), List.of(), null);
+        when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.of(appraisal));
+
+        var participant = new EmotionRegulationTickParticipant(appraisalParticipant, config);
+        participant.tick(context);
+
+        assertThat(participant.currentResult("a1", "t1")).isEmpty();
+    }
+
+    @Test
+    void extremeJoyTriggersSafetyGate() {
+        var config = CognitionConfig.none().with("regulation", true).with("appraisal", true);
+        var joy = new CognitiveEmotion(EmotionType.JOY, 0.9, "subject1",
+                                       java.time.Instant.now(), io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                                       new io.casehub.neocortex.cognitive.PadProjection(0.9, 0.5, 0.4));
+        var appraisal = new AppraisalResult(List.of(joy), List.of(), null);
+        when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.of(appraisal));
+
+        var generationPhase = mock(EmotionRegulationGenerationPhase.class);
+        when(generationPhase.generate(any(), any(), any(), anyDouble(), anyDouble(), any(),
+                                      eq(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT), any(), any(), any(), any(), any(), any()))
+                .thenReturn(new EmotionRegulationResult(
+                        EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, List.of("JOY"), List.of(),
+                        0.9, 0.5, 0.5, "safety gate", null, null));
+
+        var participant = new EmotionRegulationTickParticipant(appraisalParticipant, config, generationPhase);
+        participant.tick(context);
+
+        verify(generationPhase).generate(any(), any(), any(), anyDouble(), anyDouble(), any(),
+                                         eq(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT), any(), any(), any(), any(), any(), any());
     }
 }
