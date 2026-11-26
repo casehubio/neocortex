@@ -174,8 +174,7 @@ public class HygieneAdaptationPhase implements ConsolidationPhase {
         }
 
         var newConfig = new RetentionConfig(newThreshold,
-                                            currentConfig.confidenceWeight(), currentConfig.recencyWeight(),
-                                            currentConfig.scopeWeight(), currentConfig.trustWeight());
+                                            currentConfig.recencyWeight(), currentConfig.frequencyWeight());
 
         adaptiveConfig.update(tenantId, newConfig);
 
@@ -275,8 +274,7 @@ public class HygieneAdaptationPhase implements ConsolidationPhase {
                             solution.substring("retentionThreshold=".length()));
                     var currentConfig = adaptiveConfig.current(tenantId);
                     var restoredConfig = new RetentionConfig(threshold,
-                            currentConfig.confidenceWeight(), currentConfig.recencyWeight(),
-                            currentConfig.scopeWeight(), currentConfig.trustWeight());
+                            currentConfig.recencyWeight(), currentConfig.frequencyWeight());
                     adaptiveConfig.update(tenantId, restoredConfig);
                     activeCaseIds.put(tenantId, best.caseId());
                 }

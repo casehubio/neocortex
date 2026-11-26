@@ -142,7 +142,7 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
                             entityId(m),
                             confidenceScorer.score(m, now),
                             temporalDecay.factor(m.storedAt(), now),
-                            scopeDecay.factor(0),
+                            0.0,
                             m.cbrRecord().trustScore() != null ? m.cbrRecord().trustScore() : 1.0,
                             retentionConfig))
                     .toList();

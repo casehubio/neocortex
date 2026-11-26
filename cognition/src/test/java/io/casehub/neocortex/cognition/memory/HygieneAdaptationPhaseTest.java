@@ -104,7 +104,7 @@ class HygieneAdaptationPhaseTest {
 
     @Test
     void thresholdClampsAtMinimum() {
-        adaptiveConfig.update(new RetentionConfig(0.02, 1.0, 1.0, 0.5, 0.5));
+        adaptiveConfig.update(new RetentionConfig(0.02, 1.0, 1.0));
         orchestrator.setTenantSummary("t1",
                 new KnowledgeGapSummary(50, 2, 100));
         phase.run("t1", List.of());

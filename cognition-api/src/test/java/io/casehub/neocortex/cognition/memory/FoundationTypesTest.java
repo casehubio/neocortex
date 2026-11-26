@@ -7,10 +7,24 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class FoundationTypesTest {
 
+
+    @Test
+    void oldUnaccessedMemoryScoresBelowEvictionThreshold() {
+        double score = RetentionScore.compute(
+                "c1", "e1",
+                1.0,    // confidence (high)
+                0.0,    // recencyFactor (very old)
+                0.0,    // frequencyFactor (never accessed)
+                1.0,    // trustFactor (default)
+                RetentionConfig.DEFAULT
+                                             ).composite();
+        assertThat(score).isLessThan(RetentionConfig.DEFAULT.retentionThreshold());
+    }
+
     @Test
     void retentionScoreComputation() {
-        var config = new RetentionConfig(0.1, 1.0, 1.0, 0.5, 0.5);
-        var score = RetentionScore.compute("c1", "e1", 0.8, 0.6, 1.0, 0.9, config);
+        var config = new RetentionConfig(0.1, 1.0, 1.0);
+        var score = RetentionScore.compute("c1", "e1", 0.8, 0.6, 0.5, 0.9, config);
         assertThat(score.composite()).isBetween(0.0, 1.0);
         assertThat(score.caseId()).isEqualTo("c1");
         assertThat(score.entityId()).isEqualTo("e1");
@@ -20,33 +34,34 @@ class FoundationTypesTest {
 
     @Test
     void retentionScoreWeightedMean() {
-        var config = new RetentionConfig(0.1, 2.0, 1.0, 0.0, 0.0);
+        var config = new RetentionConfig(0.1, 2.0, 1.0);
         var score = RetentionScore.compute("c1", "e1", 0.6, 0.3, 0.5, 0.5, config);
-        assertThat(score.composite()).isCloseTo(0.5, org.assertj.core.data.Offset.offset(0.001));
+        // base = (2.0*0.3 + 1.0*0.5) / 3.0 = 1.1/3.0 = 0.367; composite = 0.367 * 0.6 * 0.5 = 0.11
+        assertThat(score.composite()).isCloseTo(0.11, org.assertj.core.data.Offset.offset(0.01));
     }
 
     @Test
     void retentionConfigValidatesAllWeightsZero() {
-        assertThatThrownBy(() -> new RetentionConfig(0.1, 0.0, 0.0, 0.0, 0.0))
+        assertThatThrownBy(() -> new RetentionConfig(0.1, 0.0, 0.0))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void retentionConfigRejectsNegativeThreshold() {
-        assertThatThrownBy(() -> new RetentionConfig(-0.1, 1.0, 1.0, 0.5, 0.5))
+        assertThatThrownBy(() -> new RetentionConfig(-0.1, 1.0, 1.0))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void retentionConfigRejectsThresholdAboveOne() {
-        assertThatThrownBy(() -> new RetentionConfig(1.1, 1.0, 1.0, 0.5, 0.5))
+        assertThatThrownBy(() -> new RetentionConfig(1.1, 1.0, 1.0))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void retentionConfigDefaultHasExpectedValues() {
         assertThat(RetentionConfig.DEFAULT.retentionThreshold()).isEqualTo(0.1);
-        assertThat(RetentionConfig.DEFAULT.confidenceWeight()).isEqualTo(1.0);
+        assertThat(RetentionConfig.DEFAULT.recencyWeight()).isEqualTo(1.0);
     }
 
     @Test
@@ -77,7 +92,7 @@ class FoundationTypesTest {
     @Test
     void hygieneEventSealedVariants() {
         var score = RetentionScore.compute("c1", "e1", 0.1, 0.1, 0.1, 0.1,
-                new RetentionConfig(0.5, 1.0, 1.0, 0.5, 0.5));
+                new RetentionConfig(0.5, 1.0, 1.0));
         HygieneEvent evicted = new HygieneEvent.MemoryEvicted("c1", score);
         HygieneEvent consolidated = new HygieneEvent.MemoryConsolidated("m1", List.of("s1", "s2"));
         HygieneEvent reflected = new HygieneEvent.ReflectionGenerated("a1", "insight");

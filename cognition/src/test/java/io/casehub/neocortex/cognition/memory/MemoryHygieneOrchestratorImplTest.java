@@ -34,7 +34,7 @@ class MemoryHygieneOrchestratorImplTest {
     private MemoryHygieneOrchestratorImpl orchestrator;
 
     private static final MemoryDomain DOMAIN = new MemoryDomain("agent");
-    private static final RetentionConfig RETENTION = new RetentionConfig(0.5, 1.0, 1.0, 0.0, 0.0);
+    private static final RetentionConfig RETENTION = new RetentionConfig(0.3, 1.0, 1.0);
 
     @BeforeEach
     void setUp() {

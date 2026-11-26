@@ -16,7 +16,7 @@ class AdaptiveRetentionConfigTest {
     @Test
     void updateSwapsConfig() {
         var holder = new AdaptiveRetentionConfig();
-        var custom = new RetentionConfig(0.2, 1.0, 1.0, 0.5, 0.5);
+        var custom = new RetentionConfig(0.2, 1.0, 1.0);
         holder.update(custom);
         assertThat(holder.current()).isEqualTo(custom);
     }
@@ -24,8 +24,8 @@ class AdaptiveRetentionConfigTest {
     @Test
     void updateIsVisibleAcrossReads() {
         var holder = new AdaptiveRetentionConfig();
-        var c1 = new RetentionConfig(0.15, 1.0, 1.0, 0.5, 0.5);
-        var c2 = new RetentionConfig(0.25, 1.0, 1.0, 0.5, 0.5);
+        var c1 = new RetentionConfig(0.15, 1.0, 1.0);
+        var c2 = new RetentionConfig(0.25, 1.0, 1.0);
         holder.update(c1);
         assertThat(holder.current().retentionThreshold()).isEqualTo(0.15);
         holder.update(c2);
@@ -35,8 +35,8 @@ class AdaptiveRetentionConfigTest {
     @Test
     void perTenantConfigIsIsolated() {
         var holder   = new AdaptiveRetentionConfig();
-        var t1Config = new RetentionConfig(0.2, 1.0, 1.0, 0.5, 0.5);
-        var t2Config = new RetentionConfig(0.3, 1.0, 1.0, 0.5, 0.5);
+        var t1Config = new RetentionConfig(0.2, 1.0, 1.0);
+        var t2Config = new RetentionConfig(0.3, 1.0, 1.0);
         holder.update("t1", t1Config);
         holder.update("t2", t2Config);
         assertThat(holder.current("t1")).isEqualTo(t1Config);
@@ -46,7 +46,7 @@ class AdaptiveRetentionConfigTest {
     @Test
     void perTenantFallsBackToGlobalWhenNotSet() {
         var holder = new AdaptiveRetentionConfig();
-        var global = new RetentionConfig(0.15, 1.0, 1.0, 0.5, 0.5);
+        var global = new RetentionConfig(0.15, 1.0, 1.0);
         holder.update(global);
         assertThat(holder.current("unknown-tenant")).isEqualTo(global);
     }
@@ -54,16 +54,16 @@ class AdaptiveRetentionConfigTest {
     @Test
     void perTenantDoesNotAffectGlobal() {
         var holder = new AdaptiveRetentionConfig();
-        holder.update("t1", new RetentionConfig(0.4, 1.0, 1.0, 0.5, 0.5));
+        holder.update("t1", new RetentionConfig(0.4, 1.0, 1.0));
         assertThat(holder.current()).isEqualTo(RetentionConfig.DEFAULT);
     }
 
     @Test
     void evictAbsentRemovesUnknownTenants() {
         var holder = new AdaptiveRetentionConfig();
-        holder.update("t1", new RetentionConfig(0.2, 1.0, 1.0, 0.5, 0.5));
-        holder.update("t2", new RetentionConfig(0.3, 1.0, 1.0, 0.5, 0.5));
-        holder.update("t3", new RetentionConfig(0.4, 1.0, 1.0, 0.5, 0.5));
+        holder.update("t1", new RetentionConfig(0.2, 1.0, 1.0));
+        holder.update("t2", new RetentionConfig(0.3, 1.0, 1.0));
+        holder.update("t3", new RetentionConfig(0.4, 1.0, 1.0));
         holder.evictAbsent(Set.of("t1", "t3"));
         assertThat(holder.current("t1").retentionThreshold()).isEqualTo(0.2);
         assertThat(holder.current("t2")).isEqualTo(RetentionConfig.DEFAULT);
@@ -73,8 +73,8 @@ class AdaptiveRetentionConfigTest {
     @Test
     void perAgentConfigIsIsolated() {
         var holder   = new AdaptiveRetentionConfig();
-        var a1Config = new RetentionConfig(0.2, 1.0, 1.0, 0.5, 0.5);
-        var a2Config = new RetentionConfig(0.3, 1.0, 1.0, 0.5, 0.5);
+        var a1Config = new RetentionConfig(0.2, 1.0, 1.0);
+        var a2Config = new RetentionConfig(0.3, 1.0, 1.0);
         holder.update("t1", "agent-a", a1Config);
         holder.update("t1", "agent-b", a2Config);
         assertThat(holder.current("t1", "agent-a")).isEqualTo(a1Config);
@@ -84,7 +84,7 @@ class AdaptiveRetentionConfigTest {
     @Test
     void perAgentFallsBackToTenantConfig() {
         var holder       = new AdaptiveRetentionConfig();
-        var tenantConfig = new RetentionConfig(0.25, 1.0, 1.0, 0.5, 0.5);
+        var tenantConfig = new RetentionConfig(0.25, 1.0, 1.0);
         holder.update("t1", tenantConfig);
         assertThat(holder.current("t1", "unknown-agent")).isEqualTo(tenantConfig);
     }
@@ -92,7 +92,7 @@ class AdaptiveRetentionConfigTest {
     @Test
     void perAgentFallsBackToGlobalWhenNoTenantConfig() {
         var holder = new AdaptiveRetentionConfig();
-        var global = new RetentionConfig(0.15, 1.0, 1.0, 0.5, 0.5);
+        var global = new RetentionConfig(0.15, 1.0, 1.0);
         holder.update(global);
         assertThat(holder.current("unknown-tenant", "unknown-agent")).isEqualTo(global);
     }
@@ -100,17 +100,17 @@ class AdaptiveRetentionConfigTest {
     @Test
     void perAgentDoesNotAffectTenantConfig() {
         var holder       = new AdaptiveRetentionConfig();
-        var tenantConfig = new RetentionConfig(0.2, 1.0, 1.0, 0.5, 0.5);
+        var tenantConfig = new RetentionConfig(0.2, 1.0, 1.0);
         holder.update("t1", tenantConfig);
-        holder.update("t1", "agent-a", new RetentionConfig(0.4, 1.0, 1.0, 0.5, 0.5));
+        holder.update("t1", "agent-a", new RetentionConfig(0.4, 1.0, 1.0));
         assertThat(holder.current("t1")).isEqualTo(tenantConfig);
     }
 
     @Test
     void evictAbsentRemovesAgentConfigsForEvictedTenants() {
         var holder = new AdaptiveRetentionConfig();
-        holder.update("t1", "agent-a", new RetentionConfig(0.2, 1.0, 1.0, 0.5, 0.5));
-        holder.update("t2", "agent-b", new RetentionConfig(0.3, 1.0, 1.0, 0.5, 0.5));
+        holder.update("t1", "agent-a", new RetentionConfig(0.2, 1.0, 1.0));
+        holder.update("t2", "agent-b", new RetentionConfig(0.3, 1.0, 1.0));
         holder.evictAbsent(Set.of("t1"));
         assertThat(holder.current("t1", "agent-a").retentionThreshold()).isEqualTo(0.2);
         assertThat(holder.current("t2", "agent-b")).isEqualTo(RetentionConfig.DEFAULT);
