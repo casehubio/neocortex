@@ -9,7 +9,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
 
 class MoodOrchestratorTest {
 
@@ -218,4 +220,36 @@ class MoodOrchestratorTest {
 
         assertThat(orchestrator.currentMood("agent-1", "tenant-1")).isEmpty();
     }
+
+    @Test
+    void concurrentRecordAndTickDoNotCorruptState() throws Exception {
+        int iterations = 1000;
+        var latch      = new java.util.concurrent.CountDownLatch(1);
+        var errors     = new java.util.concurrent.atomic.AtomicInteger(0);
+
+        var recorder = Thread.startVirtualThread(() -> {
+            try {latch.await();} catch (InterruptedException e) {return;}
+            for (int i = 0; i < iterations; i++) {
+                try {
+                    orchestrator.record(new MoodSignal.DirectShift(0.01, 0.0, 0.0, "test"), "agent-1", "tenant-1");
+                } catch (Exception e) {errors.incrementAndGet();}
+            }
+        });
+
+        var ticker = Thread.startVirtualThread(() -> {
+            try {latch.await();} catch (InterruptedException e) {return;}
+            for (int i = 0; i < iterations; i++) {
+                try {
+                    orchestrator.tick("agent-1", "tenant-1");
+                } catch (Exception e) {errors.incrementAndGet();}
+            }
+        });
+
+        latch.countDown();
+        recorder.join(5000);
+        ticker.join(5000);
+
+        assertThat(errors.get()).as("no exceptions from concurrent access").isZero();
+    }
+
 }

@@ -9,7 +9,7 @@ import jakarta.inject.Inject;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayDeque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -64,8 +64,9 @@ public class MoodOrchestrator {
     private MoodTick doTick(AgentMoodState state) {
         var now = clock.instant();
         var drained = new java.util.ArrayList<MoodSignal>();
-        while (!state.pendingSignals.isEmpty()) {
-            drained.add(state.pendingSignals.removeFirst());
+        MoodSignal polled;
+        while ((polled = state.pendingSignals.pollFirst()) != null) {
+            drained.add(polled);
         }
 
         if (drained.isEmpty() && state.lastTickTimestamp != null) {
@@ -157,7 +158,7 @@ public class MoodOrchestrator {
     static final class AgentMoodState {
         final String agentId;
         final String tenantId;
-        final ArrayDeque<MoodSignal> pendingSignals = new ArrayDeque<>();
+        final ConcurrentLinkedDeque<MoodSignal> pendingSignals = new ConcurrentLinkedDeque<>();
         MoodState currentMood;
         Instant lastTickTimestamp;
         Instant lastActivityTimestamp;
