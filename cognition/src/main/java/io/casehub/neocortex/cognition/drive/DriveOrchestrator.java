@@ -141,12 +141,28 @@ public class DriveOrchestrator {
     }
 
     public void recordAppraisalModulation(String agentId, String tenantId,
-                                           Map<DriveAxis, Double> modulation,
-                                           @Nullable Map<DriveAxis, String> descriptions) {
+                                          Map<DriveAxis, Double> modulation,
+                                          @Nullable Map<DriveAxis, String> descriptions) {
         var key = agentId + ":" + tenantId;
-        pendingAppraisalModulations.put(key, modulation);
+        pendingAppraisalModulations.merge(key, new EnumMap<>(modulation), (existing, incoming) -> {
+            var merged = new EnumMap<DriveAxis, Double>(DriveAxis.class);
+            merged.putAll(existing);
+            incoming.forEach((axis, delta) -> merged.merge(axis, delta, Double::sum));
+            return merged;
+        });
         if (descriptions != null) {
-            pendingAppraisalDescriptions.put(key, descriptions);
+            pendingAppraisalDescriptions.merge(key, new EnumMap<>(descriptions), (existing, incoming) -> {
+                var merged = new EnumMap<DriveAxis, String>(DriveAxis.class);
+                merged.putAll(existing);
+                incoming.forEach((axis, desc) -> {
+                    double incomingMod = modulation.getOrDefault(axis, 0.0);
+                    double existingMod = pendingAppraisalModulations.getOrDefault(key, Map.of()).getOrDefault(axis, 0.0) - incomingMod;
+                    if (Math.abs(incomingMod) >= Math.abs(existingMod)) {
+                        merged.put(axis, desc);
+                    }
+                });
+                return merged;
+            });
         }
     }
 
