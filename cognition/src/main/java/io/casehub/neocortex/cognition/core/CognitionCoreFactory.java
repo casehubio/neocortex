@@ -92,6 +92,12 @@ public class CognitionCoreFactory {
     Instance<io.casehub.neocortex.cognition.dissonance.DissonanceDetectionPhase>      dissonancePhase;
     @Inject
     Instance<io.casehub.neocortex.cognition.dissonance.DissonanceDetectionConfig>     dissonanceConfig;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.drive.CuriosityDrive>                    curiosityDrive;
+    @Inject
+    Instance<io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer>     curiosityChannelComputer;
+    @Inject
+    Instance<CognitiveResourcePool>                                                   cognitiveResourcePool;
 
 
     public CognitionCore create(CognitionConfig config) {
@@ -172,6 +178,10 @@ public class CognitionCoreFactory {
         }
         if (dissonancePhase.isResolvable() && dissonanceConfig.isResolvable()) {
             builder.dissonance(dissonancePhase.get(), dissonanceConfig.get());
+        }
+        builder.searchBudget(resolve(curiosityDrive), resolve(cognitiveResourcePool));
+        if (curiosityDrive.isResolvable() && curiosityChannelComputer.isResolvable()) {
+            builder.curiosity(curiosityDrive.get(), curiosityChannelComputer.get(), 0.0, 0.4);
         }
 
         return builder.build();

@@ -87,6 +87,11 @@ public final class CognitivePipelineBuilder {
     private           io.casehub.neocortex.cognition.situational.@org.jspecify.annotations.Nullable SituationalPersonalityConfig    situationalPersonalityConfig;
     private           io.casehub.neocortex.cognition.dissonance.@org.jspecify.annotations.Nullable DissonanceDetectionPhase         dissonancePhase;
     private           io.casehub.neocortex.cognition.dissonance.@org.jspecify.annotations.Nullable DissonanceDetectionConfig        dissonanceConfig;
+    private           io.casehub.neocortex.cognition.drive.@org.jspecify.annotations.Nullable CuriosityDrive                        curiosityDrive;
+    private           io.casehub.neocortex.mindmap.intelligence.@org.jspecify.annotations.Nullable CuriosityChannelComputer         curiosityChannelComputer;
+    private @Nullable CognitiveResourcePool                                                                                         cognitiveResourcePool;
+    private           double                                                                                                        curiosityDeprivationBias;
+    private           double                                                                                                        curiosityBaselineIntensity;
 
 
     private CognitivePipelineBuilder(MoodOrchestrator mood, DriveOrchestrator drives) {
@@ -278,6 +283,27 @@ public final class CognitivePipelineBuilder {
     }
 
 
+    public CognitivePipelineBuilder searchBudget(
+            io.casehub.neocortex.cognition.drive.@org.jspecify.annotations.Nullable CuriosityDrive curiosityDrive,
+            @Nullable CognitiveResourcePool cognitiveResourcePool) {
+        this.curiosityDrive        = curiosityDrive;
+        this.cognitiveResourcePool = cognitiveResourcePool;
+        return this;
+    }
+
+    public CognitivePipelineBuilder curiosity(
+            io.casehub.neocortex.cognition.drive.CuriosityDrive curiosityDrive,
+            io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer channelComputer,
+            double deprivationBias,
+            double baselineIntensity) {
+        this.curiosityDrive             = curiosityDrive;
+        this.curiosityChannelComputer   = channelComputer;
+        this.curiosityDeprivationBias   = deprivationBias;
+        this.curiosityBaselineIntensity = baselineIntensity;
+        return this;
+    }
+
+
     public CognitionCore build() {
         var core = new CognitionCore(
                 mood, drives, userModel, mentalModel, strategy, narrative,
@@ -340,6 +366,14 @@ public final class CognitivePipelineBuilder {
         }
         if (dissonancePhase != null && dissonanceConfig != null) {
             core.configureDissonance(dissonancePhase, dissonanceConfig);
+        }
+        if (effectiveDefaults != null && mindMapStore != null) {
+            core.configureSearchBudget(drives, mood, effectiveDefaults, mindMapStore,
+                    curiosityDrive, cognitiveResourcePool);
+        }
+        if (curiosityDrive != null && curiosityChannelComputer != null && mindMapStore != null) {
+            core.configureCuriosity(curiosityDrive, curiosityChannelComputer, mindMapStore,
+                    curiosityDeprivationBias, curiosityBaselineIntensity);
         }
         core.configureTheoryOfMind();
 
