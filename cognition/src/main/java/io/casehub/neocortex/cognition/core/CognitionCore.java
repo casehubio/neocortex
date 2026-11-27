@@ -1426,6 +1426,10 @@ public @Nullable String lastTargetAgentId() {
 
     public void setEffectiveDefaults(io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults) {
         this.effectiveDefaults = effectiveDefaults;
+        if (mood != null) {
+            mood.setBaselineSupplier((agentId, tenantId) ->
+                    effectiveDefaults.forAgentOrDefaults(tenantId, agentId).moodBaseline());
+        }
         configureTierFilterFromEffectiveDefaults();
     }
 

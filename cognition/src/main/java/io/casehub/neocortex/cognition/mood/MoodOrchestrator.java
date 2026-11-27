@@ -26,6 +26,7 @@ public class MoodOrchestrator {
     private final ConcurrentHashMap<String, AgentMoodState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Instant> lastTickTimes = new ConcurrentHashMap<>();
+    private volatile java.util.function.BiFunction<String, String, MoodBaseline> baselineSupplier;
 
     @Inject
     public MoodOrchestrator(MoodConfig config) {
@@ -37,9 +38,22 @@ public class MoodOrchestrator {
         this.clock = clock;
     }
 
+    public void setBaselineSupplier(java.util.function.BiFunction<String, String, MoodBaseline> supplier) {
+        this.baselineSupplier = supplier;
+    }
+
+    private MoodBaseline baselineFor(String agentId, String tenantId) {
+        var supplier = this.baselineSupplier;
+        if (supplier != null) {
+            var perAgent = supplier.apply(agentId, tenantId);
+            if (perAgent != null) return perAgent;
+        }
+        return config.baseline();
+    }
+
     public void record(MoodSignal signal, String agentId, String tenantId) {
         var state = states.computeIfAbsent(stateKey(agentId, tenantId),
-                k -> new AgentMoodState(agentId, tenantId, config.baseline()));
+                k -> new AgentMoodState(agentId, tenantId, baselineFor(agentId, tenantId)));
         state.pendingSignals.addLast(signal);
         state.lastActivityTimestamp = clock.instant();
     }
@@ -63,7 +77,7 @@ public class MoodOrchestrator {
 
     public void setGoalBias(String agentId, String tenantId, MoodState bias) {
         var state = states.computeIfAbsent(stateKey(agentId, tenantId),
-                                           k -> new AgentMoodState(agentId, tenantId, config.baseline()));
+                                           k -> new AgentMoodState(agentId, tenantId, baselineFor(agentId, tenantId)));
         state.goalBias = bias;
     }
 
@@ -96,7 +110,7 @@ public class MoodOrchestrator {
                                         null, p, a, d, cause != null ? cause : "tick",
                                         null, Set.of(), Map.of());
             var effectiveBaseline = effectiveBaseline(state);
-            var decayedMood = MoodDecay.decay(preMood, config.baseline(),
+            var decayedMood = MoodDecay.decay(preMood, state.baseline,
                                               effectiveBaseline, elapsed, config.decayTimeConstant());
             if (decayedMood.pleasure() != p
                 || decayedMood.arousal() != a
@@ -121,9 +135,9 @@ public class MoodOrchestrator {
             }
         }
 
-        p = clampAxis(p, config.baseline().pleasure(), config.maxDisplacement());
-        a = clampAxis(a, config.baseline().arousal(), config.maxDisplacement());
-        d = clampAxis(d, config.baseline().dominance(), config.maxDisplacement());
+        p = clampAxis(p, state.baseline.pleasure(), config.maxDisplacement());
+        a = clampAxis(a, state.baseline.arousal(), config.maxDisplacement());
+        d = clampAxis(d, state.baseline.dominance(), config.maxDisplacement());
 
         var shifted = new MoodState(state.agentId, state.tenantId,
                                     null, p, a, d, cause != null ? cause : "tick",
@@ -165,12 +179,13 @@ public class MoodOrchestrator {
 
 
     private io.casehub.neocortex.memory.mood.MoodBaseline effectiveBaseline(AgentMoodState state) {
+        var base = state.baseline;
         var bias = state.goalBias;
-        if (bias == null) {return config.baseline();}
+        if (bias == null) {return base;}
         return new io.casehub.neocortex.memory.mood.MoodBaseline(
-                config.baseline().pleasure() + bias.pleasure(),
-                config.baseline().arousal() + bias.arousal(),
-                config.baseline().dominance() + bias.dominance());
+                base.pleasure() + bias.pleasure(),
+                base.arousal() + bias.arousal(),
+                base.dominance() + bias.dominance());
     }
 
 
@@ -194,6 +209,7 @@ public class MoodOrchestrator {
     static final class AgentMoodState {
         final String agentId;
         final String tenantId;
+        final MoodBaseline baseline;
         final ConcurrentLinkedDeque<MoodSignal> pendingSignals = new ConcurrentLinkedDeque<>();
         MoodState currentMood;
         Instant lastTickTimestamp;
@@ -204,6 +220,7 @@ public class MoodOrchestrator {
         AgentMoodState(String agentId, String tenantId, MoodBaseline baseline) {
             this.agentId = agentId;
             this.tenantId = tenantId;
+            this.baseline = baseline;
             this.currentMood = new MoodState(agentId, tenantId,
                                              null, baseline.pleasure(), baseline.arousal(), baseline.dominance(),
                                              "initial", null, Set.of(), Map.of());

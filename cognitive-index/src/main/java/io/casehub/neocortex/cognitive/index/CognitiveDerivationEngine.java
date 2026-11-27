@@ -1086,6 +1086,8 @@ public final class CognitiveDerivationEngine {
             styles.put("triumph", "expansive, generous, wants to share the glory");
         } else if (isLow(facets, PersonalityFacet.GRANDIOSITY)) {
             styles.put("triumph", "private, quiet satisfaction, deflects credit");
+        } else {
+            styles.put("triumph", "measured acknowledgment, neither deflecting nor amplifying");
         }
 
         // Paulhus & Williams (2002) Dark Triad: convergence of narcissism, psychopathy,
@@ -1097,6 +1099,8 @@ public final class CognitiveDerivationEngine {
             styles.put("gloating", "cold satisfaction, indifferent rather than triumphant");
         } else if (isLow(facets, PersonalityFacet.CALLOUSNESS)) {
             styles.put("gloating", "uncomfortable with others' misfortune, suppresses it");
+        } else {
+            styles.put("gloating", "notices but does not dwell, moves on quickly");
         }
 
         // Mischel & Shoda (1995) CAPS: if-then profiles predict situation-specific strategy selection
@@ -1106,6 +1110,8 @@ public final class CognitiveDerivationEngine {
             styles.put("scheming", "opportunistic, charm-based, reads openings not threats");
         } else if (isLow(facets, PersonalityFacet.MANIPULATIVENESS)) {
             styles.put("scheming", "transparent, prefers direct negotiation");
+        } else {
+            styles.put("scheming", "pragmatic, considers angles but prefers straightforward approaches");
         }
 
         // Krueger et al. (2012) AMPD: Grandiosity facet reflects both compensatory
@@ -1116,6 +1122,8 @@ public final class CognitiveDerivationEngine {
             styles.put("proving-worth", "demonstrative, seeking admiration through competence display");
         } else if (isLow(facets, PersonalityFacet.GRANDIOSITY)) {
             styles.put("proving-worth", "quiet competence, lets work speak, uncomfortable with praise");
+        } else {
+            styles.put("proving-worth", "balanced, acknowledges contributions without seeking spotlight");
         }
 
         // Costa & McCrae (1992) FFM: high Agreeableness (low AMPD Antagonism) predicts
@@ -1126,6 +1134,8 @@ public final class CognitiveDerivationEngine {
             styles.put("gallantry", "cautious protectiveness, helps but watches for betrayal");
         } else if (isHigh(facets, PersonalityFacet.CALLOUSNESS)) {
             styles.put("gallantry", "instrumental, helps when it serves a purpose");
+        } else {
+            styles.put("gallantry", "willing to help when asked, neither driven nor reluctant");
         }
 
         // Krueger et al. (2012): Suspiciousness loads on both Detachment and Psychoticism,
@@ -1136,6 +1146,8 @@ public final class CognitiveDerivationEngine {
             styles.put("distrust", "watchful withdrawal, avoids rather than confronts");
         } else if (isLow(facets, PersonalityFacet.SUSPICIOUSNESS)) {
             styles.put("distrust", "trusts by default, slow to suspect");
+        } else {
+            styles.put("distrust", "measured caution, verifies then trusts");
         }
 
         // Patrick et al. (2009) Triarchic: boldness + meanness interaction
@@ -1146,6 +1158,8 @@ public final class CognitiveDerivationEngine {
             styles.put("territorial", "defensive, reactive, guards existing ground");
         } else if (isLow(facets, PersonalityFacet.HOSTILITY)) {
             styles.put("territorial", "shares space easily, low boundary sensitivity");
+        } else {
+            styles.put("territorial", "maintains clear boundaries without rigidity");
         }
 
         ctx.output("stylesResolved", styles.size());
