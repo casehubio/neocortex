@@ -65,12 +65,22 @@ public class MindMapDriveSource implements DriveSource {
     }
 
     private static double axisValue(String value) {
-        if (value == null) {return 0.4;}
+        if (value == null) {return 0.5;}
         return switch (value.toLowerCase()) {
-            case "collaborative", "strict", "aggressive", "autonomous", "confronting", "competing", "collaborating" -> 0.6;
-            case "principled", "semi-autonomous", "measured", "compromising", "accommodating" -> 0.4;
-            case "independent", "flexible", "conservative", "directed", "avoiding" -> 0.3;
-            default -> 0.4;
+            case "collaborative", "strict", "aggressive", "autonomous", "confronting",
+                 "competing", "collaborating", "bold", "assertive", "dominant",
+                 "proactive", "driven", "enthusiastic" -> 0.6;
+            case "principled", "semi-autonomous", "measured", "compromising",
+                 "accommodating", "moderate", "balanced", "pragmatic", "adaptive" -> 0.5;
+            case "independent", "flexible", "conservative", "directed", "avoiding",
+                 "cautious", "reserved", "passive", "compliant", "deferential" -> 0.3;
+            default -> {
+                System.getLogger(MindMapDriveSource.class.getName()).log(
+                        System.Logger.Level.DEBUG,
+                        "Unrecognised disposition term ''{0}'' — using neutral baseline",
+                        value);
+                yield 0.5;
+            }
         };
     }
 
