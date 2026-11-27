@@ -46,4 +46,22 @@ class CognitionDefaultBeansTest {
         SalienceStrategy strategy = beans.salienceStrategy(unresolvable());
         assertThat(strategy).isInstanceOf(io.casehub.neocortex.cognition.salience.EntityAwareSalienceStrategy.class);
     }
+
+    @Test
+    void temporalFocusOrchestratorProducesNoOp() {
+        var beans        = new CognitionDefaultBeans();
+        var orchestrator = beans.temporalFocusOrchestrator();
+        assertThat(orchestrator).isNotNull();
+        orchestrator.tick("agent", "tenant", java.util.Set.of());
+        assertThat(orchestrator.lastFocus()).isEmpty();
+    }
+
+    @Test
+    void reflectionRetrievalOrchestratorProducesNoOp() {
+        var beans        = new CognitionDefaultBeans();
+        var orchestrator = beans.reflectionRetrievalOrchestrator();
+        assertThat(orchestrator).isNotNull();
+        orchestrator.tick("agent", "tenant");
+        assertThat(orchestrator.lastReflections()).isEmpty();
+    }
 }

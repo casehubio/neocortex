@@ -449,5 +449,35 @@ public class CognitionDefaultBeans {
         return io.casehub.neocortex.cognition.situational.ShadowFrameConfig.defaults();
     }
 
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.temporal.TemporalFocusOrchestrator temporalFocusOrchestrator() {
+        return new io.casehub.neocortex.cognition.temporal.TemporalFocusOrchestrator() {
+            @Override
+            public void tick(String agentId, String tenantId, java.util.Set<String> relevantSubjects) {}
+
+            @Override
+            public java.util.List<io.casehub.neocortex.cognitive.index.AttentionItem> lastFocus() {
+                return java.util.List.of();
+            }
+        };
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.temporal.ReflectionRetrievalOrchestrator reflectionRetrievalOrchestrator() {
+        return new io.casehub.neocortex.cognition.temporal.ReflectionRetrievalOrchestrator() {
+            @Override
+            public void tick(String agentId, String tenantId) {}
+
+            @Override
+            public java.util.List<io.casehub.neocortex.memory.ReflectionEntry> lastReflections() {
+                return java.util.List.of();
+            }
+        };
+    }
+
 
 }
