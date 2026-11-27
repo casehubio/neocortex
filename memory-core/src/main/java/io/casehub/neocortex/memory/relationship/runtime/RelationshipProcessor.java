@@ -33,6 +33,9 @@ public class RelationshipProcessor {
     public void onExperienceRecorded(ExperienceRecorded event) {
         var exp = event.event();
         String otherAgent = exp.metadata().get(ExperienceAttributeKeys.TARGET_AGENT);
+        if ((otherAgent == null || otherAgent.isBlank()) && exp instanceof Action a) {
+            otherAgent = a.targetAgent();
+        }
         if (otherAgent == null || otherAgent.isBlank()) return;
         if (otherAgent.equals(exp.agentId())) return;
 
