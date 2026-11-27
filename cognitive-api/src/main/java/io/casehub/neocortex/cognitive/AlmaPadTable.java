@@ -22,7 +22,7 @@ public final class AlmaPadTable {
         TABLE.put(EmotionType.HOPE,            new PadProjection( 0.2,   0.2,  -0.1));
         TABLE.put(EmotionType.INTEREST,         new PadProjection( 0.3,   0.4,  -0.1));
         TABLE.put(EmotionType.JOY,             new PadProjection( 0.4,   0.2,   0.1));
-        TABLE.put(EmotionType.LOVE,            new PadProjection( 0.4,   0.16, -0.24));
+        TABLE.put(EmotionType.LOVE,            new PadProjection( 0.3,   0.1,   0.1));
         TABLE.put(EmotionType.PITY,            new PadProjection(-0.4,  -0.2,  -0.5));
         TABLE.put(EmotionType.PRIDE,           new PadProjection( 0.4,   0.3,   0.3));
         TABLE.put(EmotionType.RELIEF,          new PadProjection( 0.2,  -0.3,   0.4));
