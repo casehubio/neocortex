@@ -37,6 +37,8 @@ public class DriveOrchestrator {
     private final ConcurrentHashMap<String, Map<DriveAxis, Double>> pendingAppraisalModulations = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Map<DriveAxis, String>> pendingAppraisalDescriptions = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Instant> lastTickTimes = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, DriveProfile> preTickBaselines = new ConcurrentHashMap<>();
+
 
     public DriveOrchestrator(DriveSource curiosity, DriveSource competence,
                              DriveSource affiliation, DriveSource autonomy,
@@ -74,67 +76,86 @@ public class DriveOrchestrator {
         var key = agentId + ":" + tenantId;
         lastTickTimes.put(key, Instant.now());
         return withLock(key, () -> {
-            var raw = new EnumMap<DriveAxis, DriveIntensity>(DriveAxis.class);
-            raw.put(DriveAxis.CURIOSITY, curiosity.evaluate(agentId, tenantId));
-            raw.put(DriveAxis.COMPETENCE, competence.evaluate(agentId, tenantId));
-            raw.put(DriveAxis.AFFILIATION, affiliation.evaluate(agentId, tenantId));
-            raw.put(DriveAxis.AUTONOMY, autonomy.evaluate(agentId, tenantId));
-
-            var mood = moodOrchestrator.currentMood(agentId, tenantId).orElse(null);
-            var disposition = descriptor.disposition();
-            var now = Instant.now(clock);
-
-            var modulations = new java.util.ArrayList<ModulationLayer>();
-            if (narrativeOrchestrator != null) {
-                narrativeOrchestrator.currentNarrative(agentId, tenantId)
-                        .map(NarrativeModulation::compute)
-                        .ifPresent(m -> modulations.add(new ModulationLayer(m, config.narrativeModulationStrength(), "narrative")));
-            }
-            if (subThoughtParticipant != null) {
-                var stResult = subThoughtParticipant.currentSubThoughts(agentId, tenantId);
-                if (stResult != null && !stResult.isEmpty()) {
-                    modulations.add(new ModulationLayer(
-                            io.casehub.neocortex.cognition.subthought.SubThoughtModulation.compute(stResult),
-                            config.subThoughtModulationStrength(), "sub-thought"));
-                }
-            }
-            var appraisalMod = pendingAppraisalModulations.remove(key);
-            if (appraisalMod != null) {
-                var appraisalDesc = pendingAppraisalDescriptions.remove(key);
-                modulations.add(new ModulationLayer(appraisalMod, 1.0, "appraisal", appraisalDesc));
-            }
-
-            var result = composer.composeWithEvaluations(raw, disposition, mood, modulations, config,
-                    agentId, tenantId, now);
-            var newProfile = result.profile();
-            lastEvaluations.put(key, result.evaluations());
-
             var previous = profiles.get(key);
-            newProfile = applySmoothing(newProfile, previous, config.smoothingAlpha());
-            profiles.put(key, newProfile);
-
-            if (previous == null) {
-                return new DriveTick.Updated(newProfile, newProfile,
-                        List.of(DriveAxis.values()));
+            if (previous != null) {
+                preTickBaselines.put(key, previous);
+            } else {
+                preTickBaselines.remove(key);
             }
-
-            var changed = new ArrayList<DriveAxis>();
-            for (var axis : DriveAxis.values()) {
-                var prevI = previous.drives().get(axis);
-                var newI = newProfile.drives().get(axis);
-                if (prevI == null || newI == null) {
-                    changed.add(axis);
-                } else if (Math.abs(prevI.intensity() - newI.intensity()) > config.changeThreshold()) {
-                    changed.add(axis);
-                }
-            }
-
-            if (changed.isEmpty()) {
-                return new DriveTick.NoChange("all axes within threshold");
-            }
-            return new DriveTick.Updated(previous, newProfile, changed);
+            return evaluateAndCompose(key, agentId, tenantId, descriptor, previous);
         });
     }
+
+    public DriveTick recomposeWithModulations(String agentId, String tenantId, AgentDescriptor descriptor) {
+        var key = agentId + ":" + tenantId;
+        return withLock(key, () -> {
+            var smoothingBaseline = preTickBaselines.getOrDefault(key, profiles.get(key));
+            return evaluateAndCompose(key, agentId, tenantId, descriptor, smoothingBaseline);
+        });
+    }
+
+    private DriveTick evaluateAndCompose(String key, String agentId, String tenantId,
+                                         AgentDescriptor descriptor, @Nullable DriveProfile smoothingBaseline) {
+        var raw = new EnumMap<DriveAxis, DriveIntensity>(DriveAxis.class);
+        raw.put(DriveAxis.CURIOSITY, curiosity.evaluate(agentId, tenantId));
+        raw.put(DriveAxis.COMPETENCE, competence.evaluate(agentId, tenantId));
+        raw.put(DriveAxis.AFFILIATION, affiliation.evaluate(agentId, tenantId));
+        raw.put(DriveAxis.AUTONOMY, autonomy.evaluate(agentId, tenantId));
+
+        var mood        = moodOrchestrator.currentMood(agentId, tenantId).orElse(null);
+        var disposition = descriptor.disposition();
+        var now         = Instant.now(clock);
+
+        var modulations = new java.util.ArrayList<ModulationLayer>();
+        if (narrativeOrchestrator != null) {
+            narrativeOrchestrator.currentNarrative(agentId, tenantId)
+                                 .map(NarrativeModulation::compute)
+                                 .ifPresent(m -> modulations.add(new ModulationLayer(m, config.narrativeModulationStrength(), "narrative")));
+        }
+        if (subThoughtParticipant != null) {
+            var stResult = subThoughtParticipant.currentSubThoughts(agentId, tenantId);
+            if (stResult != null && !stResult.isEmpty()) {
+                modulations.add(new ModulationLayer(
+                        io.casehub.neocortex.cognition.subthought.SubThoughtModulation.compute(stResult),
+                        config.subThoughtModulationStrength(), "sub-thought"));
+            }
+        }
+        var appraisalMod = pendingAppraisalModulations.remove(key);
+        if (appraisalMod != null) {
+            var appraisalDesc = pendingAppraisalDescriptions.remove(key);
+            modulations.add(new ModulationLayer(appraisalMod, 1.0, "appraisal", appraisalDesc));
+        }
+
+        var result = composer.composeWithEvaluations(raw, disposition, mood, modulations, config,
+                                                     agentId, tenantId, now);
+        var newProfile = result.profile();
+        lastEvaluations.put(key, result.evaluations());
+
+        newProfile = applySmoothing(newProfile, smoothingBaseline, config.smoothingAlpha());
+        profiles.put(key, newProfile);
+
+        if (smoothingBaseline == null) {
+            return new DriveTick.Updated(newProfile, newProfile,
+                                         List.of(DriveAxis.values()));
+        }
+
+        var changed = new ArrayList<DriveAxis>();
+        for (var axis : DriveAxis.values()) {
+            var prevI = smoothingBaseline.drives().get(axis);
+            var newI  = newProfile.drives().get(axis);
+            if (prevI == null || newI == null) {
+                changed.add(axis);
+            } else if (Math.abs(prevI.intensity() - newI.intensity()) > config.changeThreshold()) {
+                changed.add(axis);
+            }
+        }
+
+        if (changed.isEmpty()) {
+            return new DriveTick.NoChange("all axes within threshold");
+        }
+        return new DriveTick.Updated(smoothingBaseline, newProfile, changed);
+    }
+
 
     public void recordAppraisalModulation(String agentId, String tenantId, Map<DriveAxis, Double> modulation) {
         recordAppraisalModulation(agentId, tenantId, modulation, null);
@@ -215,6 +236,7 @@ public class DriveOrchestrator {
                 tickLocks.remove(key);
                 pendingAppraisalModulations.remove(key);
                 pendingAppraisalDescriptions.remove(key);
+                preTickBaselines.remove(key);
                 return true;
             }
             return false;

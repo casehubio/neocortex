@@ -438,7 +438,7 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
                                 "post-appraisal")));
             }
             if (config.drivesEnabled() && descriptor != null) {
-                safeRun(() -> drives.tick(agentId, tenantId, descriptor));
+                safeRun(() -> drives.recomposeWithModulations(agentId, tenantId, descriptor));
             }
         }
 

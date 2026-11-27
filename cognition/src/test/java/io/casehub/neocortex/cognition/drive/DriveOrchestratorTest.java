@@ -72,4 +72,98 @@ class DriveOrchestratorTest {
                 .isGreaterThan(0.5 + Math.tanh(0.3));
     }
 
+    @Test
+    void consecutiveTicksDoubleSmoothOnDeactivation() {
+        var         currentIntensity = new double[]{0.8};
+        DriveSource curiosity        = (a, t) -> new DriveIntensity(DriveAxis.CURIOSITY, currentIntensity[0], "gap");
+        DriveSource competence       = (a, t) -> new DriveIntensity(DriveAxis.COMPETENCE, 0.5, "task");
+        DriveSource affiliation      = (a, t) -> new DriveIntensity(DriveAxis.AFFILIATION, 0.5, "bond");
+        DriveSource autonomy         = (a, t) -> new DriveIntensity(DriveAxis.AUTONOMY, 0.5, "choice");
+
+        var descriptor = mock(AgentDescriptor.class);
+        when(descriptor.disposition()).thenReturn(null);
+
+        // Orchestrator A: single tick with appraisal (reference — correct)
+        var orchA = new DriveOrchestrator(curiosity, competence, affiliation, autonomy,
+                                          new MoodOrchestrator(MoodConfig.defaults()), new DriveComposer(), DriveConfig.defaults());
+        // Orchestrator B: double tick pattern (simulates CognitionCore bug)
+        var orchB = new DriveOrchestrator(curiosity, competence, affiliation, autonomy,
+                                          new MoodOrchestrator(MoodConfig.defaults()), new DriveComposer(), DriveConfig.defaults());
+
+        // Establish baseline at curiosity = 0.8
+        orchA.tick(AGENT, TENANT, descriptor);
+        orchB.tick(AGENT, TENANT, descriptor);
+
+        // Drop curiosity — triggers EMA smoothing on deactivation
+        currentIntensity[0] = 0.2;
+
+        // A: record appraisal then single tick
+        orchA.recordAppraisalModulation(AGENT, TENANT,
+                                        java.util.Map.of(DriveAxis.CURIOSITY, 0.1));
+        orchA.tick(AGENT, TENANT, descriptor);
+        var singleTickResult = orchA.currentDrives(AGENT, TENANT).get()
+                                    .drives().get(DriveAxis.CURIOSITY).intensity();
+
+        // B: tick, then record appraisal, then tick again (double-smooth bug)
+        orchB.tick(AGENT, TENANT, descriptor);
+        orchB.recordAppraisalModulation(AGENT, TENANT,
+                                        java.util.Map.of(DriveAxis.CURIOSITY, 0.1));
+        orchB.tick(AGENT, TENANT, descriptor);
+        var doubleTickResult = orchB.currentDrives(AGENT, TENANT).get()
+                                    .drives().get(DriveAxis.CURIOSITY).intensity();
+
+        // The double-tick pattern over-dampens: second tick smooths against
+        // the already-smoothed first tick result instead of the original baseline
+        assertThat(doubleTickResult)
+                .as("double tick applies EMA smoothing twice, producing lower intensity than single tick")
+                .isLessThan(singleTickResult);
+    }
+
+    @Test
+    void recomposeWithModulationsEquivalentToSingleTickWithAppraisal() {
+        var         currentIntensity = new double[]{0.8};
+        DriveSource curiosity        = (a, t) -> new DriveIntensity(DriveAxis.CURIOSITY, currentIntensity[0], "gap");
+        DriveSource competence       = (a, t) -> new DriveIntensity(DriveAxis.COMPETENCE, 0.5, "task");
+        DriveSource affiliation      = (a, t) -> new DriveIntensity(DriveAxis.AFFILIATION, 0.5, "bond");
+        DriveSource autonomy         = (a, t) -> new DriveIntensity(DriveAxis.AUTONOMY, 0.5, "choice");
+
+        var descriptor = mock(AgentDescriptor.class);
+        when(descriptor.disposition()).thenReturn(null);
+
+        // Orchestrator A: single tick with appraisal (reference — correct)
+        var orchA = new DriveOrchestrator(curiosity, competence, affiliation, autonomy,
+                                          new MoodOrchestrator(MoodConfig.defaults()), new DriveComposer(), DriveConfig.defaults());
+        // Orchestrator B: tick + recomposeWithModulations (the fix)
+        var orchB = new DriveOrchestrator(curiosity, competence, affiliation, autonomy,
+                                          new MoodOrchestrator(MoodConfig.defaults()), new DriveComposer(), DriveConfig.defaults());
+
+        // Establish baseline at curiosity = 0.8
+        orchA.tick(AGENT, TENANT, descriptor);
+        orchB.tick(AGENT, TENANT, descriptor);
+
+        // Drop curiosity — triggers EMA smoothing on deactivation
+        currentIntensity[0] = 0.2;
+
+        // A: record appraisal then single tick (smooths once against 0.8 baseline)
+        orchA.recordAppraisalModulation(AGENT, TENANT,
+                                        java.util.Map.of(DriveAxis.CURIOSITY, 0.1));
+        orchA.tick(AGENT, TENANT, descriptor);
+        var referenceResult = orchA.currentDrives(AGENT, TENANT).get()
+                                   .drives().get(DriveAxis.CURIOSITY).intensity();
+
+        // B: tick first (no appraisal), then record appraisal, then recompose
+        orchB.tick(AGENT, TENANT, descriptor);
+        orchB.recordAppraisalModulation(AGENT, TENANT,
+                                        java.util.Map.of(DriveAxis.CURIOSITY, 0.1));
+        orchB.recomposeWithModulations(AGENT, TENANT, descriptor);
+        var fixedResult = orchB.currentDrives(AGENT, TENANT).get()
+                               .drives().get(DriveAxis.CURIOSITY).intensity();
+
+        // Both should produce the same result — smoothed once against the same baseline
+        assertThat(fixedResult)
+                .as("recomposeWithModulations should produce same result as single tick with all modulations")
+                .isCloseTo(referenceResult, org.assertj.core.data.Offset.offset(0.001));
+    }
+
+
 }
