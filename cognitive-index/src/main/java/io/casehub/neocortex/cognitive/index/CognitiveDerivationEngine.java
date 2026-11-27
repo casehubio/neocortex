@@ -50,6 +50,7 @@ public final class CognitiveDerivationEngine {
         "ti", Map.of("reflection", 1.4, "experience", 0.9)
     );
 
+    // Heuristic PAD approximations from disposition axes — not empirically derived from Mehrabian & Russell (1974).
     private static final Map<String, Double> RISK_PLEASURE = Map.of(
         "conservative", -0.1,
         "measured", 0.1,
