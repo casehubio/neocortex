@@ -24,6 +24,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
+import io.casehub.neocortex.memory.mood.MoodState;
+import java.util.Set;
 
 class GoalProposalOrchestratorTest {
 
@@ -496,11 +499,11 @@ class GoalProposalOrchestratorTest {
         DeductiveGoalFormationStrategy deductive = mock(DeductiveGoalFormationStrategy.class);
         when(deductive.propose(captor.capture())).thenReturn(List.of());
 
-        var moodOrch = mock(io.casehub.neocortex.cognition.mood.MoodOrchestrator.class);
+        var moodOrch = mock(MoodOrchestrator.class);
         when(moodOrch.currentMood("a1", "t1")).thenReturn(Optional.of(
-                new io.casehub.neocortex.memory.mood.MoodState(
+                new MoodState(
                         "a1", "t1", Instant.now(clock), 0.5, 0.3, 0.2,
-                        "test", null, java.util.Set.of(), java.util.Map.of())));
+                        "test", null, Set.of(), Map.of())));
 
         var orch = new GoalProposalOrchestrator(
                 driveOrchestrator, List.of(), null, deductive,

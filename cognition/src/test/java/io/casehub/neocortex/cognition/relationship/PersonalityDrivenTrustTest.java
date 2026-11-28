@@ -4,6 +4,7 @@ import io.casehub.neocortex.cognition.usermodel.UserModelOrchestrator;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import io.casehub.neocortex.cognitive.index.ConflictInterpretation;
 
 class PersonalityDrivenTrustTest {
 
@@ -47,10 +48,10 @@ class PersonalityDrivenTrustTest {
     void repairConflictInterpretationReducesNegativeImpact() {
         double neutral = UserModelOrchestrator.computeFamiliarity(
                 5, 5, 0, CONFIG, 0, 0.5,
-                io.casehub.neocortex.cognitive.index.ConflictInterpretation.NEUTRAL);
+                ConflictInterpretation.NEUTRAL);
         double repair = UserModelOrchestrator.computeFamiliarity(
                 5, 5, 0, CONFIG, 0, 0.5,
-                io.casehub.neocortex.cognitive.index.ConflictInterpretation.REPAIR);
+                ConflictInterpretation.REPAIR);
 
         assertThat(repair)
                 .as("REPAIR agent discounts negative interactions — higher familiarity")
@@ -61,10 +62,10 @@ class PersonalityDrivenTrustTest {
     void disengageConflictInterpretationAmplifiesNegativeImpact() {
         double neutral = UserModelOrchestrator.computeFamiliarity(
                 5, 5, 0, CONFIG, 0, 0.5,
-                io.casehub.neocortex.cognitive.index.ConflictInterpretation.NEUTRAL);
+                ConflictInterpretation.NEUTRAL);
         double disengage = UserModelOrchestrator.computeFamiliarity(
                 5, 5, 0, CONFIG, 0, 0.5,
-                io.casehub.neocortex.cognitive.index.ConflictInterpretation.DISENGAGE);
+                ConflictInterpretation.DISENGAGE);
 
         assertThat(disengage)
                 .as("DISENGAGE agent amplifies negative interactions — lower familiarity")

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Set;
 
 class ConcernBasedSalienceStrategyTest {
 
@@ -75,8 +76,8 @@ class ConcernBasedSalienceStrategyTest {
 
     @Test
     void shortConcernFullyMatchingLongObservationScoresOne() {
-        var concern = java.util.Set.of("improve", "user", "retention");
-        var observation = java.util.Set.of("need", "improve", "user", "retention",
+        var concern = Set.of("improve", "user", "retention");
+        var observation = Set.of("need", "improve", "user", "retention",
                                            "analyzing", "behavioral", "patterns", "across", "different",
                                            "cohorts", "product", "analytics", "dashboard",
                                            "find", "actionable", "insights", "growth",

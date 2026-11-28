@@ -18,6 +18,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import io.smallrye.mutiny.Uni;
+import java.time.Clock;
+import java.time.Duration;
 
 class NarrativePipelineTest {
 
@@ -43,12 +46,12 @@ class NarrativePipelineTest {
             """;
 
     private static NarrativeContentSummariser stubSummariser(String response) {
-        var s = new NarrativeContentSummariser(NarrativeConfig.defaults(), java.time.Clock.systemUTC(), StubPipelines.create(init -> new AgentSession() {
+        var s = new NarrativeContentSummariser(NarrativeConfig.defaults(), Clock.systemUTC(), StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().item(new AgentEvent.TextDelta(response));
             }
-            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
-            @Override public void close(java.time.Duration timeout) {}
+            @Override public Uni<Void> interrupt() { return Uni.createFrom().voidItem(); }
+            @Override public void close(Duration timeout) {}
         }));
         return s;
     }

@@ -12,6 +12,11 @@ import java.time.ZoneId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
+import io.casehub.neocortex.memory.mood.MoodState;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class MoodOrchestratorTest {
 
@@ -224,8 +229,8 @@ class MoodOrchestratorTest {
     @Test
     void concurrentRecordAndTickDoNotCorruptState() throws Exception {
         int iterations = 1000;
-        var latch      = new java.util.concurrent.CountDownLatch(1);
-        var errors     = new java.util.concurrent.atomic.AtomicInteger(0);
+        var latch      = new CountDownLatch(1);
+        var errors     = new AtomicInteger(0);
 
         var recorder = Thread.startVirtualThread(() -> {
             try {latch.await();} catch (InterruptedException e) {return;}
@@ -280,8 +285,8 @@ class MoodOrchestratorTest {
 
         // Set a positive goal bias
         orch.setGoalBias("agent-1", "tenant-1",
-                         new io.casehub.neocortex.memory.mood.MoodState("agent-1", "tenant-1",
-                                                                        null, 0.3, 0.0, 0.0, "goal-bias", null, java.util.Set.of(), java.util.Map.of()));
+                         new MoodState("agent-1", "tenant-1",
+                                                                        null, 0.3, 0.0, 0.0, "goal-bias", null, Set.of(), Map.of()));
 
         // Push mood positive
         orch.record(new MoodSignal.DirectShift(0.8, 0.0, 0.0, "test"), "agent-1", "tenant-1");

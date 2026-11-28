@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Map;
 
 /**
  * Quality verification for the information-gap curiosity model.
@@ -143,7 +144,7 @@ class CuriosityQualityTest {
     void searchBudgetIntegration_gapBasedCuriosityProducesIntensity() {
         addGapNode("investigation-target", 0.4, 3);
 
-        var drive = new CuriosityDrive(detector, new io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer(), 0.5);
+        var drive = new CuriosityDrive(detector, new CuriosityChannelComputer(), 0.5);
         var result = drive.evaluate("agent-1", TENANT);
 
         assertThat(result.axis()).isEqualTo(DriveAxis.CURIOSITY);
@@ -159,7 +160,7 @@ class CuriosityQualityTest {
         String sgGoal = store.createSubgraph(
                 new SubgraphInput("goals", SubgraphTypes.GOAL, null), TENANT);
         String goalNode = store.addNode(NodeInput.of("learn-rust", sgGoal)
-                .withProperties(java.util.Map.of("status", "active")), TENANT);
+                .withProperties(Map.of("status", "active")), TENANT);
 
         String ownershipId = store.addNode(NodeInput.of("rust-ownership", sgConcept)
                 .withConfidence(Confidence.inferred(0.4, NOW)), TENANT);

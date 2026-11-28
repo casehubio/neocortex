@@ -19,6 +19,9 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import io.casehub.neocortex.mindmap.intelligence.SubThoughtExtractor;
+import io.casehub.neocortex.mindmap.intelligence.SubThoughtsEnriched;
+import java.util.List;
 
 class SubThoughtTickParticipantTest {
 
@@ -120,10 +123,10 @@ class SubThoughtTickParticipantTest {
 
     @Test
     void asyncCachePopulatedByHandleEnriched() {
-        var enriched = new io.casehub.neocortex.mindmap.intelligence.SubThoughtsEnriched(
+        var enriched = new SubThoughtsEnriched(
                 "mem-1", "agent1", "t1",
-                java.util.List.of(
-                        new io.casehub.neocortex.mindmap.intelligence.SubThoughtExtractor.ParsedSubThought(
+                List.of(
+                        new SubThoughtExtractor.ParsedSubThought(
                                 "concern", "worried about Sarah", "Sarah", 0.85)
                                  )
         );
@@ -143,10 +146,10 @@ class SubThoughtTickParticipantTest {
 
     @Test
     void asyncWinsOverSyncOnTextOverlap() {
-        var enriched = new io.casehub.neocortex.mindmap.intelligence.SubThoughtsEnriched(
+        var enriched = new SubThoughtsEnriched(
                 "mem-1", "agent1", "t1",
-                java.util.List.of(
-                        new io.casehub.neocortex.mindmap.intelligence.SubThoughtExtractor.ParsedSubThought(
+                List.of(
+                        new SubThoughtExtractor.ParsedSubThought(
                                 "causal-inference", "Sarah seemed upset.", "Sarah", 0.9)
                                  )
         );
@@ -164,10 +167,10 @@ class SubThoughtTickParticipantTest {
 
     @Test
     void asyncCacheUsesConfidenceFromParsedSubThought() {
-        var enriched = new io.casehub.neocortex.mindmap.intelligence.SubThoughtsEnriched(
+        var enriched = new SubThoughtsEnriched(
                 "mem-1", "agent1", "t1",
-                java.util.List.of(
-                        new io.casehub.neocortex.mindmap.intelligence.SubThoughtExtractor.ParsedSubThought(
+                List.of(
+                        new SubThoughtExtractor.ParsedSubThought(
                                 "evaluative", "excellent food", null, 0.65)
                                  )
         );

@@ -25,6 +25,9 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 
 class SituationalPersonalityParticipantTest {
 
@@ -323,10 +326,10 @@ class SituationalPersonalityParticipantTest {
     @Test
     void compositeDeltaScaledByPhaseSalience() {
         var personSgId = mindMapStore.createSubgraph(
-                new io.casehub.neocortex.mindmap.SubgraphInput(
-                        "Person", io.casehub.neocortex.mindmap.SubgraphTypes.PERSON, null), TENANT);
+                new SubgraphInput(
+                        "Person", SubgraphTypes.PERSON, null), TENANT);
         mindMapStore.addNode(
-                io.casehub.neocortex.mindmap.NodeInput.of(AGENT, personSgId)
+                NodeInput.of(AGENT, personSgId)
                                                       .withProperties(Map.of(
                                                               "lifecycle.born", "2020-01-01",
                                                               "archetype-1-family", "creator",
@@ -355,7 +358,7 @@ class SituationalPersonalityParticipantTest {
 
         var context2 = new CognitionTickContext("agent-no-salience", TENANT,
                                                 descriptorWithStressProfileForAgent("agent-no-salience"), (a, t) -> Set.of(),
-                                                "test observation", null, null, null, io.casehub.neocortex.cognition.journal.EventRef.tick(1));
+                                                "test observation", null, null, null, EventRef.tick(1));
         noSalienceParticipant.tick(context2);
         double unscaledDisplacement = stateService.currentState(TENANT, "agent-no-salience")
                                                   .facet("Anxiousness").displacement();

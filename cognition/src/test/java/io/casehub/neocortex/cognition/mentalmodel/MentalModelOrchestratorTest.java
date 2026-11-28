@@ -28,6 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
+import java.util.HashMap;
 
 class MentalModelOrchestratorTest {
 
@@ -234,7 +237,7 @@ class MentalModelOrchestratorTest {
         var beliefs = ((MentalModelTick.Updated) tick).snapshot().beliefs();
         assertThat(beliefs).hasSize(3);
 
-        var byKey = new java.util.HashMap<String, AttributedState>();
+        var byKey = new HashMap<String, AttributedState>();
         beliefs.forEach(b -> byKey.put(b.key(), b));
 
         assertThat(byKey.get("system_stability").confidence()).isCloseTo(0.9,
@@ -331,17 +334,17 @@ class MentalModelOrchestratorTest {
         var pipeline = io.casehub.neocortex.session.testing.StubPipelines.create(
                 init -> new io.casehub.platform.agent.AgentSession() {
                     @Override
-                    public io.smallrye.mutiny.Multi<AgentEvent> query(String prompt) {
+                    public Multi<AgentEvent> query(String prompt) {
                         capturedPrompt.set(prompt);
-                        return io.smallrye.mutiny.Multi.createFrom().item(new AgentEvent.TextDelta(
+                        return Multi.createFrom().item(new AgentEvent.TextDelta(
                                 "{\"beliefs\":[],\"desires\":[],\"intentions\":[]}"));
                     }
 
                     @Override
-                    public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+                    public Uni<Void> interrupt() {return Uni.createFrom().voidItem();}
 
                     @Override
-                    public void close(java.time.Duration timeout)   {}
+                    public void close(Duration timeout)   {}
                 });
 
         var mockStore = mock(CaseMemoryStore.class);
@@ -376,7 +379,7 @@ class MentalModelOrchestratorTest {
 
     @Test
     void valenceRoundTripsSerializationCorrectly() {
-        var now = java.time.Instant.now();
+        var now = Instant.now();
         var states = List.of(
                 new AttributedState("hostile-key", "hostile desc", 0.9, 1, now, BdiDimension.INTENTION, IntentValence.HOSTILE),
                 new AttributedState("coop-key", "cooperative desc", 0.7, 0, now, BdiDimension.DESIRE, IntentValence.COOPERATIVE),

@@ -20,6 +20,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import java.util.Set;
 
 class DriveGoalBridgeParticipantTest {
 
@@ -86,7 +88,7 @@ class DriveGoalBridgeParticipantTest {
     @Test
     void tick_enrichesExistingNodeOnJaroWinklerMatch() {
         var sgId = store.createSubgraph(
-                new io.casehub.neocortex.mindmap.SubgraphInput(SubgraphTypes.GOAL, SubgraphTypes.GOAL, null),
+                new SubgraphInput(SubgraphTypes.GOAL, SubgraphTypes.GOAL, null),
                 "tenant1");
         store.addNode(NodeInput.of("Improve coding skills", sgId)
                 .withProperties(Map.of("status", "active", "recognitionSource", "recognized")), "tenant1");
@@ -111,7 +113,7 @@ class DriveGoalBridgeParticipantTest {
     @Test
     void tick_crossPathDedup_matchesAgainstDescriptionProperty() {
         var sgId = store.createSubgraph(
-                new io.casehub.neocortex.mindmap.SubgraphInput(SubgraphTypes.GOAL, SubgraphTypes.GOAL, null),
+                new SubgraphInput(SubgraphTypes.GOAL, SubgraphTypes.GOAL, null),
                 "tenant1");
         store.addNode(NodeInput.of("Explore AI and machine learning technologies", sgId)
                 .withProperties(Map.of("description", "Learn AI", "status", "active")), "tenant1");
@@ -196,7 +198,7 @@ class DriveGoalBridgeParticipantTest {
     }
 
     private CognitionTickContext context(String agentId, String tenantId) {
-        return new CognitionTickContext(agentId, tenantId, null, (a, t) -> java.util.Set.of());
+        return new CognitionTickContext(agentId, tenantId, null, (a, t) -> Set.of());
     }
 
     private MindMapSubgraph findGoalSubgraph(String tenantId) {

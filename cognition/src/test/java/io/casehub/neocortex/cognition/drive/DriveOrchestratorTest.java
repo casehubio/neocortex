@@ -10,6 +10,7 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.util.Map;
 
 class DriveOrchestratorTest {
 
@@ -54,9 +55,9 @@ class DriveOrchestratorTest {
                 moodOrch, new DriveComposer(), DriveConfig.defaults());
 
         orchestrator.recordAppraisalModulation(AGENT, TENANT,
-                                               java.util.Map.of(DriveAxis.CURIOSITY, 0.1));
+                                               Map.of(DriveAxis.CURIOSITY, 0.1));
         orchestrator.recordAppraisalModulation(AGENT, TENANT,
-                                               java.util.Map.of(DriveAxis.CURIOSITY, 0.3));
+                                               Map.of(DriveAxis.CURIOSITY, 0.3));
 
         var descriptor = mock(AgentDescriptor.class);
         when(descriptor.agentId()).thenReturn(AGENT);
@@ -99,7 +100,7 @@ class DriveOrchestratorTest {
 
         // A: record appraisal then single tick
         orchA.recordAppraisalModulation(AGENT, TENANT,
-                                        java.util.Map.of(DriveAxis.CURIOSITY, 0.1));
+                                        Map.of(DriveAxis.CURIOSITY, 0.1));
         orchA.tick(AGENT, TENANT, descriptor);
         var singleTickResult = orchA.currentDrives(AGENT, TENANT).get()
                                     .drives().get(DriveAxis.CURIOSITY).intensity();
@@ -107,7 +108,7 @@ class DriveOrchestratorTest {
         // B: tick, then record appraisal, then tick again (double-smooth bug)
         orchB.tick(AGENT, TENANT, descriptor);
         orchB.recordAppraisalModulation(AGENT, TENANT,
-                                        java.util.Map.of(DriveAxis.CURIOSITY, 0.1));
+                                        Map.of(DriveAxis.CURIOSITY, 0.1));
         orchB.tick(AGENT, TENANT, descriptor);
         var doubleTickResult = orchB.currentDrives(AGENT, TENANT).get()
                                     .drives().get(DriveAxis.CURIOSITY).intensity();
@@ -146,7 +147,7 @@ class DriveOrchestratorTest {
 
         // A: record appraisal then single tick (smooths once against 0.8 baseline)
         orchA.recordAppraisalModulation(AGENT, TENANT,
-                                        java.util.Map.of(DriveAxis.CURIOSITY, 0.1));
+                                        Map.of(DriveAxis.CURIOSITY, 0.1));
         orchA.tick(AGENT, TENANT, descriptor);
         var referenceResult = orchA.currentDrives(AGENT, TENANT).get()
                                    .drives().get(DriveAxis.CURIOSITY).intensity();
@@ -154,7 +155,7 @@ class DriveOrchestratorTest {
         // B: tick first (no appraisal), then record appraisal, then recompose
         orchB.tick(AGENT, TENANT, descriptor);
         orchB.recordAppraisalModulation(AGENT, TENANT,
-                                        java.util.Map.of(DriveAxis.CURIOSITY, 0.1));
+                                        Map.of(DriveAxis.CURIOSITY, 0.1));
         orchB.recomposeWithModulations(AGENT, TENANT, descriptor);
         var fixedResult = orchB.currentDrives(AGENT, TENANT).get()
                                .drives().get(DriveAxis.CURIOSITY).intensity();
